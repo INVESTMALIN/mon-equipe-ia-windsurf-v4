@@ -76,17 +76,19 @@ export default function AssistantFormation() {
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden relative">
         <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.map((msg, idx) => (
-            <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
-              {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
-              {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
-              <div
-                className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user'
+            <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
+            {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
+            {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
+            <div
+              className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${
+                msg.sender === 'user'
                   ? 'bg-orange-100 text-right ml-auto'
-                  : 'bg-gray-100 text-left'}`}
-              >
-                {msg.text}
-              </div>
+                  : 'bg-gray-100 text-left'
+              }`}
+            >
+              {msg.text}
             </div>
+          </div>          
           ))}
           {loading && (
             <div className="text-sm text-gray-500 italic flex items-center gap-1">
