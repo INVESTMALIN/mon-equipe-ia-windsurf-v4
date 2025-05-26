@@ -1,26 +1,46 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, UserRound } from 'lucide-react'
+import { Bot, User } from 'lucide-react'
 
 export default function AssistantFormation() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
+  const [dots, setDots] = useState('.')
+  const [showScrollButton, setShowScrollButton] = useState(false)
+  const chatRef = useRef(null)
+
+  const welcome = "Bienvenue ! Pose-moi ta question sur la formation Invest Malin."
 
   useEffect(() => {
-    const welcome = 'Bienvenue ! Posez-moi votre question sur la formation Invest Malin.'
     let i = 0
     const interval = setInterval(() => {
       i++
       setMessages([{ sender: 'bot', text: welcome.slice(0, i) }])
       if (i >= welcome.length) clearInterval(interval)
     }, 10)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const interval = setInterval(() => {
+      if (loading) {
+        setDots((prev) => (prev.length < 3 ? prev + '.' : '.'))
+      }
+    }, 400)
+    return () => clearInterval(interval)
+  }, [loading])
+
+  useEffect(() => {
+    const container = chatRef.current
+    if (!container) return
+    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50
+    setShowScrollButton(!isAtBottom)
   }, [messages])
+
+  const scrollToBottom = () => {
+    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
+  }
 
   const sendMessage = async (e) => {
     e.preventDefault()
@@ -53,14 +73,12 @@ export default function AssistantFormation() {
       <h1 className="text-2xl font-bold text-orange-600 mb-4">Assistant Formation</h1>
       <p className="text-gray-700 mb-6">Posez vos questions sur la formation Invest Malin. Réponses instantanées assurées.</p>
 
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden relative">
+        <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              {msg.sender === 'bot' && <Bot className="w-5 h-5 text-orange-500 mt-1" />}
+            <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+              {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
+              {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
               <div
                 className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user'
                   ? 'bg-orange-100 text-right ml-auto'
@@ -68,14 +86,25 @@ export default function AssistantFormation() {
               >
                 {msg.text}
               </div>
-              {msg.sender === 'user' && <UserRound className="w-5 h-5 text-gray-400 mt-1" />}
             </div>
           ))}
           {loading && (
-            <div className="text-sm text-gray-500 italic">L’IA réfléchit...</div>
+            <div className="text-sm text-gray-500 italic flex items-center gap-1">
+              <Bot className="w-4 h-4 text-orange-500" />
+              L’IA réfléchit{dots}
+            </div>
           )}
-          <div ref={bottomRef} />
         </div>
+
+        {showScrollButton && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute bottom-16 right-4 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-100"
+            title="Aller en bas"
+          >
+            ↓
+          </button>
+        )}
 
         <form onSubmit={sendMessage} className="mt-4 flex gap-2">
           <input
