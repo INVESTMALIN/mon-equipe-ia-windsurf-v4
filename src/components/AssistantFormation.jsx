@@ -23,7 +23,7 @@ export default function AssistantFormation() {
       })
 
       const data = await res.json()
-      const reply = { sender: 'bot', text: data.reply || 'Réponse indisponible.' }
+      const reply = { sender: 'bot', text: data.output || 'Réponse indisponible.' }
       setMessages((prev) => [...prev, reply])
     } catch (err) {
       setMessages((prev) => [...prev, { sender: 'bot', text: 'Erreur lors de la connexion à l’agent.' }])
@@ -36,9 +36,6 @@ export default function AssistantFormation() {
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold text-orange-600 mb-4">Assistant Formation</h1>
       <p className="text-gray-700 mb-6">Posez vos questions sur la formation Invest Malin. Réponses instantanées assurées.</p>
-      
-      console.log("chat loaded")
-      
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.map((msg, idx) => (
