@@ -1,126 +1,81 @@
+import { Link } from 'react-router-dom';
+
 export default function MonCompte() {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-6xl mx-auto space-y-12">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-orange-600 mb-2">
-            Bienvenue dans Mon Équipe IA
-          </h1>
-          <p className="text-gray-700 max-w-xl mx-auto">
-            Mon Équipe IA est une collection d'agents spécialisés conçus pour répondre à toutes vos questions de gestion locative, fiscale, juridique ou formation. Des réponses immédiates, disponibles 24h/24, sans prise de tête.
-          </p>
+    <div className="space-y-16">
+      <section>
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <span role="img" aria-label="formation">🧑‍🏫</span>
+          Assistant Formation
+        </h2>
+        <div className="grid grid-cols-1 gap-6">ee
+          <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+            <h3 className="text-xl font-semibold mb-2">Assistant Formation</h3>
+            <p className="mb-4 text-gray-700">Votre copilote pendant la formation Invest Malin</p>
+            <p className="mb-4 text-gray-600">
+              Accès, vidéos, modules, fiches pratiques... Obtenez des réponses immédiates à toutes vos questions sur la formation.
+            </p>
+            <ul className="text-sm text-gray-600 space-y-1 mb-4">
+              <li>• Formation</li>
+              <li>• Réponses instantanées</li>
+            </ul>
+            <Link to="/mon-compte/assistant-formation" className="text-orange-600 hover:underline font-medium">
+              Accéder à l'assistant →
+            </Link>
+          </div>
         </div>
+      </section>
 
-        {/* Assistant Formation */}
-        <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
-            🔮 Assistant Formation
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white shadow border rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-2">
-                Assistant Formation n8n
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Votre copilote pendant la formation Invest Malin
-              </p>
-              <p className="text-sm text-gray-700">
-                Accès, vidéos, modules, fiches pratiques... Obtenez des réponses immédiates à toutes vos questions sur la formation.
-              </p>
-              <ul className="text-sm text-gray-500 mt-3 list-disc pl-5">
-                <li>Formation</li>
-                <li>Réponses instantanées</li>
-              </ul>
-              <a href="#" className="text-orange-600 text-sm font-medium mt-4 inline-block">
-                Accéder à l'assistant n8n →
-              </a>
-            </div>
-            <div className="bg-white shadow border rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-2">
-                Assistant Formation Voiceflow
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Votre copilote pendant la formation Invest Malin
-              </p>
-              <p className="text-sm text-gray-700">
-                Accès, vidéos, modules, fiches pratiques... Obtenez des réponses immédiates à toutes vos questions sur la formation.
-              </p>
-              <ul className="text-sm text-gray-500 mt-3 list-disc pl-5">
-                <li>Formation</li>
-                <li>Réponses instantanées</li>
-              </ul>
-              <a href="#" className="text-orange-600 text-sm font-medium mt-4 inline-block">
-                Accéder à l'assistant Voiceflow →
-              </a>
-            </div>
+      <section>
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <span role="img" aria-label="specialisés">🔒</span>
+          Choisissez votre assistant IA spécialisé !
+        </h2>
+        <p className="text-gray-700 mb-4">
+          Découvrez nos agents IA les plus demandés, conçus pour accompagner les conciergeries sur tous les sujets clés.
+          Chaque assistant est spécialisé pour répondre à un besoin précis de nos concierges.
+          Disponible avec l’abonnement Pro.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold mb-2">👨‍💼 Fiscaliste IA</h3>
+            <p className="text-sm text-gray-700 mb-2">Simplifiez vos démarches fiscales</p>
+            <ul className="text-sm text-gray-600 mb-4">
+              <li>• TVA sur Booking, LMNP, résidence principale…</li>
+              <li>• Posez vos questions de fiscalité courte durée et l’IA vous éclaire, sans jargon.</li>
+              <li>• Des réponses rapides, adaptées à votre situation.</li>
+            </ul>
+            <Link to="#" className="text-orange-600 hover:underline font-medium">
+              Accéder à l’assistant →
+            </Link>
           </div>
-        </section>
 
-        {/* Assistants spécialisés */}
-        <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-2 text-center">
-            🔐 Choisissez votre assistant IA spécialisé !
-          </h2>
-          <p className="text-center text-sm text-gray-600 mb-6 max-w-2xl mx-auto">
-            Découvrez nos agents IA les plus demandés, conçus pour accompagner les conciergeries sur tous les sujets clés.
-            Chaque assistant est spécialisé pour répondre à un besoin précis de nos concierges.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <div className="bg-white shadow border rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-2">Fiscaliste IA</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Simplifiez vos démarches fiscales
-              </p>
-              <p className="text-sm text-gray-700">
-                Posez vos questions de fiscalité courte ou longue durée (TVA, LMNP, etc.) en langage simple.
-              </p>
-              <ul className="text-sm text-gray-500 mt-3 list-disc pl-5">
-                <li>Fiscalité</li>
-                <li>Gain de temps</li>
-              </ul>
-              <a href="#" className="text-orange-600 text-sm font-medium mt-4 inline-block">
-                Accéder à l'assistant →
-              </a>
-            </div>
-            <div className="bg-white shadow border rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-2">LegalBNB</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                L’IA qui vous répond comme un juriste
-              </p>
-              <p className="text-sm text-gray-700">
-                Recevez des infos juridiques fiables adaptées aux conciergeries Airbnb.
-              </p>
-              <ul className="text-sm text-gray-500 mt-3 list-disc pl-5">
-                <li>Juridique</li>
-                <li>Infos pratiques</li>
-              </ul>
-              <a href="#" className="text-orange-600 text-sm font-medium mt-4 inline-block">
-                Accéder à l'assistant →
-              </a>
-            </div>
-            <div className="bg-white shadow border rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-2">Résumé d’appel</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Ne perdez plus une info client.
-              </p>
-              <p className="text-sm text-gray-700">
-                L’IA résume vos appels clients et génère des suivis et actions recommandées.
-              </p>
-              <ul className="text-sm text-gray-500 mt-3 list-disc pl-5">
-                <li>Suivi client</li>
-                <li>Synthèse rapide</li>
-              </ul>
-              <a href="#" className="text-orange-600 text-sm font-medium mt-4 inline-block">
-                Accéder à l'assistant →
-              </a>
-            </div>
+          <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold mb-2">⚖️ LegalBNB</h3>
+            <p className="text-sm text-gray-700 mb-2">L’IA qui vous répond comme un juriste</p>
+            <ul className="text-sm text-gray-600 mb-4">
+              <li>• Règlements de copropriété, sous-location, contrat de gestion…</li>
+              <li>• Recevez des infos juridiques fiables adaptées aux conciergeries Airbnb.</li>
+            </ul>
+            <Link to="#" className="text-orange-600 hover:underline font-medium">
+              Accéder à l’assistant →
+            </Link>
           </div>
-        </section>
-      </div>
+
+          <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold mb-2">📝 Résumé d’appel</h3>
+            <p className="text-sm text-gray-700 mb-2">Ne perdez plus une info client.</p>
+            <ul className="text-sm text-gray-600 mb-4">
+              <li>• L’IA résume vos appels en 10 secondes.</li>
+              <li>• Suivi clair, structuré et actionnable (besoins, objections, prochaines étapes…)</li>
+              <li>• Gain de rigueur et en temps.</li>
+            </ul>
+            <Link to="#" className="text-orange-600 hover:underline font-medium">
+              Accéder à l’assistant →
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
-  )
+  );
 }
-
-
-  
