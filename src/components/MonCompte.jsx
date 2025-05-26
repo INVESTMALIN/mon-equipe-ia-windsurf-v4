@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom';
+import { GraduationCap, Briefcase, Scale, FileText } from 'lucide-react'
 
 export default function MonCompte() {
   return (
     <div className="space-y-16">
       <section>
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <span role="img" aria-label="formation">🧑‍🏫</span>
+          <GraduationCap className="text-orange-500 w-6 h-6" />
           Assistant Formation
         </h2>
-        <div className="grid grid-cols-1 gap-6">ee
+        <div className="grid grid-cols-1 gap-6">
           <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
             <h3 className="text-xl font-semibold mb-2">Assistant Formation</h3>
             <p className="mb-4 text-gray-700">Votre copilote pendant la formation Invest Malin</p>
@@ -28,7 +29,7 @@ export default function MonCompte() {
 
       <section>
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <span role="img" aria-label="specialisés">🔒</span>
+          <FileText className="text-orange-500 w-6 h-6" />
           Choisissez votre assistant IA spécialisé !
         </h2>
         <p className="text-gray-700 mb-4">
@@ -38,7 +39,10 @@ export default function MonCompte() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold mb-2">👨‍💼 Fiscaliste IA</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <Briefcase className="text-orange-500 w-5 h-5" />
+              <h3 className="text-lg font-semibold">Fiscaliste IA</h3>
+            </div>
             <p className="text-sm text-gray-700 mb-2">Simplifiez vos démarches fiscales</p>
             <ul className="text-sm text-gray-600 mb-4">
               <li>• TVA sur Booking, LMNP, résidence principale…</li>
@@ -51,7 +55,10 @@ export default function MonCompte() {
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold mb-2">⚖️ LegalBNB</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <Scale className="text-orange-500 w-5 h-5" />
+              <h3 className="text-lg font-semibold">LegalBNB</h3>
+            </div>
             <p className="text-sm text-gray-700 mb-2">L’IA qui vous répond comme un juriste</p>
             <ul className="text-sm text-gray-600 mb-4">
               <li>• Règlements de copropriété, sous-location, contrat de gestion…</li>
@@ -63,7 +70,10 @@ export default function MonCompte() {
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold mb-2">📝 Résumé d’appel</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="text-orange-500 w-5 h-5" />
+              <h3 className="text-lg font-semibold">Résumé d’appel</h3>
+            </div>
             <p className="text-sm text-gray-700 mb-2">Ne perdez plus une info client.</p>
             <ul className="text-sm text-gray-600 mb-4">
               <li>• L’IA résume vos appels en 10 secondes.</li>
