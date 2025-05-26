@@ -5,9 +5,8 @@ export default function Home() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    navigate('/connexion')
+    navigate('/connexion', { replace: true })
   }, [])
 
   return null
 }
-
