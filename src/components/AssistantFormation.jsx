@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { BotIcon, UserIcon } from 'lucide-react'
 
 export default function AssistantFormation() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Message de bienvenue local (pas lié à n8n)
+    setMessages([{ sender: 'bot', text: 'Bienvenue ! Posez-moi votre question sur la formation Invest Malin.' }])
+  }, [])
 
   const sendMessage = async (e) => {
     e.preventDefault()
@@ -36,16 +42,23 @@ export default function AssistantFormation() {
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold text-orange-600 mb-4">Assistant Formation</h1>
       <p className="text-gray-700 mb-6">Posez vos questions sur la formation Invest Malin. Réponses instantanées assurées.</p>
+
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user'
-                ? 'bg-orange-100 text-right ml-auto'
-                : 'bg-gray-100 text-left'}`}
+              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {msg.text}
+              {msg.sender === 'bot' && <BotIcon className="w-5 h-5 text-orange-500 mr-2 mt-1" />}
+              <div
+                className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user'
+                  ? 'bg-orange-100 text-right'
+                  : 'bg-gray-100 text-left'}`}
+              >
+                {msg.text}
+              </div>
+              {msg.sender === 'user' && <UserIcon className="w-5 h-5 text-gray-500 ml-2 mt-1" />}
             </div>
           ))}
           {loading && (
