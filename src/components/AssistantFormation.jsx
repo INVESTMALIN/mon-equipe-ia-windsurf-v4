@@ -8,8 +8,14 @@ export default function AssistantFormation() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Message de bienvenue local (pas lié à n8n)
-    setMessages([{ sender: 'bot', text: 'Bienvenue ! Posez-moi votre question sur la formation Invest Malin.' }])
+    const welcome = 'Bienvenue ! Posez-moi votre question sur la formation Invest Malin.'
+    let i = 0
+    const interval = setInterval(() => {
+      i++
+      setMessages([{ sender: 'bot', text: welcome.slice(0, i) }])
+      if (i >= welcome.length) clearInterval(interval)
+    }, 25)
+    return () => clearInterval(interval)
   }, [])
 
   const sendMessage = async (e) => {
