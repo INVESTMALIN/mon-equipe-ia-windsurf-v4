@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BotIcon, UserIcon } from 'lucide-react'
+import { Bot, UserRound } from 'lucide-react'
 
 export default function AssistantFormation() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const bottomRef = useRef(null)
 
   useEffect(() => {
     const welcome = 'Bienvenue ! Posez-moi votre question sur la formation Invest Malin.'
@@ -14,9 +15,12 @@ export default function AssistantFormation() {
       i++
       setMessages([{ sender: 'bot', text: welcome.slice(0, i) }])
       if (i >= welcome.length) clearInterval(interval)
-    }, 25)
-    return () => clearInterval(interval)
+    }, 10)
   }, [])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   const sendMessage = async (e) => {
     e.preventDefault()
@@ -54,22 +58,23 @@ export default function AssistantFormation() {
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {msg.sender === 'bot' && <BotIcon className="w-5 h-5 text-orange-500 mr-2 mt-1" />}
+              {msg.sender === 'bot' && <Bot className="w-5 h-5 text-orange-500 mt-1" />}
               <div
                 className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user'
-                  ? 'bg-orange-100 text-right'
+                  ? 'bg-orange-100 text-right ml-auto'
                   : 'bg-gray-100 text-left'}`}
               >
                 {msg.text}
               </div>
-              {msg.sender === 'user' && <UserIcon className="w-5 h-5 text-gray-500 ml-2 mt-1" />}
+              {msg.sender === 'user' && <UserRound className="w-5 h-5 text-gray-400 mt-1" />}
             </div>
           ))}
           {loading && (
             <div className="text-sm text-gray-500 italic">L’IA réfléchit...</div>
           )}
+          <div ref={bottomRef} />
         </div>
 
         <form onSubmit={sendMessage} className="mt-4 flex gap-2">
