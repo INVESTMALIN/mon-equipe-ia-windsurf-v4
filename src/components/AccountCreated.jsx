@@ -1,18 +1,21 @@
-const AccountCreated = () => {
+import { Link } from 'react-router-dom'
+
+export default function AccountCreated() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Compte créé avec succès !
-          </h2>
-        </div>
-        <div className="text-center text-gray-600">
-          Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border border-gray-200 text-center">
+        <h1 className="text-2xl font-bold text-orange-600 mb-4">Compte créé avec succès 🎉</h1>
+        <p className="text-gray-700 mb-6">
+          Vous pouvez maintenant vous connecter pour accéder à votre espace personnel.
+        </p>
+        <Link
+          to="/connexion"
+          className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-md transition"
+        >
+          Se connecter
+        </Link>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AccountCreated;
