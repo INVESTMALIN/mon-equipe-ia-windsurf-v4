@@ -8,6 +8,7 @@ import MonCompte from './components/MonCompte'
 import AssistantFormation from './components/AssistantFormation'
 import Inscription from './components/Inscription'
 import MotDePasseOublie from './components/MotDePasseOublie'
+import EmailConfirmation from './components/EmailConfirmation'
 
 import AssistantFormationWithHistory from './components/AssistantFormationWithHistory'
 
@@ -29,7 +30,8 @@ function AppWrapper() {
             <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
             <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
             <Route path="*" element={<NotFound />} />
-
+            <Route path="/email-confirmation" element={<EmailConfirmation />} />
+            
             <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
           
           </Routes>

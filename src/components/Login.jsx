@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { Link } from 'react-router-dom'
+
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -60,6 +62,16 @@ export default function Login() {
               Connexion
             </button>
           </form>
+          <div className="mt-6 text-sm text-gray-600 space-x-4">
+            <Link to="/inscription" className="text-orange-600 hover:underline">
+              Créer un compte
+            </Link>
+            <span>·</span>
+            <Link to="/mot-de-passe-oublie" className="text-orange-600 hover:underline">
+              Mot de passe oublié
+            </Link>
+          </div>
+
         </div>
 
         {/* Illustration */}

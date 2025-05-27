@@ -5,21 +5,34 @@ import { supabase } from '../supabaseClient'
 export default function Inscription() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
   const handleSignup = async (e) => {
     e.preventDefault()
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password
     })
 
     if (error) {
       setError(error.message)
-    } else {
-      navigate('/compte-cree')
+      return
     }
+
+    // Insérer dans la table 'users'
+    await supabase.from('users').insert([
+      {
+        id: data.user.id,
+        prenom: firstName,
+        nom: lastName
+      }
+    ])
+
+    navigate('/compte-cree')
   }
 
   return (
@@ -27,6 +40,22 @@ export default function Inscription() {
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border border-gray-200">
         <h1 className="text-2xl font-bold mb-6 text-orange-600 text-center">Créer un compte</h1>
         <form onSubmit={handleSignup} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Votre prénom"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Votre nom"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
           <input
             type="email"
             placeholder="Votre email"

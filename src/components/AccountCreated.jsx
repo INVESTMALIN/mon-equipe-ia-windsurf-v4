@@ -5,8 +5,11 @@ export default function AccountCreated() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border border-gray-200 text-center">
         <h1 className="text-2xl font-bold text-orange-600 mb-4">Compte créé avec succès 🎉</h1>
+        <p className="text-gray-700 mb-4">
+          Un email de confirmation vous a été envoyé. Veuillez vérifier votre boîte mail pour activer votre compte.
+        </p>
         <p className="text-gray-700 mb-6">
-          Vous pouvez maintenant vous connecter pour accéder à votre espace personnel.
+          Une fois confirmé, vous pourrez vous connecter à votre espace personnel.
         </p>
         <Link
           to="/connexion"
@@ -18,4 +21,3 @@ export default function AccountCreated() {
     </div>
   )
 }
-
