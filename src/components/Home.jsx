@@ -54,7 +54,7 @@ export default function Home() {
               Découvrir les assistants
             </a>
             <Link
-              to="#assistants"
+              to="/mon-compte"
               className="bg-white text-orange-600 border border-orange-500 hover:bg-orange-100 font-semibold px-6 py-3 rounded-md text-center"
             >
               Accéder à mon compte
