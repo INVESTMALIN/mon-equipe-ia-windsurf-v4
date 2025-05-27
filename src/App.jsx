@@ -31,9 +31,7 @@ function AppWrapper() {
             <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
-            
             <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
-          
           </Routes>
         </div>
       </main>
