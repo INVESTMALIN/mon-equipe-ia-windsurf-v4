@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Bot, User } from 'lucide-react'
+import { supabase } from '../supabaseClient'
 
 export default function AssistantFormation() {
   const [messages, setMessages] = useState([])
@@ -9,8 +10,17 @@ export default function AssistantFormation() {
   const [dots, setDots] = useState('.')
   const [showScrollButton, setShowScrollButton] = useState(false)
   const chatRef = useRef(null)
+  const navigate = useNavigate()
 
-  const welcome = "Bienvenue ! Pose-moi ta question sur la formation Invest Malin."
+  const welcome = "Salut ! Moi c’est Coach Malin 🧠. Pose-moi ta question sur la formation, je suis là pour t’aider."
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) navigate('/connexion')
+    }
+    checkAuth()
+  }, [])
 
   useEffect(() => {
     let i = 0
@@ -70,30 +80,32 @@ export default function AssistantFormation() {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-orange-600 mb-4">Assistant Formation</h1>
-      <p className="text-gray-700 mb-6">Posez vos questions sur la formation Invest Malin. Réponses instantanées assurées.</p>
+      <h1 className="text-2xl font-bold text-orange-600 mb-2">Coach Malin 🤖</h1>
+      <p className="text-gray-700 mb-6">
+        Je suis là pour t’accompagner pendant et après ta formation Invest Malin. Pose-moi tes questions, j’y réponds instantanément.
+      </p>
 
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden relative">
         <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
-            {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
-            {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
-            <div
-              className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${
-                msg.sender === 'user'
-                  ? 'bg-orange-100 text-right ml-auto'
-                  : 'bg-gray-100 text-left'
-              }`}
-            >
-              {msg.text}
+              {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
+              {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
+              <div
+                className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${
+                  msg.sender === 'user'
+                    ? 'bg-orange-100 text-right ml-auto'
+                    : 'bg-gray-100 text-left'
+                }`}
+              >
+                {msg.text}
+              </div>
             </div>
-          </div>          
           ))}
           {loading && (
             <div className="text-sm text-gray-500 italic flex items-center gap-1">
               <Bot className="w-4 h-4 text-orange-500" />
-              L’IA réfléchit{dots}
+              Coach Malin réfléchit{dots}
             </div>
           )}
         </div>
