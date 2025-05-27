@@ -1,12 +1,27 @@
 import { useState } from 'react'
+import { supabase } from '../supabaseClient'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: login logic
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+
+    if (error) {
+      console.error('Erreur de login:', error.message)
+      alert('Connexion échouée : ' + error.message)
+      return
+    }
+
+    // Si succès
+    console.log('Login réussi:', data)
+    window.location.href = '/mon-compte'
   }
 
   return (
@@ -16,6 +31,7 @@ export default function Login() {
         <div className="flex-1 p-10">
           <h1 className="text-3xl font-bold text-orange-600 mb-4">Bienvenue sur<br />Mon Équipe IA</h1>
           <p className="text-gray-700 mb-8">Connectez-vous pour accéder à vos assistants IA personnalisés</p>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-1">Adresse Mail</label>

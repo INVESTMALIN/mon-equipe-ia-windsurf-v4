@@ -9,6 +9,8 @@ import AssistantFormation from './components/AssistantFormation'
 import Inscription from './components/Inscription'
 import MotDePasseOublie from './components/MotDePasseOublie'
 
+import AssistantFormationWithHistory from './components/AssistantFormationWithHistory'
+
 function AppWrapper() {
   const location = useLocation()
   const showNavbar = location.pathname.startsWith('/mon-compte')
@@ -27,6 +29,9 @@ function AppWrapper() {
             <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
             <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
             <Route path="*" element={<NotFound />} />
+
+            <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
+          
           </Routes>
         </div>
       </main>
