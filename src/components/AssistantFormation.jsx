@@ -62,7 +62,7 @@ export default function AssistantFormation() {
     setLoading(true)
 
     try {
-      const res = await fetch('https://hub.cardin.cloud/webhook-test/3bab9cc1-054f-4f06-b192-3baac53aa367', {
+      const res = await fetch('https://hub.cardin.cloud/webhook/3bab9cc1-054f-4f06-b192-3baac53aa367', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })

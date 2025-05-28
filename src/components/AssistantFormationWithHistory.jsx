@@ -5,8 +5,10 @@ import { Bot, User } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
+import { useUser } from '@supabase/auth-helpers-react'
 
 export default function AssistantFormationWithHistory() {
+  const user = useUser()
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,6 +16,8 @@ export default function AssistantFormationWithHistory() {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const chatRef = useRef(null)
   const conversationIdRef = useRef(null)
+
+  const welcome = "Bienvenue ! Pose-moi ta question sur la formation Invest Malin."
 
   useEffect(() => {
     let id = localStorage.getItem('conversation_id')
@@ -23,8 +27,6 @@ export default function AssistantFormationWithHistory() {
     }
     conversationIdRef.current = id
   }, [])
-
-  const welcome = "Bienvenue ! Pose-moi ta question sur la formation Invest Malin."
 
   useEffect(() => {
     let i = 0
@@ -61,15 +63,21 @@ export default function AssistantFormationWithHistory() {
     if (!input.trim()) return
 
     const newMessage = { sender: 'user', text: input }
-    setMessages((prev) => [...prev, newMessage])
+    const updatedMessages = [...messages, newMessage]
+    setMessages(updatedMessages)
     setInput('')
     setLoading(true)
 
+    const contextMessages = updatedMessages.slice(-10)
+    const fullPrompt = contextMessages
+      .map((msg) => `${msg.sender === 'user' ? 'Utilisateur' : 'Assistant'} : ${msg.text}`)
+      .join('\n')
+
     try {
-      const res = await fetch('https://hub.cardin.cloud/webhook-test/3bab9cc1-054f-4f06-b192-3baac53aa367', {
+      const res = await fetch('https://hub.cardin.cloud/webhook/3bab9cc1-054f-4f06-b192-3baac53aa367', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input })
+        body: JSON.stringify({ message: fullPrompt })
       })
 
       const data = await res.json()
@@ -80,7 +88,9 @@ export default function AssistantFormationWithHistory() {
         source: 'assistant-formation',
         question: input,
         answer: reply.text,
-        conversation_id: conversationIdRef.current
+        conversation_id: conversationIdRef.current,
+        user_id: user?.id,
+        title: messages.length === 1 ? input.slice(0, 40) : null
       })
     } catch (err) {
       setMessages((prev) => [...prev, { sender: 'bot', text: 'Erreur lors de la connexion à l’agent.' }])
@@ -89,15 +99,50 @@ export default function AssistantFormationWithHistory() {
     }
   }
 
+  const loadConversation = async (id) => {
+    conversationIdRef.current = id
+    localStorage.setItem('conversation_id', id)
+    const { data } = await supabase
+      .from('conversations')
+      .select('question, answer')
+      .eq('conversation_id', id)
+      .order('created_at')
+
+    if (!data) return
+    const reconstructed = data.flatMap(row => [
+      { sender: 'user', text: row.question },
+      { sender: 'bot', text: row.answer }
+    ])
+    setMessages(reconstructed)
+  }
+
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50 overflow-hidden">
-    <SidebarConversations
-      activeId={conversationIdRef.current}
-      onSelect={(id) => console.log(id)}
-    />
+      <SidebarConversations
+        activeId={conversationIdRef.current}
+        onSelect={loadConversation}
+        userId={user?.id}
+      />
 
-    <div className="flex-1 p-6 overflow-y-auto">
-        <h1 className="text-2xl font-bold text-orange-600 mb-4">Assistant Formation (v2)</h1>
+      <div className="flex-1 px-6 pt-2 pb-6 overflow-y-auto">
+        <div className="flex items-center justify-between mt-1 mb-6">
+          <Link to="/mon-compte" className="text-sm text-orange-600 hover:underline">
+            ← Retour au tableau de bord
+          </Link>
+          <button
+            onClick={() => {
+              const newId = uuidv4()
+              localStorage.setItem('conversation_id', newId)
+              conversationIdRef.current = newId
+              setMessages([{ sender: 'bot', text: welcome }])
+            }}
+            className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-3 py-1 rounded-md"
+          >
+            + Nouvelle conversation
+          </button>
+        </div>
+
+        <h1 className="text-2xl font-bold text-orange-600 mb-6">Assistant Formation (v2)</h1>
         <p className="text-gray-700 mb-6">Posez vos questions sur la formation Invest Malin. Réponses instantanées assurées.</p>
 
         <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[500px] flex flex-col overflow-hidden relative">
@@ -106,21 +151,14 @@ export default function AssistantFormationWithHistory() {
               <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
                 {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
                 {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
-                <div
-                  className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${
-                    msg.sender === 'user'
-                      ? 'bg-orange-100 text-right ml-auto'
-                      : 'bg-gray-100 text-left'
-                  }`}
-                >
+                <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-orange-100 text-right ml-auto' : 'bg-gray-100 text-left'}`}>
                   {msg.text}
                 </div>
               </div>
             ))}
             {loading && (
               <div className="text-sm text-gray-500 italic flex items-center gap-1">
-                <Bot className="w-4 h-4 text-orange-500" />
-                L’IA réfléchit{dots}
+                <Bot className="w-4 h-4 text-orange-500" /> L’IA réfléchit{dots}
               </div>
             )}
           </div>
@@ -150,12 +188,6 @@ export default function AssistantFormationWithHistory() {
               Envoyer
             </button>
           </form>
-        </div>
-
-        <div className="mt-6 text-sm text-gray-500 text-center">
-          <Link to="/mon-compte" className="text-orange-600 hover:underline">
-            ← Retour au tableau de bord
-          </Link>
         </div>
       </div>
     </div>
