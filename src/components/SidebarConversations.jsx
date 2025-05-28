@@ -17,17 +17,16 @@ export default function SidebarConversations({ activeId, onSelect, userId }) {
         .select('conversation_id, question, created_at')
         .eq('source', 'assistant-formation')
         .eq('user_id', userId)
-        .order('created_at', { ascending: true }) // plus ancien d'abord
+        .order('created_at', { ascending: true })
 
       if (!error && data) {
-        // Grouper par conversation_id, garder la plus ancienne
         const map = new Map()
         data.forEach(row => {
           if (!map.has(row.conversation_id)) {
             map.set(row.conversation_id, row)
           }
         })
-        setConversations([...map.values()].reverse()) // ordre inverse : plus récent en haut
+        setConversations([...map.values()].reverse())
       } else {
         console.error(error)
       }
@@ -44,14 +43,36 @@ export default function SidebarConversations({ activeId, onSelect, userId }) {
           <li
             key={conv.conversation_id}
             className={cn(
-              'p-2 rounded cursor-pointer text-sm hover:bg-orange-50',
+              'p-2 rounded text-sm hover:bg-orange-50 flex justify-between items-center group',
               conv.conversation_id === activeId && 'bg-orange-100 font-semibold'
             )}
-            onClick={() => onSelect(conv.conversation_id)}
           >
-            {conv.question === '(Nouvelle conversation)' 
-              ? 'Nouvelle conversation' 
-              : conv.question?.slice(0, 40)}
+            <span
+              onClick={() => onSelect(conv.conversation_id)}
+              className="flex-1 truncate cursor-pointer"
+            >
+              {conv.question === '(Nouvelle conversation)'
+                ? 'Nouvelle conversation'
+                : conv.question?.slice(0, 40)}
+            </span>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                console.log('Menu pour', conv.conversation_id)
+              }}
+              className="text-gray-500 text-lg font-bold opacity-50 hover:opacity-100 hover:shadow-sm rounded px-1 py-0.5 transition"
+              title="Options"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                lineHeight: 1,
+                fontSize: '1.25rem'
+              }}
+            >
+              ...
+            </button>
           </li>
         ))}
       </ul>
