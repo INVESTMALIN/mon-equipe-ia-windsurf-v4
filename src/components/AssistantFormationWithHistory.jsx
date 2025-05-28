@@ -1,25 +1,25 @@
-// ✅ AssistantFormationWithHistory.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bot, User } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
-import { useUser } from '@supabase/auth-helpers-react'
 
 export default function AssistantFormationWithHistory() {
-  const user = useUser()
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [dots, setDots] = useState('.')
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [userId, setUserId] = useState(null)
   const chatRef = useRef(null)
   const conversationIdRef = useRef(null)
 
-  const welcome = "Bienvenue ! Pose-moi ta question sur la formation Invest Malin."
-
   useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUserId(data.user.id)
+    })
+
     let id = localStorage.getItem('conversation_id')
     if (!id) {
       id = uuidv4()
@@ -27,6 +27,8 @@ export default function AssistantFormationWithHistory() {
     }
     conversationIdRef.current = id
   }, [])
+
+  const welcome = "Bienvenue ! Pose-moi ta question sur la formation Invest Malin."
 
   useEffect(() => {
     let i = 0
@@ -60,7 +62,7 @@ export default function AssistantFormationWithHistory() {
 
   const sendMessage = async (e) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || !userId) return
 
     const newMessage = { sender: 'user', text: input }
     const updatedMessages = [...messages, newMessage]
@@ -74,7 +76,7 @@ export default function AssistantFormationWithHistory() {
       .join('\n')
 
     try {
-      const res = await fetch('https://hub.cardin.cloud/webhook/3bab9cc1-054f-4f06-b192-3baac53aa367', {
+      const res = await fetch('https://hub.cardin.cloud/webhook-test/3bab9cc1-054f-4f06-b192-3baac53aa367', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: fullPrompt })
@@ -89,8 +91,7 @@ export default function AssistantFormationWithHistory() {
         question: input,
         answer: reply.text,
         conversation_id: conversationIdRef.current,
-        user_id: user?.id,
-        title: messages.length === 1 ? input.slice(0, 40) : null
+        user_id: userId
       })
     } catch (err) {
       setMessages((prev) => [...prev, { sender: 'bot', text: 'Erreur lors de la connexion à l’agent.' }])
@@ -99,21 +100,27 @@ export default function AssistantFormationWithHistory() {
     }
   }
 
-  const loadConversation = async (id) => {
-    conversationIdRef.current = id
-    localStorage.setItem('conversation_id', id)
-    const { data } = await supabase
+  const loadConversation = async (conversationId) => {
+    const { data, error } = await supabase
       .from('conversations')
-      .select('question, answer')
-      .eq('conversation_id', id)
-      .order('created_at')
+      .select('question, answer, created_at')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true })
 
-    if (!data) return
-    const reconstructed = data.flatMap(row => [
-      { sender: 'user', text: row.question },
-      { sender: 'bot', text: row.answer }
-    ])
-    setMessages(reconstructed)
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    const loadedMessages = []
+    data.forEach(row => {
+      if (row.question) loadedMessages.push({ sender: 'user', text: row.question })
+      if (row.answer) loadedMessages.push({ sender: 'bot', text: row.answer })
+    })
+
+    setMessages(loadedMessages)
+    conversationIdRef.current = conversationId
+    localStorage.setItem('conversation_id', conversationId)
   }
 
   return (
@@ -121,7 +128,7 @@ export default function AssistantFormationWithHistory() {
       <SidebarConversations
         activeId={conversationIdRef.current}
         onSelect={loadConversation}
-        userId={user?.id}
+        userId={userId}
       />
 
       <div className="flex-1 px-6 pt-2 pb-6 overflow-y-auto">
@@ -130,11 +137,21 @@ export default function AssistantFormationWithHistory() {
             ← Retour au tableau de bord
           </Link>
           <button
-            onClick={() => {
+            onClick={async () => {
               const newId = uuidv4()
               localStorage.setItem('conversation_id', newId)
               conversationIdRef.current = newId
               setMessages([{ sender: 'bot', text: welcome }])
+
+              if (userId) {
+                await supabase.from('conversations').insert({
+                  user_id: userId,
+                  source: 'assistant-formation',
+                  question: '(Nouvelle conversation)',
+                  answer: '',
+                  conversation_id: newId
+                })
+              }
             }}
             className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-3 py-1 rounded-md"
           >
@@ -151,14 +168,21 @@ export default function AssistantFormationWithHistory() {
               <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
                 {msg.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-1" />}
                 {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
-                <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-orange-100 text-right ml-auto' : 'bg-gray-100 text-left'}`}>
+                <div
+                  className={`max-w-[80%] px-4 py-2 rounded-lg text-sm ${
+                    msg.sender === 'user'
+                      ? 'bg-orange-100 text-right ml-auto'
+                      : 'bg-gray-100 text-left'
+                  }`}
+                >
                   {msg.text}
                 </div>
               </div>
             ))}
             {loading && (
               <div className="text-sm text-gray-500 italic flex items-center gap-1">
-                <Bot className="w-4 h-4 text-orange-500" /> L’IA réfléchit{dots}
+                <Bot className="w-4 h-4 text-orange-500" />
+                L’IA réfléchit{dots}
               </div>
             )}
           </div>
