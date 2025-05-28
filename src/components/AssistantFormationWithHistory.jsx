@@ -76,7 +76,7 @@ export default function AssistantFormationWithHistory() {
       .join('\n')
 
     try {
-      const res = await fetch('https://hub.cardin.cloud/webhook-test/3bab9cc1-054f-4f06-b192-3baac53aa367', {
+      const res = await fetch('https://hub.cardin.cloud/webhook/3bab9cc1-054f-4f06-b192-3baac53aa367', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: fullPrompt })
@@ -134,7 +134,7 @@ export default function AssistantFormationWithHistory() {
       <div className="flex-1 px-6 pt-2 pb-6 overflow-y-auto">
         <div className="flex items-center justify-between mt-1 mb-6">
           <Link to="/mon-compte" className="text-sm text-orange-600 hover:underline">
-            ← Retour au tableau de bord
+            ← Retour
           </Link>
           <button
             onClick={async () => {

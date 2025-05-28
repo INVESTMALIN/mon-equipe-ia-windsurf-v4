@@ -8,7 +8,10 @@ function cn(...args) {
 export default function SidebarConversations({ activeId, onSelect, userId }) {
   const [conversations, setConversations] = useState([])
   const [menuOpenId, setMenuOpenId] = useState(null)
+  const [showSidebar, setShowSidebar] = useState(false)
   const menuRef = useRef(null)
+  const sidebarRef = useRef(null)
+  const burgerRef = useRef(null)
 
   useEffect(() => {
     if (!userId) return
@@ -68,25 +71,89 @@ export default function SidebarConversations({ activeId, onSelect, userId }) {
     }
   }
 
-  // 👇 Ajout du gestionnaire de clic extérieur
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setMenuOpenId(null)
       }
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target) &&
+        burgerRef.current &&
+        !burgerRef.current.contains(event.target)
+      ) {
+        setShowSidebar(false)
+      }
     }
 
-    if (menuOpenId) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [menuOpenId])
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpenId, showSidebar])
 
   return (
-    <aside className="w-64 h-full bg-white border-r p-4 overflow-auto flex-shrink-0">
+    <>
+      {/* Burger button (mobile only) */}
+      <button
+        ref={burgerRef}
+        className="sm:hidden fixed top-4 left-4 z-50 bg-white border border-gray-300 px-3 py-2 rounded shadow hover:bg-gray-100 transition text-black text-xl"
+        onClick={() => setShowSidebar(!showSidebar)}
+      >
+        ≡
+      </button>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden sm:block w-40 sm:w-44 md:w-56 lg:w-64 bg-white border-r p-4 overflow-auto flex-shrink-0">
+        <SidebarContent
+          conversations={conversations}
+          activeId={activeId}
+          onSelect={onSelect}
+          handleRename={handleRename}
+          handleDelete={handleDelete}
+          menuOpenId={menuOpenId}
+          setMenuOpenId={setMenuOpenId}
+          menuRef={menuRef}
+        />
+      </aside>
+
+      {/* Mobile overlay sidebar */}
+      {showSidebar && (
+        <aside
+          ref={sidebarRef}
+          className="sm:hidden fixed top-0 left-0 z-40 w-64 h-full bg-white border-r p-4 overflow-auto shadow-lg"
+        >
+          <div className="mt-16">
+            <SidebarContent
+              conversations={conversations}
+              activeId={activeId}
+              onSelect={(id) => {
+                onSelect(id)
+                setShowSidebar(false)
+              }}
+              handleRename={handleRename}
+              handleDelete={handleDelete}
+              menuOpenId={menuOpenId}
+              setMenuOpenId={setMenuOpenId}
+              menuRef={menuRef}
+            />
+          </div>
+        </aside>
+      )}
+    </>
+  )
+}
+
+function SidebarContent({
+  conversations,
+  activeId,
+  onSelect,
+  handleRename,
+  handleDelete,
+  menuOpenId,
+  setMenuOpenId,
+  menuRef
+}) {
+  return (
+    <>
       <h2 className="text-lg font-semibold mb-4">Conversations</h2>
       <ul className="space-y-2">
         {conversations.map(conv => (
@@ -182,6 +249,6 @@ export default function SidebarConversations({ activeId, onSelect, userId }) {
           </li>
         ))}
       </ul>
-    </aside>
+    </>
   )
 }
