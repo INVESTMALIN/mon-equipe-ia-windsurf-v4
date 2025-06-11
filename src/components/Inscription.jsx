@@ -188,9 +188,9 @@ export default function Inscription() {
           <div className="mt-8 text-center">
             <p className="text-xs text-gray-500">
               En créant un compte, vous acceptez nos{' '}
-              <a href="#" className="text-[#dbae61] hover:underline">conditions d'utilisation</a>
+              <Link to="/conditions-utilisation" className="text-[#dbae61] hover:underline">conditions d'utilisation</Link>
               {' '}et notre{' '}
-              <a href="#" className="text-[#dbae61] hover:underline">politique de confidentialité</a>.
+              <Link to="/politique-confidentialite" className="text-[#dbae61] hover:underline">politique de confidentialité</Link>.
             </p>
           </div>
         </div>
