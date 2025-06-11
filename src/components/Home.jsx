@@ -1,212 +1,368 @@
 import { Link } from 'react-router-dom'
 import {
   MessageCircle,
-  CalendarCheck,
-  FileText,
-  LayoutDashboard,
-  Settings,
-  SlidersHorizontal,
-  ShieldCheck,
-  Bot,
-  User,
   Users,
-  UserRound,
-  UserCircle, 
-  UserSquare
+  Scale,
+  TrendingUp,
+  CheckCircle,
+  User,
+  GraduationCap,
+  Phone
 } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="bg-gray-50 text-gray-800">
+    <div className="bg-white text-gray-800 font-['Montserrat',sans-serif]">
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 md:px-20 py-4">
+      <header className="bg-black text-white px-6 md:px-20 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xl font-bold text-orange-600">
-            <Link to="/" className="flex items-center gap-2"> {/* Lien vers la homepage */}
-              <Bot size={24} className="text-orange-500" />
-              Mon Équipe IA
-            </Link>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/images/invest-malin-logo.png" 
+              alt="Invest Malin Logo" 
+              className="h-8"
+            />
+            <span className="text-lg font-bold">MON ÉQUIPE IA</span>
           </div>
-          <nav className="flex gap-6 text-base text-gray-700 font-medium">
-            <a href="#a-propos" className="hover:text-orange-600">À propos</a>
-            <a href="#notre-mission" className="hover:text-orange-600">Notre mission</a>
-            <Link to="/tarifs" className="hover:text-orange-600">Tarifs</Link>
-            <a href="#temoignages" className="hover:text-orange-600">Témoignages</a>
+          <nav className="flex gap-8 text-sm font-medium">
+            <a href="#cas-usage" className="hover:text-[#dbae61] transition-colors">À PROPOS</a>
+            <a href="#assistants" className="hover:text-[#dbae61] transition-colors">NOS ASSISTANTS</a>
+            <a href="#temoignages" className="hover:text-[#dbae61] transition-colors">TÉMOIGNAGES</a>
           </nav>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="flex flex-col md:flex-row items-center justify-between px-6 md:px-20 py-20 bg-[#fdf7ee]">
-        <div className="max-w-xl">
-          <h1 className="text-4xl font-bold text-orange-600 mb-4">
-            Une équipe IA dédiée à votre activité
+      {/* Hero Section - Titre principal */}
+      <section className="bg-[#f8f8f8] px-6 md:px-20 py-20 text-center">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-3xl md:text-4xl font-bold text-black mb-6 leading-tight">
+            UNE ÉQUIPE <span className="font-normal">IA</span> DÉDIÉE À VOTRE CONCIERGERIE
           </h1>
-          <p className="text-lg mb-6">
-            Optimisez votre gestion quotidienne avec un assistant IA personnalisé, conçu pour vous accompagner à chaque étape.
+          <p className="text-xl text-gray-700 mb-8 leading-relaxed max-w-3xl mx-auto">
+            Ajoutez des "collaborateurs" à votre conciergerie, optimisez votre 
+            gestion quotidienne avec un assistant IA personnalisé, conçu 
+            pour vous accompagner à chaque étape.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#assistants"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-md text-center"
+              className="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold px-8 py-3 rounded-md text-center transition-colors"
             >
               Découvrir les assistants
             </a>
             <Link
-              to="/mon-compte"
-              className="bg-white text-orange-600 border border-orange-500 hover:bg-orange-100 font-semibold px-6 py-3 rounded-md text-center"
+              to="/connexion"
+              className="bg-white text-black border-2 border-[#dbae61] hover:bg-gray-50 font-semibold px-8 py-3 rounded-md text-center transition-colors"
             >
               Accéder à mon compte
             </Link>
           </div>
         </div>
-        <img
-          src="/images/hero-illustration.png"
-          alt="Illustration IA"
-          className="max-w-md w-full mt-10 md:mt-0"
-        />
       </section>
 
-      {/* Qui sommes-nous */}
-      <section id="a-propos" className="px-6 md:px-20 py-12 bg-white text-center">
-        <h2 className="text-2xl font-bold text-orange-600 mb-4">Qui sommes-nous ?</h2>
-        <p className="max-w-3xl mx-auto text-lg text-gray-700">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vel mauris nisl. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-        </p>
-      </section>
-
-      {/* Cas d’usage réels */}
-      <section className="px-6 md:px-20 py-12 bg-white">
-        <h2 className="text-2xl font-bold text-center text-orange-600 mb-8">
-          Cas d’usage réels
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm text-center">
-            <MessageCircle className="mx-auto text-orange-500 mb-4" size={40} />
-            <h3 className="font-semibold text-lg mb-2">Accompagnement pédagogique</h3>
-            <p>Coach Malin répond à toutes les questions liées à la formation Invest Malin, 24h/24.</p>
+      {/* Section MON ÉQUIPE IA avec image */}
+      <section className="bg-black text-white">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2">
+          <div className="relative overflow-hidden">
+            <img
+              src="/images/hero-image.png"
+              alt="Mon équipe IA"
+              className="w-full h-full object-cover min-h-[400px]"
+            />
           </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm text-center">
-            <CalendarCheck className="mx-auto text-orange-500 mb-4" size={40} />
-            <h3 className="font-semibold text-lg mb-2">Analyse d'appels clients</h3>
-            <p>Suivi structuré des appels (besoins, objections, étapes), en quelques secondes.</p>
-          </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm text-center">
-            <FileText className="mx-auto text-orange-500 mb-4" size={40} />
-            <h3 className="font-semibold text-lg mb-2">Support fiscal et juridique</h3>
-            <p>Des réponses claires sur la LMNP, TVA, sous-location et copropriété, sans jargon.</p>
+          <div className="px-6 md:px-12 py-8 flex flex-col justify-center">
+            <h2 className="text-3xl font-bold mb-6">
+              <span className="text-[#dbae61]">MON ÉQUIPE IA</span>, Révolutionne votre conciergerie
+            </h2>
+            <p className="text-gray-300 mb-6">
+              <span className="text-[#dbae61] font-semibold">MON ÉQUIPE IA</span> révolutionne la gestion de votre conciergerie 
+              en vous offrant des assistants IA dédiés, intelligents et adaptés à 
+              vos besoins.
+            </p>
+            <p className="text-gray-300 mb-8">
+              Notre mission est de vous fournir les outils nécessaires pour :
+            </p>
+            <ul className="space-y-4 text-gray-300">
+              <li className="flex items-start gap-3">
+                <span className="text-white mt-1">•</span>
+                <span><strong>automatiser les tâches répétitives</strong></span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-white mt-1">•</span>
+                <span><strong>améliorer l'efficacité</strong> de votre équipe</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-white mt-1">•</span>
+                <span><strong>répondre rapidement</strong> à toutes les demandes de vos clients.</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* Découvrez nos assistants IA Section */}
-      <section id="assistants" className="px-6 md:px-20 py-16 bg-white">
-        <h2 className="text-2xl font-bold text-center text-orange-600 mb-12">
-          Découvrez nos assistants IA
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm">
-            <MessageCircle className="text-orange-500 mb-4" size={40} />
-            <h3 className="text-xl font-semibold mb-2">Assistant Formation</h3>
-            <p className="text-gray-700">Coach Malin répond à toutes les questions liées à la formation Invest Malin, 24h/24. Idéal pour les nouveaux élèves ou les clients curieux.</p>
+      {/* Cas d'usage réels */}
+      <section id="cas-usage" className="bg-white px-6 md:px-20 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-black mb-12">
+            CAS D'USAGE RÉELS
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-[#f5f1e8] p-8 rounded-2xl shadow-md text-center">
+              <GraduationCap className="text-[#dbae61] w-12 h-12 mx-auto mb-6" />
+              <h3 className="font-bold text-lg mb-4 text-black">ACCOMPAGNEMENT PÉDAGOGIQUE</h3>
+              <p className="text-gray-700">
+                Répondre à toutes les questions liées à la 
+                formation Invest Malin 7j/7, 
+                24h/24.
+              </p>
+            </div>
+            <div className="bg-[#f5f1e8] p-8 rounded-2xl shadow-md text-center">
+              <Phone className="text-[#dbae61] w-12 h-12 mx-auto mb-6" />
+              <h3 className="font-bold text-lg mb-4 text-black">ANALYSE D'APPELS CLIENTS</h3>
+              <p className="text-gray-700">
+                Analyse la personnalité 
+                de vos clients, propose 
+                une stratégie de 
+                négociation adaptée.
+              </p>
+            </div>
+            <div className="bg-[#f5f1e8] p-8 rounded-2xl shadow-md text-center">
+              <Scale className="text-[#dbae61] w-12 h-12 mx-auto mb-6" />
+              <h3 className="font-bold text-lg mb-4 text-black">SUPPORT FISCAL ET JURIDIQUE</h3>
+              <p className="text-gray-700">
+                Des réponses claires sur 
+                la LMNP, TVA, les 
+                règlements de 
+                copropriété, sans jargon.
+              </p>
+            </div>
           </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm">
-            <CalendarCheck className="text-orange-500 mb-4" size={40} />
-            <h3 className="text-xl font-semibold mb-2">Assistant Appels</h3>
-            <p className="text-gray-700">Analyse automatique des appels commerciaux : détection des objections, des besoins, et des signaux d'achat.</p>
+        </div>
+      </section>
+
+      {/* Découvrez nos assistants IA */}
+      <section id="assistants" className="bg-white py-16">
+        <div className="max-w-6xl mx-auto px-6 md:px-20">
+          <h2 className="text-3xl font-bold text-center text-black mb-12">
+            DÉCOUVREZ NOS ASSISTANTS <span className="font-normal">IA</span>
+          </h2>
+        </div>
+        
+        {/* Container avec image d'arrière-plan - pleine largeur */}
+        <div className="relative bg-gray-900 overflow-hidden">
+          {/* Image d'arrière-plan */}
+          <div className="absolute inset-0 opacity-40">
+            <img
+              src="/images/hero-image.png"
+              alt=""
+              className="w-full h-full object-cover"
+            />
           </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm">
-            <FileText className="text-orange-500 mb-4" size={40} />
-            <h3 className="text-xl font-semibold mb-2">Assistant Juridique</h3>
-            <p className="text-gray-700">FAQ intelligente sur la fiscalité, la copropriété, la sous-location, la TVA, et autres problématiques juridiques de terrain.</p>
-          </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm">
-            <Users className="text-orange-500 mb-4" size={40} />
-            <h3 className="text-xl font-semibold mb-2">Assistant Équipe</h3>
-            <p className="text-gray-700">Partage des process internes, des guides, et répond aux questions fréquentes de votre équipe.</p>
+          
+          <div className="relative max-w-6xl mx-auto px-6 md:px-20 py-12">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Assistant Formation */}
+              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <MessageCircle className="text-[#dbae61] w-8 h-8" />
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">FORMATION</span></h3>
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  Coach Malin répond à toutes les 
+                  questions liées à la formation Invest 
+                  Malin, 24h/24. Le meilleur expert en 
+                  conciergerie dans votre poche.
+                </p>
+              </div>
+
+              {/* Assistant Négociateur */}
+              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <Phone className="text-[#dbae61] w-8 h-8" />
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">NÉGOCIATEUR</span></h3>
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  Analyse automatique des appels 
+                  commerciaux : détection des objections, 
+                  des besoins, et des signaux d'achat.
+                </p>
+              </div>
+
+              {/* Assistant Fiscaliste */}
+              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <Scale className="text-[#dbae61] w-8 h-8" />
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">FISCALISTE</span></h3>
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  Assistant expert en fiscalité, la 
+                  copropriété, la sous-location, la TVA, et 
+                  toutes problématiques juridiques de 
+                  terrain.
+                </p>
+              </div>
+
+              {/* Assistant LegalBNB */}
+              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <Users className="text-[#dbae61] w-8 h-8" />
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">LEGALBNB</span></h3>
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  Assistant spécialisé dans l'analyse de 
+                  règlements (copro, mairie, etc). Lit vos 
+                  documents (PDF, copier-coller) et sort 
+                  les points clés.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Pourquoi Mon Équipe IA ? */}
-      <section className="flex flex-col md:flex-row items-center px-6 md:px-20 py-12 gap-12 bg-gray-50">
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold text-orange-600 mb-6">Pourquoi Mon Équipe IA ?</h2>
-          <ul className="space-y-4 text-lg">
-            <li className="flex items-center gap-3">
-              <LayoutDashboard className="text-orange-500" size={24} />
-              Interface simple et intuitive
+      <section className="bg-[#f8f8f8] grid md:grid-cols-[60%_40%]">
+        <div className="px-6 md:px-12 py-8 flex flex-col justify-center">
+          <h2 className="text-3xl font-bold text-black mb-8">
+            POURQUOI <span className="font-normal">MON ÉQUIPE IA</span> ?
+          </h2>
+          <ul className="space-y-6">
+            <li className="flex items-start gap-4">
+              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Interface simple et intuitive</span>
             </li>
-            <li className="flex items-center gap-3">
-              <Settings className="text-orange-500" size={24} />
-              Aucune compétence technique requise
+            <li className="flex items-start gap-4">
+              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Aucune compétence technique requise</span>
             </li>
-            <li className="flex items-center gap-3">
-              <SlidersHorizontal className="text-orange-500" size={24} />
-              Assistants personnalisables selon votre métier
+            <li className="flex items-start gap-4">
+              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Assistants personnalisables à la conciergerie</span>
             </li>
-            <li className="flex items-center gap-3">
-              <ShieldCheck className="text-orange-500" size={24} />
-              Données hébergées en Europe
+            <li className="flex items-start gap-4">
+              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+              <span className="text-lg text-gray-700">Vos données sont sécurisées et protégées</span>
             </li>
           </ul>
         </div>
-        <img
-          src="/images/pourquoi-illustration.png"
-          alt="Fonctionnalités IA"
-          className="flex-1 max-w-md w-full"
-        />
+        <div className="h-full">
+          <img
+            src="/images/pourquoi-image.png"
+            alt="Pourquoi Mon Équipe IA"
+            className="w-full h-full object-cover"
+          />
+        </div>
       </section>
 
       {/* Témoignages */}
-      <section id="temoignages" className="px-6 md:px-20 py-16 bg-white">
-        <h2 className="text-2xl font-bold text-center text-orange-600 mb-12">
-          Témoignages
-        </h2>
-        <div className="flex justify-center gap-8 flex-wrap">
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm text-center w-64">
-            <UserRound className="mx-auto text-orange-500 mb-4" size={40} />
-            <p className="text-gray-600 mb-4">“Mon équipe IA nous a permis de rationaliser nos processus, un vrai gain de temps !”</p>
-            <span className="text-gray-500 font-semibold">Jean Dupont</span>
-          </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm text-center w-64">
-            <User className="mx-auto text-orange-500 mb-4" size={40} />
-            <p className="text-gray-600 mb-4">“Un outil indispensable pour nous, c’est devenu un réflexe quotidien et quasiment un membre de l'équipe.”</p>
-            <span className="text-gray-500 font-semibold">Marie Leclerc</span>
-          </div>
-          <div className="bg-[#fdf7ee] p-6 rounded-xl shadow-sm text-center w-64">
-            <UserCircle className="mx-auto text-orange-500 mb-4" size={40} />
-            <p className="text-gray-600 mb-4">“Les réponses instantanées ont vraiment boosté notre productivité, on est plus réactif.”</p>
-            <span className="text-gray-500 font-semibold">Lucie Martin</span>
+      <section id="temoignages" className="bg-white px-6 md:px-20 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-black mb-12">
+            TÉMOIGNAGES
+          </h2>
+          <div className="flex justify-center gap-8 flex-wrap">
+            <div className="bg-[#f8f8f8] p-8 rounded-lg shadow-sm text-center max-w-sm">
+              <div className="w-16 h-16 bg-[#dbae61] rounded-full flex items-center justify-center mx-auto mb-6">
+                <User className="text-black w-8 h-8" />
+              </div>
+              <p className="text-gray-700 mb-6 italic">
+                "Mon équipe IA m'a permis de 
+                devenir une meilleure négociatrice 
+                pour convaincre les propriétaires"
+              </p>
+              <h4 className="font-bold text-black">SÉVERINE</h4>
+            </div>
+            <div className="bg-[#f8f8f8] p-8 rounded-lg shadow-sm text-center max-w-sm">
+              <div className="w-16 h-16 bg-[#dbae61] rounded-full flex items-center justify-center mx-auto mb-6">
+                <User className="text-black w-8 h-8" />
+              </div>
+              <p className="text-gray-700 mb-6 italic">
+                "L'assistant Fiscaliste est devenu outil 
+                indispensable pour nous et 
+                quasiment un membre de l'équipe."
+              </p>
+              <h4 className="font-bold text-black">THOMAS</h4>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Call to action final */}
-      <section className="px-6 md:px-20 py-16 bg-[#fdf7ee] text-center">
-        <h2 className="text-2xl font-bold text-orange-600 mb-4">
-          Vous êtes prêt à passer à l’action ?
-        </h2>
-        <Link
-          to="/inscription"
-          className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-md"
-        >
-          Créer mon espace
-        </Link>
+      <section className="relative bg-gray-900 px-6 md:px-20 py-20 text-center text-white">
+        {/* Image d'arrière-plan */}
+        <div className="absolute inset-0 opacity-30">
+          <img
+            src="/images/pourquoi-image.png"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        <div className="relative max-w-4xl mx-auto">
+          <h2 className="text-4xl font-bold mb-8">
+            Vous êtes prêt à déléguer vos actions ?
+          </h2>
+          <Link
+            to="/inscription"
+            className="inline-block bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-10 py-4 rounded-md text-lg transition-colors"
+          >
+            Créer mon espace
+          </Link>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-8 px-6 md:px-20 text-sm text-gray-500">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p>© 2025 Mon Équipe IA. Tous droits réservés.</p>
-          <div className="flex gap-4">
-            <Link to="/mentions-legales" className="hover:text-gray-700">Mentions légales</Link>
-            <Link to="/politique-confidentialite" className="hover:text-gray-700">Confidentialité</Link>
-            <Link to="/contact" className="hover:text-gray-700">Contact</Link>
+      <footer className="bg-black text-white px-6 md:px-20 py-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <img 
+                  src="/images/invest-malin-logo.png" 
+                  alt="Invest Malin Logo" 
+                  className="h-6"
+                />
+                <span className="text-lg font-bold">MON ÉQUIPE IA</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Révolutionnez votre conciergerie avec l'intelligence artificielle
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
+                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Fiscaliste</Link></li>
+                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#dbae61] mb-4">COMPTE</h4>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><Link to="/connexion" className="hover:text-white transition-colors">Se connecter</Link></li>
+                <li><Link to="/inscription" className="hover:text-white transition-colors">Créer un compte</Link></li>
+                <li><Link to="/mot-de-passe-oublie" className="hover:text-white transition-colors">Mot de passe oublié</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="mailto:support@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
+                <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li><Link to="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
+                <li><Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link></li>
+                <li><Link to="/conditions-utilisation" className="hover:text-white transition-colors">Conditions d'utilisation</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+            <p>© 2025 Mon Équipe IA - Invest Malin. Tous droits réservés.</p>
           </div>
         </div>
       </footer>
+
     </div>
   )
 }
