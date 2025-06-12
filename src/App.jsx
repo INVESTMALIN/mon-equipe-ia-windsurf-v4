@@ -9,6 +9,7 @@ import Inscription from './components/Inscription'
 import MotDePasseOublie from './components/MotDePasseOublie'
 import EmailConfirmation from './components/EmailConfirmation'
 import AssistantFormationWithHistory from './components/AssistantFormationWithHistory'
+import AssistantFormationWithHistoryV3 from './components/AssistantFormationWithHistory-v3'
 
 // Import des pages légales
 import FAQ from './components/FAQ'
@@ -30,6 +31,7 @@ function AppWrapper() {
           <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
           <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
           <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
+          <Route path="/mon-compte/assistant-formation-v3" element={<AssistantFormationWithHistoryV3 />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
           
           {/* Pages légales */}
@@ -38,6 +40,7 @@ function AppWrapper() {
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           <Route path="/mon-compte-v2" element={<MonCompteV2 />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

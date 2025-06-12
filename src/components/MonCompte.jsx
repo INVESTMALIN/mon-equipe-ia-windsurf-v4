@@ -110,7 +110,7 @@ export default function MonCompte() {
             </div>
             <div className="mt-8">
               <Link
-                to="/mon-compte/assistant-formation-v2"
+                to="/mon-compte/assistant-formation-v3"
                 className="inline-block text-white font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-colors"
                 style={{ backgroundColor: '#dbae61' }}
               >

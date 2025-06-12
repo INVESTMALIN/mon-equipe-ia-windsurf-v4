@@ -117,10 +117,10 @@ export default function MonCompteV2() {
               </div>
               
               <Link
-                to="/mon-compte/assistant-formation-v2"
-                className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold px-8 py-3 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                to="/mon-compte/assistant-formation-v3"
+                className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-8 py-3 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
               >
-                ACCÉDER À L'ASSISTANT
+                Accéder à l'assistant
                 <span className="ml-2">→</span>
               </Link>
             </div>
@@ -192,9 +192,9 @@ export default function MonCompteV2() {
                 </ul>
                 <Link 
                   to="#" 
-                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
+                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
                 >
-                  ACCÉDER À L'ASSISTANT
+                  Accéder à l'assistant
                   <span className="ml-2">→</span>
                 </Link>
               </div>
@@ -233,9 +233,9 @@ export default function MonCompteV2() {
                 </ul>
                 <Link 
                   to="#" 
-                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
+                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
                 >
-                  ACCÉDER À L'ASSISTANT
+                  Accéder à l'assistant
                   <span className="ml-2">→</span>
                 </Link>
               </div>
@@ -274,9 +274,9 @@ export default function MonCompteV2() {
                 </ul>
                 <Link 
                   to="#" 
-                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
+                className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
                 >
-                  ACCÉDER À L'ASSISTANT
+                  Accéder à l'assistant
                   <span className="ml-2">→</span>
                 </Link>
               </div>
