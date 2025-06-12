@@ -24,8 +24,12 @@ export default function MonCompte() {
       {/* Header noir */}
       <header className="bg-black text-white px-6 md:px-20 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🔥</span>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/images/invest-malin-logo.png" 
+              alt="Invest Malin Logo" 
+              className="h-10"
+            />
             <span className="text-lg font-bold">MON ÉQUIPE IA</span>
           </div>
           <div className="flex items-center gap-6">
@@ -50,7 +54,7 @@ export default function MonCompte() {
 
       {/* Section noire avec contenu en deux colonnes */}
       <section className="bg-black text-white">
-        <div className="grid md:grid-cols-[60%_40%] min-h-[500px]">
+        <div className="grid md:grid-cols-[60%_40%] min-h-[400px]">
           {/* Colonne texte (60%) */}
           <div className="px-6 md:px-20 py-12 flex flex-col justify-center">
             <h2 className="text-2xl font-semibold mb-8">
@@ -81,12 +85,12 @@ export default function MonCompte() {
             </div>
           </div>
 
-          {/* Colonne image (40%) */}
+          {/* Colonne image (40%) - S'ADAPTE À LA HAUTEUR */}
           <div className="relative overflow-hidden">
             <img
-              src="/images/assistant-formation.png"
+              src="/images/assistant-formation-rectangle.png"
               alt="Assistant Formation"
-              className="w-full h-full object-cover"
+              className="w-full h-full min-h-[400px] object-cover object-center"
             />
           </div>
         </div>
@@ -117,14 +121,14 @@ export default function MonCompte() {
         <div className="relative">
           {/* Bande blanche avec titre */}
           <div className="bg-white py-8 px-6 md:px-20">
-            <div className="ml-64 md:ml-96">
+            <div className="ml-64 md:ml-96" style={{ marginLeft: '25rem' }}>
               <h3 className="text-3xl font-bold text-black">FISCALISTE IA</h3>
             </div>
           </div>
           
           {/* Bande grise avec contenu */}
           <div className="bg-gray-100 py-8 pb-8 px-6 md:px-20">
-            <div className="ml-64 md:ml-96">
+            <div className="ml-64 md:ml-96" style={{ marginLeft: '25rem' }}>
               <p className="text-gray-800 mb-4 text-lg font-medium">Simplifiez vos démarches fiscales</p>
               
               <ul className="text-gray-700 mb-6 space-y-2">
@@ -143,8 +147,8 @@ export default function MonCompte() {
             </div>
           </div>
           
-          {/* Image qui remplit tout l'espace à gauche */}
-          <div className="absolute left-0 top-0 bottom-0 w-64 md:w-96 z-10">
+          {/* Image décalée mais moins que le texte */}
+          <div className="absolute top-0 bottom-0 w-64 md:w-96 z-10" style={{ left: '6rem' }}>
             <img
               src="/images/fiscaliste-ia.png"
               alt="Fiscaliste IA"
@@ -153,9 +157,9 @@ export default function MonCompte() {
           </div>
         </div>
 
-        {/* LegalBNB IA */}
+                {/* LegalBNB IA */}
         <div className="relative mt-12">
-          {/* Bande blanche avec titre - aligné à gauche comme le contenu */}
+          {/* Bande blanche avec titre */}
           <div className="bg-white py-12 px-6 md:px-20">
             <div className="mr-64 md:mr-96">
               <h3 className="text-3xl font-bold text-black">LEGALBNB IA</h3>
@@ -183,8 +187,8 @@ export default function MonCompte() {
             </div>
           </div>
           
-          {/* Image qui remplit tout l'espace à droite */}
-          <div className="absolute right-0 top-0 bottom-0 w-64 md:w-96 z-10">
+          {/* Image décalée du bord droit */}
+          <div className="absolute top-0 bottom-0 w-64 md:w-96 z-10" style={{ right: '6rem' }}>
             <img
               src="/images/legalbnb-ia.png"
               alt="LegalBNB IA"

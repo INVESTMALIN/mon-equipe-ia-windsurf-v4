@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   MessageCircle,
@@ -6,10 +7,14 @@ import {
   CheckCircle,
   User,
   GraduationCap,
-  Phone
+  Phone,
+  Menu,
+  X
 } from 'lucide-react'
 
 export default function Home() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   return (
     <div className="bg-white text-gray-800 font-['Montserrat',sans-serif]">
 
@@ -24,12 +29,55 @@ export default function Home() {
             />
             <span className="text-lg font-bold">MON ÉQUIPE IA</span>
           </div>
-          <nav className="flex gap-8 text-sm font-medium">
+          
+          {/* Menu desktop */}
+          <nav className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#cas-usage" className="hover:text-[#dbae61] transition-colors">À PROPOS</a>
             <a href="#assistants" className="hover:text-[#dbae61] transition-colors">NOS ASSISTANTS</a>
             <a href="#temoignages" className="hover:text-[#dbae61] transition-colors">TÉMOIGNAGES</a>
           </nav>
+
+          {/* Bouton hamburger mobile */}
+          <button 
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </div>
+
+        {/* Menu mobile */}
+        {isMenuOpen && (
+          <nav className="md:hidden mt-4 pb-4 border-t border-gray-700">
+            <div className="flex flex-col space-y-4 pt-4">
+              <a 
+                href="#cas-usage" 
+                className="hover:text-[#dbae61] transition-colors text-sm font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                À PROPOS
+              </a>
+              <a 
+                href="#assistants" 
+                className="hover:text-[#dbae61] transition-colors text-sm font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                NOS ASSISTANTS
+              </a>
+              <a 
+                href="#temoignages" 
+                className="hover:text-[#dbae61] transition-colors text-sm font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                TÉMOIGNAGES
+              </a>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero Section - Titre principal */}
