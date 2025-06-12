@@ -14,12 +14,3 @@ body {
   @apply bg-gray-50 text-gray-900;
   font-family: 'Montserrat', sans-serif;
 }
-
-/* Optionnel : style de base pour les titres */
-h1 {
-  @apply text-2xl font-bold;
-}
-
-button {
-  @apply rounded-md border border-transparent px-4 py-2 text-white font-medium bg-orange-500 hover:bg-orange-600 transition;
-}

@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap, LogOut, MessageSquareText } from 'lucide-react'
+import { GraduationCap, LogOut, MessageSquareText, Menu, X } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function MonCompte() {
   const navigate = useNavigate()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,8 +33,10 @@ export default function MonCompte() {
             />
             <span className="text-lg font-bold">MON ÉQUIPE IA</span>
           </div>
-          <div className="flex items-center gap-6">
-            <span className="text-sm font-medium">CONTACT</span>
+          
+          {/* Menu desktop */}
+          <div className="hidden md:flex items-center gap-6">
+            <span className="text-sm font-medium">Contact</span>
             <button
               onClick={handleLogout}
               className="bg-white text-black px-4 py-2 rounded text-sm font-medium"
@@ -41,7 +44,42 @@ export default function MonCompte() {
               Déconnexion
             </button>
           </div>
+
+          {/* Bouton hamburger mobile */}
+          <button 
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </div>
+
+        {/* Menu mobile */}
+        {isMenuOpen && (
+          <nav className="md:hidden mt-4 pb-4 border-t border-gray-700">
+            <div className="flex flex-col space-y-4 pt-4">
+              <span 
+                className="text-sm font-medium cursor-pointer hover:text-gray-300 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
+              </span>
+              <button
+                onClick={() => {
+                  handleLogout()
+                  setIsMenuOpen(false)
+                }}
+                className="bg-white text-black px-4 py-2 rounded text-sm font-medium text-left"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Section blanche avec titre Assistant Formation */}
@@ -209,10 +247,14 @@ export default function MonCompte() {
       {/* Footer */}
       <footer className="bg-black text-white px-6 md:px-20 py-12">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl">🔥</span>
+                <img 
+                  src="/images/invest-malin-logo.png" 
+                  alt="Invest Malin Logo" 
+                  className="h-6"
+                />
                 <span className="text-lg font-bold">MON ÉQUIPE IA</span>
               </div>
               <p className="text-gray-400 text-sm">
@@ -220,7 +262,7 @@ export default function MonCompte() {
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-yellow-400 mb-4">ASSISTANTS</h4>
+              <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li><Link to="/mon-compte/assistant-formation-v2" className="hover:text-white transition-colors">Assistant Formation</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
@@ -229,15 +271,7 @@ export default function MonCompte() {
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-yellow-400 mb-4">COMPTE</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/connexion" className="hover:text-white transition-colors">Se connecter</Link></li>
-                <li><Link to="/inscription" className="hover:text-white transition-colors">Créer un compte</Link></li>
-                <li><Link to="/mot-de-passe-oublie" className="hover:text-white transition-colors">Mot de passe oublié</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-yellow-400 mb-4">SUPPORT</h4>
+              <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li><a href="mailto:support@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>

@@ -16,7 +16,7 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <div className="bg-white text-gray-800 font-['Montserrat',sans-serif]">
+    <div className="bg-white text-gray-800">
 
       {/* Header */}
       <header className="bg-black text-white px-6 md:px-20 py-4">

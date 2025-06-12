@@ -15,6 +15,7 @@ import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
 import PolitiqueConfidentialite from './components/PolitiqueConfidentialite'
 import ConditionsUtilisation from './components/ConditionsUtilisation'
+import MonCompteV2 from './components/MonCompte-v2'
 
 function AppWrapper() {
   return (
@@ -36,7 +37,7 @@ function AppWrapper() {
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
-          
+          <Route path="/mon-compte-v2" element={<MonCompteV2 />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
