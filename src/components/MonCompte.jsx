@@ -55,25 +55,21 @@ export default function MonCompte() {
       {/* Section noire avec contenu en deux colonnes */}
       <section className="bg-black text-white">
         <div className="grid md:grid-cols-[60%_40%] min-h-[400px]">
-          {/* Colonne texte (60%) */}
           <div className="px-6 md:px-20 py-12 flex flex-col justify-center">
             <h2 className="text-2xl font-semibold mb-8">
               Votre copilote pendant la formation Invest Malin
             </h2>
-            
             <div className="space-y-6 text-lg leading-relaxed">
               <p>
                 Accédez à tous les supports de la formation Invest Malin : vidéos, modules, documents 
                 téléchargeables, fiches pratiques, FAQ. Cet assistant vous accompagne à chaque étape de 
                 votre apprentissage pour lever vos doutes, gagner du temps et rester motivé.
               </p>
-              
               <p>
                 Posez-lui vos questions techniques, pratiques ou administratives : il est connecté à toute la 
                 documentation, et répond instantanément 24h/24.
               </p>
             </div>
-
             <div className="mt-8">
               <Link
                 to="/mon-compte/assistant-formation-v2"
@@ -84,8 +80,6 @@ export default function MonCompte() {
               </Link>
             </div>
           </div>
-
-          {/* Colonne image (40%) - S'ADAPTE À LA HAUTEUR */}
           <div className="relative overflow-hidden">
             <img
               src="/images/assistant-formation-rectangle.png"
@@ -105,7 +99,6 @@ export default function MonCompte() {
               CHOISISSEZ <span className="font-bold">VOTRE ASSISTANT</span> IA SPÉCIALISÉ !
             </h2>
           </div>
-          
           <p className="text-gray-700 text-lg leading-relaxed">
             Découvrez nos agents IA les plus demandés, conçus pour accompagner les conciergeries 
             sur tous les sujets clés. Chaque assistant est spécialisé pour répondre à un besoin 
@@ -116,134 +109,85 @@ export default function MonCompte() {
 
       {/* Grille des assistants spécialisés */}
       <section>
-        
         {/* Fiscaliste IA */}
         <div className="relative">
-          {/* Bande blanche avec titre */}
           <div className="bg-white py-8 px-6 md:px-20">
-            <div className="ml-64 md:ml-96" style={{ marginLeft: '25rem' }}>
+          <div className="ml-0 md:ml-96 md:pl-24">
               <h3 className="text-3xl font-bold text-black">FISCALISTE IA</h3>
             </div>
           </div>
-          
-          {/* Bande grise avec contenu */}
           <div className="bg-gray-100 py-8 pb-8 px-6 md:px-20">
-            <div className="ml-64 md:ml-96" style={{ marginLeft: '25rem' }}>
+          <div className="ml-0 md:ml-96 md:pl-24">
+
               <p className="text-gray-800 mb-4 text-lg font-medium">Simplifiez vos démarches fiscales</p>
-              
               <ul className="text-gray-700 mb-6 space-y-2">
                 <li>• Posez vos questions de fiscalité courte durée</li>
                 <li>• L'IA vous éclaire, sans jargon</li>
                 <li>• Réponses adaptées à votre situation</li>
               </ul>
-              
-              <Link
-                to="#"
-                className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors"
-                style={{ backgroundColor: '#dbae61' }}
-              >
+              <Link to="#" className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" style={{ backgroundColor: '#dbae61' }}>
                 ACCÉDER À L'ASSISTANT >
               </Link>
             </div>
           </div>
-          
-          {/* Image décalée mais moins que le texte */}
-          <div className="absolute top-0 bottom-0 w-64 md:w-96 z-10" style={{ left: '6rem' }}>
-            <img
-              src="/images/fiscaliste-ia.png"
-              alt="Fiscaliste IA"
-              className="w-full h-full object-cover object-left"
-            />
+          <div className="absolute top-0 bottom-0 w-64 md:w-96 z-10 hidden md:block" style={{ left: '6rem' }}>
+            <img src="/images/fiscaliste-ia.png" alt="Fiscaliste IA" className="w-full h-full object-cover object-left" />
           </div>
         </div>
 
-                {/* LegalBNB IA */}
+        {/* LegalBNB IA */}
         <div className="relative mt-12">
-          {/* Bande blanche avec titre */}
           <div className="bg-white py-12 px-6 md:px-20">
-            <div className="mr-64 md:mr-96">
+            <div className="mr-0 md:mr-96">
               <h3 className="text-3xl font-bold text-black">LEGALBNB IA</h3>
             </div>
           </div>
-          
-          {/* Bande grise avec contenu */}
           <div className="bg-gray-100 py-8 pb-8 px-6 md:px-20">
-            <div className="mr-64 md:mr-96">
+            <div className="mr-0 md:mr-96">
               <p className="text-gray-800 mb-4 text-lg font-medium">L'IA qui vous répond comme un juriste</p>
-              
               <ul className="text-gray-700 mb-6 space-y-2">
                 <li>• Assistant spécialisé dans l'analyse de règlements (copro, mairie, etc.)</li>
                 <li>• Lit vos documents (PDF, copier-coller) et sort les points clés.</li>
                 <li>• Peut répondre à des questions simples sur vos droits et obligations</li>
               </ul>
-              
-              <Link
-                to="#"
-                className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors"
-                style={{ backgroundColor: '#dbae61' }}
-              >
+              <Link to="#" className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" style={{ backgroundColor: '#dbae61' }}>
                 ACCÉDER À L'ASSISTANT >
               </Link>
             </div>
           </div>
-          
-          {/* Image décalée du bord droit */}
-          <div className="absolute top-0 bottom-0 w-64 md:w-96 z-10" style={{ right: '6rem' }}>
-            <img
-              src="/images/legalbnb-ia.png"
-              alt="LegalBNB IA"
-              className="w-full h-full object-cover object-right"
-            />
+          <div className="absolute top-0 bottom-0 w-64 md:w-96 z-10 hidden md:block" style={{ right: '6rem' }}>
+            <img src="/images/legalbnb-ia.png" alt="LegalBNB IA" className="w-full h-full object-cover object-right" />
           </div>
         </div>
 
         {/* Négociateur IA */}
         <div className="relative mt-12">
-          {/* Bande blanche avec titre */}
           <div className="bg-white py-8 px-6 md:px-20">
-            <div className="ml-64 md:ml-96">
+            <div className="ml-0 md:ml-96">
               <h3 className="text-3xl font-bold text-black">NÉGOCIATEUR IA</h3>
             </div>
           </div>
-          
-          {/* Bande grise avec contenu */}
           <div className="bg-gray-100 py-8 pb-8 px-6 md:px-20">
-            <div className="ml-64 md:ml-96">
+            <div className="ml-0 md:ml-96">
               <p className="text-gray-800 mb-4 text-lg font-medium">Vous accompagne dans les négociations avec vos clients.</p>
-              
               <ul className="text-gray-700 mb-6 space-y-2">
                 <li>• L'IA résume vos appels clients en 10 secondes</li>
                 <li>• Analyse une transcription ou un appel</li>
                 <li>• Détecte la personnalité de l'interlocuteur (profil psychologique, probable bloc)</li>
                 <li>• Propose une stratégie de persuasion adaptée.</li>
               </ul>
-              
-              <Link
-                to="#"
-                className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors"
-                style={{ backgroundColor: '#dbae61' }}
-              >
+              <Link to="#" className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" style={{ backgroundColor: '#dbae61' }}>
                 ACCÉDER À L'ASSISTANT >
               </Link>
             </div>
           </div>
-          
-          {/* Image qui remplit tout l'espace à gauche */}
-          <div className="absolute left-0 top-0 bottom-0 w-64 md:w-96 z-10">
-            <img
-              src="/images/negociateur-ia.png"
-              alt="Négociateur IA"
-              className="w-full h-full object-cover object-left"
-            />
+          <div className="absolute left-0 top-0 bottom-0 w-64 md:w-96 z-10 hidden md:block">
+            <img src="/images/negociateur-ia.png" alt="Négociateur IA" className="w-full h-full object-cover object-left" />
           </div>
         </div>
-
-        {/* Bande blanche pour breathing room - plus haute */}
         <div className="bg-white py-16"></div>
-
       </section>
-
-      {/* Bannière finale */}
+{/* Bannière finale */}
       <section className="relative h-64">
         <img
           src="/images/bas-de-page.png"
