@@ -3,7 +3,6 @@ import {
   MessageCircle,
   Users,
   Scale,
-  TrendingUp,
   CheckCircle,
   User,
   GraduationCap,
@@ -61,17 +60,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section MON ÉQUIPE IA avec image */}
+      {/* Section MON ÉQUIPE IA avec image - Ratio 40/60 */}
       <section className="bg-black text-white">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2">
-          <div className="relative overflow-hidden">
+        <div className="flex flex-col md:grid md:grid-cols-[40%_60%] md:h-[500px]">
+          <div className="relative overflow-hidden h-64 md:h-auto">
             <img
               src="/images/hero-image.png"
               alt="Mon équipe IA"
-              className="w-full h-full object-cover min-h-[400px]"
+              className="w-full h-full object-cover object-center"
             />
           </div>
-          <div className="px-6 md:px-12 py-8 flex flex-col justify-center">
+          <div className="px-6 md:px-8 lg:px-12 py-8 flex flex-col justify-center">
             <h2 className="text-3xl font-bold mb-6">
               <span className="text-[#dbae61]">MON ÉQUIPE IA</span>, Révolutionne votre conciergerie
             </h2>
@@ -163,7 +162,7 @@ export default function Home() {
           <div className="relative max-w-6xl mx-auto px-6 md:px-20 py-12">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Assistant Formation */}
-              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+              <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <MessageCircle className="text-[#dbae61] w-8 h-8" />
                   <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">FORMATION</span></h3>
@@ -177,7 +176,7 @@ export default function Home() {
               </div>
 
               {/* Assistant Négociateur */}
-              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+              <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Phone className="text-[#dbae61] w-8 h-8" />
                   <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">NÉGOCIATEUR</span></h3>
@@ -190,7 +189,7 @@ export default function Home() {
               </div>
 
               {/* Assistant Fiscaliste */}
-              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+              <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Scale className="text-[#dbae61] w-8 h-8" />
                   <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">FISCALISTE</span></h3>
@@ -204,7 +203,7 @@ export default function Home() {
               </div>
 
               {/* Assistant LegalBNB */}
-              <div className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg">
+              <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Users className="text-[#dbae61] w-8 h-8" />
                   <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">LEGALBNB</span></h3>
@@ -221,37 +220,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pourquoi Mon Équipe IA ? */}
-      <section className="bg-[#f8f8f8] grid md:grid-cols-[60%_40%]">
-        <div className="px-6 md:px-12 py-8 flex flex-col justify-center">
-          <h2 className="text-3xl font-bold text-black mb-8">
-            POURQUOI <span className="font-normal">MON ÉQUIPE IA</span> ?
-          </h2>
-          <ul className="space-y-6">
-            <li className="flex items-start gap-4">
-              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
-              <span className="text-lg text-gray-700">Interface simple et intuitive</span>
-            </li>
-            <li className="flex items-start gap-4">
-              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
-              <span className="text-lg text-gray-700">Aucune compétence technique requise</span>
-            </li>
-            <li className="flex items-start gap-4">
-              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
-              <span className="text-lg text-gray-700">Assistants personnalisables à la conciergerie</span>
-            </li>
-            <li className="flex items-start gap-4">
-              <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
-              <span className="text-lg text-gray-700">Vos données sont sécurisées et protégées</span>
-            </li>
-          </ul>
-        </div>
-        <div className="h-full">
-          <img
-            src="/images/pourquoi-image.png"
-            alt="Pourquoi Mon Équipe IA"
-            className="w-full h-full object-cover"
-          />
+      {/* Pourquoi Mon Équipe IA ? - Ratio 60/40 inversé */}
+      <section className="bg-[#f8f8f8]">
+        <div className="flex flex-col-reverse md:grid md:grid-cols-[60%_40%] md:h-[400px]">
+          <div className="px-6 md:px-20 lg:px-32 xl:px-48 py-8 flex flex-col justify-center">
+            <h2 className="text-3xl font-bold text-black mb-8">
+              POURQUOI <span className="font-normal">MON ÉQUIPE IA</span> ?
+            </h2>
+            <ul className="space-y-6">
+              <li className="flex items-start gap-4">
+                <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+                <span className="text-lg text-gray-700">Interface simple et intuitive</span>
+              </li>
+              <li className="flex items-start gap-4">
+                <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+                <span className="text-lg text-gray-700">Aucune compétence technique requise</span>
+              </li>
+              <li className="flex items-start gap-4">
+                <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+                <span className="text-lg text-gray-700">Assistants personnalisables à la conciergerie</span>
+              </li>
+              <li className="flex items-start gap-4">
+                <CheckCircle className="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+                <span className="text-lg text-gray-700">Vos données sont sécurisées et protégées</span>
+              </li>
+            </ul>
+          </div>
+          <div className="relative overflow-hidden h-64 md:h-auto">
+            <img
+              src="/images/pourquoi-image.png"
+              alt="Pourquoi Mon Équipe IA"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
         </div>
       </section>
 
