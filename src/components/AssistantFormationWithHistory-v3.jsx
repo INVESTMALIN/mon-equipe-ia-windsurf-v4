@@ -143,8 +143,43 @@ export default function AssistantFormationWithHistoryV3() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
       {/* Header noir comme les autres pages */}
-      <div className="bg-black text-white px-6 md:px-20 py-4 z-50">
-        <div className="flex items-center justify-between">
+
+      {/* Header noir responsive */}
+      <div className="bg-black text-white py-4 z-50">
+        {/* Header mobile */}
+        <div className="px-4 flex md:hidden items-center justify-between">
+          <div></div> {/* Espace vide pour centrer le logo */}
+          
+          <div className="flex items-center gap-2">
+            <img 
+              src="/images/invest-malin-logo.png" 
+              alt="Invest Malin Logo" 
+              className="h-6"
+            />
+            <span className="text-sm font-bold">MON ÉQUIPE IA</span>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <Link
+              to="/mon-compte"
+              className="p-2 text-white hover:text-[#dbae61] transition-colors border border-white/80 hover:border-[#dbae61] rounded-md"
+              title="Retour"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            
+            <button
+              onClick={createNewConversation}
+              className="p-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-md transition-colors"
+              title="Nouvelle conversation"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Header desktop - comme avant */}
+        <div className="hidden md:flex px-6 md:px-20 items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
               src="/images/invest-malin-logo.png" 
