@@ -15,6 +15,10 @@ export default function AssistantFormationWithHistoryV3() {
   const chatRef = useRef(null)
   const conversationIdRef = useRef(null)
 
+
+  alert('userId: ' + userId)
+
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user) setUserId(data.user.id)
