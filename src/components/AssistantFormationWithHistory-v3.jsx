@@ -143,7 +143,6 @@ export default function AssistantFormationWithHistoryV3() {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
-      {/* Header noir comme les autres pages */}
 
       {/* Header noir responsive */}
       <div className="bg-black text-white py-4 z-50">
@@ -151,14 +150,18 @@ export default function AssistantFormationWithHistoryV3() {
         <div className="px-4 flex md:hidden items-center justify-between">
           <div></div> {/* Espace vide pour centrer le logo */}
           
-          <div className="flex items-center gap-2">
-            <img 
-              src="/images/invest-malin-logo.png" 
-              alt="Invest Malin Logo" 
-              className="h-6"
-            />
-            <span className="text-sm font-bold">MON ÉQUIPE IA</span>
-          </div>
+            <Link
+              to="/mon-compte-v2"
+              className="flex items-center gap-2 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
+              title="Aller à Mon Compte V2"
+            >
+              <img 
+                src="/images/invest-malin-logo.png" 
+                alt="Invest Malin Logo" 
+                className="h-6 hover:scale-105 transition-transform duration-200"
+              />
+              <span className="text-sm font-bold">MON ÉQUIPE IA</span>
+            </Link>
           
           <div className="flex items-center gap-1">
             <Link
@@ -181,18 +184,23 @@ export default function AssistantFormationWithHistoryV3() {
 
         {/* Header desktop - comme avant */}
         <div className="hidden md:flex px-6 md:px-20 items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link
+            to="/mon-compte-v2"
+            className="flex items-center gap-3 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
+            title="Aller à Mon Compte V2"
+          >
             <img 
               src="/images/invest-malin-logo.png" 
               alt="Invest Malin Logo" 
-              className="h-8"
+              className="h-8 hover:scale-105 transition-transform duration-200"
             />
             <span className="text-lg font-bold">MON ÉQUIPE IA</span>
-          </div>
+          </Link>
+
           
           <div className="flex items-center gap-4">
             <Link
-              to="/mon-compte"
+              to="/mon-compte-v2"
               className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors border-2 border-white/80 hover:border-[#dbae61] px-3 py-2 rounded-md"
             >
               <ArrowLeft className="w-4 h-4" />

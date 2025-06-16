@@ -23,7 +23,7 @@ export default function FAQ() {
           answer: "Mon Équipe IA est une plateforme qui met à votre disposition des assistants IA spécialisés pour vous accompagner dans votre activité de conciergerie. Chaque assistant est conçu pour répondre à des besoins spécifiques : formation, fiscalité, juridique, etc."
         },
         {
-          id: "general-2", 
+          id: "general-2",
           question: "Comment fonctionne l'assistant IA ?",
           answer: "Nos assistants IA utilisent des technologies avancées de traitement du langage naturel. Ils sont entraînés sur des données spécifiques à votre domaine d'activité pour vous fournir des réponses précises et pertinentes 24h/24."
         },
@@ -100,7 +100,7 @@ export default function FAQ() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fbf4ea' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#f8f8f8' }}>
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 md:px-20 py-6">
         <div className="flex items-center justify-between">
@@ -108,9 +108,19 @@ export default function FAQ() {
             <Bot size={24} style={{ color: '#dbae61' }} />
             Mon Équipe IA
           </Link>
-          <nav className="flex gap-6 text-base text-gray-700 font-medium">
-            <Link to="/" className="hover:text-orange-600">Accueil</Link>
-            <Link to="/connexion" className="text-white px-4 py-2 rounded-md hover:opacity-90" style={{ backgroundColor: '#dbae61' }}>
+          <nav className="flex gap-4 text-base font-medium">
+            <Link
+              to="/"
+              className="px-4 py-2 border rounded-md transition hover:bg-gray-100"
+              style={{ borderColor: '#dbae61', color: '#000' }}
+            >
+              Accueil
+            </Link>
+            <Link
+              to="/connexion"
+              className="text-white px-4 py-2 rounded-md transition hover:opacity-90"
+              style={{ backgroundColor: '#dbae61' }}
+            >
               Se connecter
             </Link>
           </nav>
@@ -132,20 +142,20 @@ export default function FAQ() {
         <div className="max-w-4xl mx-auto space-y-8">
           {faqCategories.map((category, categoryIndex) => (
             <div key={categoryIndex} className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-100" style={{ backgroundColor: '#fbf4ea' }}>
+              <div className="p-6 border-b border-gray-100" style={{ backgroundColor: '#fefaf4' }}>
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                   {category.icon}
                   {category.title}
                 </h2>
               </div>
-              
+
               <div className="divide-y divide-gray-100">
                 {category.items.map((item) => (
                   <div key={item.id} className="p-6">
                     <button
                       onClick={() => toggleItem(item.id)}
-                      className="flex justify-between items-center w-full text-left p-4 rounded-lg transition"
-                      style={{ backgroundColor: '#fbf4ea' }}
+                      className="flex justify-between items-center w-full text-left p-4 rounded-lg transition hover:bg-[#fef2e4]"
+                      style={{ backgroundColor: 'white' }}
                     >
                       <h3 className="text-lg font-semibold text-gray-800 pr-4">
                         {item.question}
@@ -156,7 +166,7 @@ export default function FAQ() {
                         <ChevronDown className="w-5 h-5 flex-shrink-0" style={{ color: '#dbae61' }} />
                       )}
                     </button>
-                    
+
                     {openItems[item.id] && (
                       <div className="mt-4 text-gray-600 leading-relaxed">
                         {item.answer}
@@ -188,8 +198,8 @@ export default function FAQ() {
           </Link>
           <Link
             to="/"
-            className="bg-white font-semibold px-6 py-3 rounded-md transition hover:bg-gray-50"
-            style={{ border: '1px solid #dbae61', color: '#dbae61' }}
+            className="font-semibold px-6 py-3 rounded-md transition hover:bg-gray-100 border"
+            style={{ borderColor: '#dbae61', color: '#000' }}
           >
             Retour à l'accueil
           </Link>
