@@ -18,6 +18,11 @@ import PolitiqueConfidentialite from './components/PolitiqueConfidentialite'
 import ConditionsUtilisation from './components/ConditionsUtilisation'
 import MonCompteV2 from './components/MonCompte-v2'
 
+// Import paywall
+import UpgradeRequired from './components/UpgradeRequired'
+import ComingSoon from './components/ComingSoon'
+
+
 function AppWrapper() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -29,9 +34,20 @@ function AppWrapper() {
           <Route path="/mon-compte" element={<MonCompte />} />
           <Route path="/inscription" element={<Inscription />} />
           <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+          
+          {/* Assistant Formation (gratuit) */}
           <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
           <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
           <Route path="/mon-compte/assistant-formation-v3" element={<AssistantFormationWithHistoryV3 />} />
+          
+          {/* Paywall */}
+          <Route path="/upgrade" element={<UpgradeRequired />} />
+          
+          {/* Assistants Premium - Temporairement vers upgrade (en attendant les composants) */}
+          <Route path="/fiscaliste" element={<ComingSoon  />} />
+          <Route path="/legalbnb" element={<ComingSoon  />} />
+          <Route path="/negociateur" element={<ComingSoon  />} />
+          
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
           
           {/* Pages légales */}

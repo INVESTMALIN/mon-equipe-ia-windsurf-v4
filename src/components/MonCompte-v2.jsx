@@ -1,9 +1,29 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users } from 'lucide-react'
+import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function MonCompteV2() {
+
+  const [userProfile, setUserProfile] = useState(null)
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('subscription_status')
+          .eq('id', user.id)
+          .single()
+        setUserProfile(profile)
+      }
+    }
+    fetchUserProfile()
+  }, [])
+
+  const isPremium = userProfile?.subscription_status === 'premium'
+  
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -190,13 +210,28 @@ export default function MonCompteV2() {
                     Réponses adaptées à votre situation
                   </li>
                 </ul>
-                <Link 
-                  to="#" 
-                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
-                >
-                  Accéder à l'assistant
-                  <span className="ml-2">→</span>
-                </Link>
+                {isPremium ? (
+                  <Link 
+                    to="/fiscaliste" 
+                    className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
+                    style={{ backgroundColor: '#dbae61' }}
+                  >
+                    Accéder à l'assistant →
+                  </Link>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                      <Lock className="w-4 h-4" />
+                      <span>Premium requis</span>
+                    </div>
+                    <Link 
+                      to="/upgrade" 
+                      className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                    >
+                      Passer Premium →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -231,13 +266,28 @@ export default function MonCompteV2() {
                     Répond sur vos droits et obligations
                   </li>
                 </ul>
-                <Link 
-                  to="#" 
-                  className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
-                >
-                  Accéder à l'assistant
-                  <span className="ml-2">→</span>
-                </Link>
+                {isPremium ? (
+                  <Link 
+                    to="/legalbnb" 
+                    className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
+                    style={{ backgroundColor: '#dbae61' }}
+                  >
+                    Accéder à l'assistant →
+                  </Link>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                      <Lock className="w-4 h-4" />
+                      <span>Premium requis</span>
+                    </div>
+                    <Link 
+                      to="/upgrade" 
+                      className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                    >
+                      Passer Premium →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -272,13 +322,28 @@ export default function MonCompteV2() {
                     Propose une stratégie adaptée
                   </li>
                 </ul>
-                <Link 
-                  to="#" 
-                className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold text-sm px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 mt-auto"
-                >
-                  Accéder à l'assistant
-                  <span className="ml-2">→</span>
-                </Link>
+                {isPremium ? (
+                  <Link 
+                    to="/negociateur" 
+                    className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
+                    style={{ backgroundColor: '#dbae61' }}
+                  >
+                    Accéder à l'assistant →
+                  </Link>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                      <Lock className="w-4 h-4" />
+                      <span>Premium requis</span>
+                    </div>
+                    <Link 
+                      to="/upgrade" 
+                      className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                    >
+                      Passer Premium →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

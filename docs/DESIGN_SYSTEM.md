@@ -1,14 +1,14 @@
 # Design System - Mon Équipe IA
 
 ## Vue d'ensemble
-Ce document définit le système de design de l'application "Mon Équipe IA", une plateforme d'assistants IA dédiée aux clients Invest Malin ayant acheté la formation "conciergerie clé en main".
+Ce document définit le système de design de l'application "Mon Équipe IA", une plateforme d'assistants IA dédiée aux clients Invest Malin ayant acheté la formation "conciergerie clé en main" pour la gestion immobilière locative.
 
 ## 🎨 Palette de couleurs
 
 ### Couleurs primaires
-- **Primaire dorée** : `#dbae61` - Couleur principale de la marque
+- **Primaire dorée** : `#dbae61` - Couleur principale de la marque Invest Malin
 - **Primaire dorée hover** : `#c49a4f` - État survol des éléments interactifs
-- **Noir** : `#000000` - Texte principal et arrière-plans
+- **Noir** : `#000000` - Texte principal et arrière-plans sombres
 - **Blanc cassé** : `#f8f8f8` - Arrière-plans secondaires
 
 ### Couleurs secondaires
@@ -16,102 +16,90 @@ Ce document définit le système de design de l'application "Mon Équipe IA", un
 - **Gris foncé** : `#374151` - Texte secondaire
 - **Gris moyen** : `#6b7280` - Texte tertiaire
 - **Gris clair** : `#d1d5db` - Bordures et séparateurs
+- **Gris très clair** : `#f3f4f6` - Arrière-plans légers
 
-### Usage des couleurs
-```css
-/* Boutons primaires */
-.btn-primary {
-  background-color: #dbae61;
-  color: #000000;
-}
+### Usage des couleurs dans le code
+```html
+<!-- Bouton primaire -->
+<button class="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold px-8 py-3 rounded-md transition-colors">
+  Action principale
+</button>
 
-.btn-primary:hover {
-  background-color: #c49a4f;
-}
+<!-- Section sombre -->
+<section class="bg-black text-white">
+  Contenu sur fond noir
+</section>
 
-/* Sections alternées */
-.section-dark {
-  background-color: #000000;
-  color: #ffffff;
-}
-
-.section-light {
-  background-color: #f8f8f8;
-  color: #000000;
-}
+<!-- Section claire -->
+<section class="bg-[#f8f8f8] text-black">
+  Contenu sur fond clair
+</section>
 ```
 
 ## 📝 Typographie
 
 ### Police principale
 - **Famille** : Montserrat
-- **Import** : `@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap')`
+- **Import HTML** : `<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">`
+- **CSS** : `font-family: 'Montserrat', sans-serif;`
 
-### Hiérarchie typographique
+### Hiérarchie typographique utilisée
 
 #### Titres
-- **H1** : `text-3xl md:text-4xl font-bold` (48px desktop, 30px mobile)
-- **H2** : `text-3xl font-bold` (30px)
-- **H3** : `text-2xl font-bold` (24px)
-- **H4** : `text-xl font-semibold` (20px)
+- **H1 Hero** : `text-3xl md:text-4xl font-bold` - Titre principal de landing page
+- **H1 Standard** : `text-3xl font-bold` - Titre de section principale
+- **H2** : `text-2xl font-bold` - Sous-titres importants
+- **H3** : `text-xl font-bold` - Titres de cartes/composants
+- **H4** : `text-lg font-semibold` - Petits titres
 
 #### Corps de texte
-- **Texte principal** : `text-lg` (18px)
-- **Texte secondaire** : `text-base` (16px)
-- **Petit texte** : `text-sm` (14px)
+- **Texte principal** : `text-lg` (18px) - Paragraphes importants
+- **Texte standard** : `text-base` (16px) - Texte par défaut
+- **Petit texte** : `text-sm` (14px) - Labels, metadata
+- **Très petit** : `text-xs` (12px) - Mentions légales
 
-#### Exemples d'usage
+#### Exemples réels du code
 ```html
-<!-- Titre principal -->
+<!-- Titre hero de la landing page -->
 <h1 class="text-3xl md:text-4xl font-bold text-black mb-6 leading-tight">
   UNE ÉQUIPE <span class="font-normal">IA</span> DÉDIÉE À VOTRE CONCIERGERIE
 </h1>
 
-<!-- Paragraphe -->
+<!-- Titre de section -->
+<h2 class="text-3xl font-bold mb-6">
+  <span class="text-[#dbae61]">MON ÉQUIPE IA</span>, Révolutionne votre conciergerie
+</h2>
+
+<!-- Paragraphe standard -->
 <p class="text-xl text-gray-700 mb-8 leading-relaxed max-w-3xl mx-auto">
-  Contenu du paragraphe...
+  Contenu descriptif...
 </p>
 ```
 
 ## 📐 Espacement et mise en page
 
-### Système d'espacement (basé sur Tailwind)
-- **xs** : `4px` (space-1)
-- **sm** : `8px` (space-2)  
-- **md** : `16px` (space-4)
-- **lg** : `24px` (space-6)
-- **xl** : `32px` (space-8)
-- **2xl** : `48px` (space-12)
-- **3xl** : `64px` (space-16)
-- **4xl** : `80px` (space-20)
+### Système d'espacement (Tailwind standard)
+- **px-6** : Padding horizontal mobile (24px)
+- **md:px-20** : Padding horizontal desktop (80px)
+- **py-16** : Padding vertical sections (64px)
+- **py-8** : Padding vertical composants (32px)
+- **gap-4/6/8** : Espacement entre éléments (16px/24px/32px)
 
-### Conteneurs et largeurs
-```css
-/* Conteneur principal */
-.container-main {
-  max-width: 1280px; /* max-w-6xl */
-  margin: 0 auto;
-  padding-left: 1.5rem; /* px-6 */
-  padding-right: 1.5rem;
-}
+### Conteneurs standards
+```html
+<!-- Conteneur de section -->
+<section class="px-6 md:px-20 py-16">
+  <div class="max-w-6xl mx-auto">
+    <!-- Contenu centré avec max-width -->
+  </div>
+</section>
 
-/* Conteneur large */
-.container-large {
-  max-width: 1536px; /* max-w-7xl */
-}
-
-/* Sections padding */
-.section-padding {
-  padding: 4rem 1.5rem; /* py-16 px-6 */
-}
-
-/* Desktop padding */
-@media (min-width: 768px) {
-  .section-padding {
-    padding-left: 5rem; /* md:px-20 */
-    padding-right: 5rem;
-  }
-}
+<!-- Conteneur hero -->
+<section class="px-6 md:px-20 py-20 text-center">
+  <div class="max-w-5xl mx-auto">
+    <!-- Contenu hero centré -->
+  </div>
+</section>
 ```
 
 ## 🧩 Composants UI
@@ -120,240 +108,267 @@ Ce document définit le système de design de l'application "Mon Équipe IA", un
 
 #### Bouton primaire
 ```html
-<a class="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold px-8 py-3 rounded-md text-center transition-colors">
-  Texte du bouton
-</a>
+<button class="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold px-8 py-3 rounded-md text-center transition-colors">
+  Action principale
+</button>
 ```
 
 #### Bouton secondaire
 ```html
-<a class="bg-white text-black border-2 border-[#dbae61] hover:bg-gray-50 font-semibold px-8 py-3 rounded-md text-center transition-colors">
-  Texte du bouton
-</a>
+<button class="bg-white text-black border-2 border-[#dbae61] hover:bg-gray-50 font-semibold px-8 py-3 rounded-md text-center transition-colors">
+  Action secondaire
+</button>
 ```
 
-#### Bouton de navigation
+#### Bouton de retour/navigation
 ```html
-<a class="hover:text-[#dbae61] transition-colors text-sm font-medium">
-  Lien de navigation
-</a>
+<Link class="p-2 text-white hover:text-[#dbae61] transition-colors border border-white/80 hover:border-[#dbae61] rounded-md">
+  <ArrowLeft class="w-4 h-4" />
+</Link>
+```
+
+### Formulaires
+
+#### Champ de saisie standard
+```html
+<input 
+  type="text" 
+  class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#dbae61] transition-colors"
+  placeholder="Votre texte"
+/>
+```
+
+#### Label de formulaire
+```html
+<label class="block text-sm font-semibold text-gray-700 mb-2">
+  Libellé du champ
+</label>
+```
+
+#### Messages d'erreur
+```html
+<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+  <p class="text-red-600 text-sm">Message d'erreur</p>
+</div>
 ```
 
 ### Cartes
 
 #### Carte d'assistant
 ```html
-<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+<div class="bg-white rounded-lg shadow-lg overflow-hidden max-w-sm">
   <div class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
     <img src="..." alt="..." class="w-24 h-24 object-contain">
   </div>
   <div class="p-6">
-    <h3 class="text-xl font-bold text-black mb-3">Titre</h3>
+    <h3 class="text-xl font-bold text-black mb-3">Nom Assistant</h3>
     <p class="text-gray-600 mb-4">Description</p>
-    <a class="w-full bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold py-3 px-4 rounded-md transition-colors text-center block">
-      Action
-    </a>
+    <button class="w-full bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold py-3 px-4 rounded-md transition-colors">
+      Accéder
+    </button>
   </div>
 </div>
-```
-
-#### Carte de témoignage
-```html
-<div class="bg-[#f8f8f8] p-8 rounded-lg shadow-sm text-center max-w-sm">
-  <div class="w-16 h-16 bg-[#dbae61] rounded-full flex items-center justify-center mx-auto mb-6">
-    <User class="text-black w-8 h-8" />
-  </div>
-  <p class="text-gray-700 mb-6 italic">Citation</p>
-  <h4 class="font-bold text-black">NOM</h4>
-</div>
-```
-
-### Formulaires
-
-#### Champ de saisie
-```html
-<input 
-  type="text" 
-  class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#dbae61] focus:border-transparent outline-none transition-colors"
-  placeholder="Placeholder"
->
-```
-
-#### Label
-```html
-<label class="block text-sm font-medium text-gray-700 mb-2">
-  Libellé du champ
-</label>
 ```
 
 ## 🎯 Iconographie
 
 ### Bibliothèque d'icônes
 - **Lucide React** : Bibliothèque principale d'icônes
-- Style : Outline, épaisseur 2px
-- Tailles communes : `w-4 h-4`, `w-6 h-6`, `w-8 h-8`
+- Style : Outline, épaisseur 2px par défaut
+- Tailles standards : `w-4 h-4`, `w-6 h-6`, `w-8 h-8`
 
 ### Icônes couramment utilisées
-- `Menu` : Menu hamburger mobile
-- `X` : Fermeture de modal/menu
-- `User` : Profil utilisateur
-- `CheckCircle` : Validation/avantages
-- `Lock` : Sécurité/authentification
+```jsx
+import {
+  Menu, X,           // Navigation mobile
+  User,              // Profil utilisateur  
+  CheckCircle,       // Validation/avantages
+  ArrowLeft,         // Retour
+  MessageCircle,     // Chat/conversation
+  Plus,              // Ajouter/nouveau
+  GraduationCap      // Formation
+} from 'lucide-react'
+```
 
-### Usage
+### Usage dans le code
 ```html
 <CheckCircle class="text-[#dbae61] w-6 h-6 mt-1 flex-shrink-0" />
+<Menu class="w-6 h-6" />
 ```
 
 ## 📱 Responsive Design
 
-### Breakpoints (Tailwind)
-- **sm** : 640px
-- **md** : 768px  
-- **lg** : 1024px
-- **xl** : 1280px
-- **2xl** : 1536px
+### Breakpoints Tailwind utilisés
+- **Mobile first** : Classes sans préfixe (< 768px)
+- **md:** : 768px et plus (desktop)
 
-### Patterns responsive
+### Patterns responsive courants
 
-#### Grilles adaptatives
+#### Navigation
 ```html
-<!-- Mobile empilé, desktop côte à côte -->
-<div class="flex flex-col md:grid md:grid-cols-2 gap-8">
-  <div>Contenu 1</div>
-  <div>Contenu 2</div>
-</div>
+<!-- Menu desktop -->
+<nav class="hidden md:flex gap-8 text-sm font-medium">
+  <a href="#" class="hover:text-[#dbae61] transition-colors">Lien</a>
+</nav>
 
-<!-- Grille avec ratios spécifiques -->
+<!-- Menu mobile -->
+<button class="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+  {isMenuOpen ? <X class="w-6 h-6" /> : <Menu class="w-6 h-6" />}
+</button>
+```
+
+#### Grilles split-screen
+```html
+<!-- Image + contenu -->
 <div class="flex flex-col md:grid md:grid-cols-[40%_60%] md:h-[500px]">
-  <div>40% largeur</div>
-  <div>60% largeur</div>
+  <div class="relative overflow-hidden h-64 md:h-auto">
+    <img class="w-full h-full object-cover object-center" />
+  </div>
+  <div class="px-6 md:px-8 lg:px-12 py-8 flex flex-col justify-center">
+    <!-- Contenu -->
+  </div>
 </div>
 ```
 
-#### Navigation mobile
+#### Headers adaptables
 ```html
-<!-- Menu desktop -->
-<nav class="hidden md:flex space-x-8">
-  <a href="#">Lien</a>
-</nav>
+<!-- Header mobile compact -->
+<div class="md:hidden px-6 py-4 flex items-center justify-between">
+  <!-- Logo + menu hamburger -->
+</div>
 
-<!-- Bouton hamburger mobile -->
-<button class="md:hidden">
-  <Menu class="w-6 h-6" />
-</button>
+<!-- Header desktop complet -->
+<div class="hidden md:flex px-6 md:px-20 items-center justify-between">
+  <!-- Logo + navigation + actions -->
+</div>
 ```
 
 ## 🏗️ Architecture des sections
 
-### Section Hero
+### Section Hero (landing page)
 ```html
 <section class="bg-[#f8f8f8] px-6 md:px-20 py-20 text-center">
   <div class="max-w-5xl mx-auto">
-    <h1>Titre principal</h1>
-    <p>Description</p>
-    <div class="flex gap-4">
+    <h1 class="text-3xl md:text-4xl font-bold text-black mb-6 leading-tight">
+      Titre principal
+    </h1>
+    <p class="text-xl text-gray-700 mb-8 leading-relaxed max-w-3xl mx-auto">
+      Description
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
       <!-- Boutons CTA -->
     </div>
   </div>
 </section>
 ```
 
-### Section avec image (split-screen)
+### Section avec fond noir
 ```html
 <section class="bg-black text-white">
   <div class="flex flex-col md:grid md:grid-cols-[40%_60%] md:h-[500px]">
-    <div class="relative overflow-hidden h-64 md:h-auto">
-      <img src="..." class="w-full h-full object-cover object-center">
-    </div>
-    <div class="px-6 md:px-8 lg:px-12 py-8 flex flex-col justify-center">
-      <!-- Contenu -->
+    <!-- Image + contenu -->
+  </div>
+</section>
+```
+
+### Section assistants (grille)
+```html
+<section id="assistants" class="bg-white px-6 md:px-20 py-16">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold text-center text-black mb-12">NOS ASSISTANTS IA</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- Cartes assistants -->
     </div>
   </div>
 </section>
 ```
 
-### Section témoignages
+## 🔧 Configuration technique actuelle
+
+### Tailwind CSS (tailwind.config.js)
+```javascript
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
+}
+```
+
+### Police (index.html)
 ```html
-<section class="bg-white px-6 md:px-20 py-16">
-  <div class="max-w-6xl mx-auto">
-    <h2 class="text-3xl font-bold text-center text-black mb-12">TÉMOIGNAGES</h2>
-    <div class="flex justify-center gap-8 flex-wrap">
-      <!-- Cartes témoignages -->
-    </div>
-  </div>
-</section>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+```
+
+### CSS de base (index.css)
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900;
+  font-family: 'Montserrat', sans-serif;
+}
 ```
 
 ## 🎨 Principes UX
 
 ### 1. Hiérarchie visuelle
-- Utiliser la couleur dorée (#dbae61) pour les éléments prioritaires
-- Contraste élevé entre les sections (noir/blanc cassé)
+- Couleur dorée `#dbae61` pour les éléments prioritaires (CTA, liens actifs)
+- Contraste élevé : sections noires/blanches alternées
 - Typographie en gras pour les titres importants
 
 ### 2. Cohérence
-- Espacement uniforme entre les sections (py-16)
-- Arrondi constant pour les boutons (rounded-md)
-- Transitions fluides sur tous les éléments interactifs
+- Espacement uniforme : `py-16` pour les sections, `px-6 md:px-20` pour les marges
+- Arrondi constant : `rounded-md` pour tous les boutons
+- Transitions fluides : `transition-colors` sur tous les éléments interactifs
 
 ### 3. Mobile-first
-- Conception mobile en priorité
-- Grilles qui s'adaptent naturellement
-- Menu hamburger pour la navigation mobile
+- Classes sans préfixe pour mobile, `md:` pour desktop
+- Navigation hamburger sur mobile
+- Grilles qui se transforment en colonnes empilées
 
 ### 4. Accessibilité
-- Contrastes respectant les standards WCAG
-- Focus visible sur les éléments interactifs
-- Structure sémantique HTML appropriée
+- Contrastes respectés (noir sur blanc, blanc sur noir)
+- Focus states : `focus:outline-none focus:border-[#dbae61]`
+- Structure sémantique HTML (nav, section, h1-h4)
 
 ### 5. Performance
-- Images optimisées et responsive
-- Classes Tailwind purgées en production
-- Transitions CSS performantes
+- Classes Tailwind purgées automatiquement par Vite
+- Images optimisées avec `object-cover` et `object-contain`
+- Transitions CSS légères
 
-## 📁 Convention de nommage
-
-### Classes CSS personnalisées
-- Préfixe par composant : `.btn-`, `.card-`, `.section-`
-- Modificateurs avec tirets : `.btn-primary`, `.btn-secondary`
-- États avec double tirets : `.btn--disabled`, `.card--highlighted`
+## 📁 Conventions de nommage
 
 ### Fichiers et composants
-- PascalCase pour les composants React : `AssistantFormation.jsx`
-- Versioning explicite : `MonCompte-v2.jsx`
-- Kebab-case pour les assets : `assistant-formation.png`
+- **PascalCase** pour les composants React : `AssistantFormation.jsx`
+- **Versioning explicite** : `MonCompte-v2.jsx`, `AssistantFormationWithHistory-v3.jsx`
+- **Kebab-case** pour les assets : `assistant-formation.png`, `invest-malin-logo.png`
 
-### Variables et couleurs
-- Couleurs avec hex complet : `#dbae61` plutôt que raccourcis
-- Variables descriptives dans les commentaires
-- Groupement logique des propriétés CSS
+### Classes et couleurs
+- Couleurs hex complètes : `bg-[#dbae61]` plutôt que raccourcis
+- Classes Tailwind standard plutôt que CSS custom
+- Préfixes logiques pour les routes : `/mon-compte/assistant-formation`
 
-## 🔧 Configuration technique
-
-### Tailwind CSS
-```javascript
-// tailwind.config.js
-module.exports = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {
-      fontFamily: {
-        'sans': ['Montserrat', 'sans-serif'],
-      },
-      colors: {
-        'primary': '#dbae61',
-        'primary-hover': '#c49a4f',
-      }
-    }
-  }
-}
+### Structure des images
+```
+public/images/
+├── invest-malin-logo.png          # Logo principal
+├── assistant-formation.png        # Image assistant formation
+├── assistant-formation-rectangle.png
+├── fiscaliste-ia.png             # Images assistants spécialisés
+├── legalbnb-ia.png
+├── negociateur-ia.png
+├── hero-image.png                # Images de contenu
+├── hero-illustration.png
+└── login-illustration.png        # Images d'interface
 ```
 
-### Import des polices
-```css
-/* index.css */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
-```
-
-Cette documentation sert de référence complète pour maintenir la cohérence visuelle et l'expérience utilisateur de l'application "Mon Équipe IA".
+Cette documentation reflète l'état actuel du codebase et sert de référence pour maintenir la cohérence du design system de Mon Équipe IA.
