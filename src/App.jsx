@@ -44,9 +44,9 @@ function AppWrapper() {
           <Route path="/upgrade" element={<UpgradeRequired />} />
           
           {/* Assistants Premium - Temporairement vers upgrade (en attendant les composants) */}
-          <Route path="/fiscaliste" element={<ComingSoon  />} />
-          <Route path="/legalbnb" element={<ComingSoon  />} />
-          <Route path="/negociateur" element={<ComingSoon  />} />
+          <Route path="/fiscaliste" element={<ComingSoon assistant="fiscaliste" />} />
+          <Route path="/legalbnb" element={<ComingSoon assistant="legalbnb" />} />
+          <Route path="/negociateur" element={<ComingSoon assistant="negociateur" />} />
           
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
           

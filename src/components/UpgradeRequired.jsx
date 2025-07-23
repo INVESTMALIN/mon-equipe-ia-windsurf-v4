@@ -6,7 +6,7 @@ export default function UpgradeRequired() {
   // const { user } = useAuth() // À implémenter selon votre système auth
 
   const handleUpgrade = () => {
-    // TODO: Remplacer par votre vrai Payment Link Stripe
+    // TODO: Remplacer par le vrai Payment Link Stripe
     const stripePaymentLink = `https://buy.stripe.com/VOTRE_PAYMENT_LINK?client_reference_id=USER_ID`
     window.location.href = stripePaymentLink
   }

@@ -2,8 +2,7 @@ import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Clock, CheckCircle, Scale, Users, MessageCircle } from 'lucide-react'
 
-export default function ComingSoon() {
-  const { assistant } = useParams()
+export default function ComingSoon({ assistant }) {
   
   // Forcer le scroll en haut au chargement
   useEffect(() => {
