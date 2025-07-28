@@ -1,15 +1,12 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, CheckCircle, ArrowLeft } from 'lucide-react'
 
 export default function UpgradeRequired() {
-  // TODO: Récupérer user.id pour l'ajouter au Payment Link
-  // const { user } = useAuth() // À implémenter selon votre système auth
-
-  const handleUpgrade = () => {
-    // TODO: Remplacer par le vrai Payment Link Stripe
-    const stripePaymentLink = `https://buy.stripe.com/VOTRE_PAYMENT_LINK?client_reference_id=USER_ID`
-    window.location.href = stripePaymentLink
-  }
+  // Scroll vers le haut au chargement de la page
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#f8f8f8] flex flex-col">
@@ -26,7 +23,7 @@ export default function UpgradeRequired() {
           </div>
           
           <Link 
-            to="/mon-compte-v2" 
+            to="/assistants" 
             className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -103,17 +100,17 @@ export default function UpgradeRequired() {
               </div>
             </div>
 
-            {/* CTA Button */}
-            <button
-              onClick={handleUpgrade}
-              className="w-full bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold py-4 px-8 rounded-lg text-lg transition-colors duration-300 hover:scale-105 transform"
+            {/* CTA Button - Redirection vers ComingSoon */}
+            <Link
+              to="/coming-soon"
+              className="block w-full bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold py-4 px-8 rounded-lg text-lg transition-colors duration-300 hover:scale-105 transform text-center"
             >
-              Souscrire au Plan Premium
-            </button>
+              Découvrir le Plan Premium
+            </Link>
             
             {/* Small print */}
             <p className="text-center text-gray-500 text-sm mt-4">
-              Paiement sécurisé par Stripe • Résiliation possible à tout moment
+              Assistants en cours de développement • Paiement bientôt disponible
             </p>
           </div>
 

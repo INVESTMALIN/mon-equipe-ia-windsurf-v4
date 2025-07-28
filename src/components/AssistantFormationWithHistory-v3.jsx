@@ -151,9 +151,9 @@ export default function AssistantFormationWithHistoryV3() {
           <div></div> {/* Espace vide pour centrer le logo */}
           
             <Link
-              to="/mon-compte-v2"
+              to="/assistants"
               className="flex items-center gap-2 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
-              title="Aller à Mon Compte V2"
+              title="Aller à Assistants"
             >
               <img 
                 src="/images/invest-malin-logo.png" 
@@ -185,9 +185,9 @@ export default function AssistantFormationWithHistoryV3() {
         {/* Header desktop - comme avant */}
         <div className="hidden md:flex px-6 md:px-20 items-center justify-between">
           <Link
-            to="/mon-compte-v2"
+            to="/assistants"
             className="flex items-center gap-3 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
-            title="Aller à Mon Compte V2"
+            title="Aller à Assistants"
           >
             <img 
               src="/images/invest-malin-logo.png" 
@@ -200,7 +200,7 @@ export default function AssistantFormationWithHistoryV3() {
           
           <div className="flex items-center gap-4">
             <Link
-              to="/mon-compte-v2"
+              to="/assistants"
               className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors border-2 border-white/80 hover:border-[#dbae61] px-3 py-2 rounded-md"
             >
               <ArrowLeft className="w-4 h-4" />

@@ -164,13 +164,13 @@ npm run build
 
 ### Fichiers et composants
 - **Composants React** : PascalCase (`AssistantFormation.jsx`)
-- **Versions multiples** : Suffixe explicite (`MonCompte-v2.jsx`, `AssistantFormationWithHistory-v3.jsx`)
+- **Versions multiples** : Suffixe explicite (`Assistants.jsx`, `AssistantFormation.jsx`)
 - **Assets** : kebab-case (`assistant-formation.png`, `invest-malin-logo.png`)
 
 ### Routes
-- Pages principales : `/`, `/connexion`, `/inscription`
-- Espace utilisateur : `/mon-compte`, `/mon-compte-v2`
-- Assistants : `/mon-compte/assistant-formation`, `/mon-compte/assistant-formation-v3`
+- Pages principales : `/`, `/connexion`
+- Espace utilisateur : `/mon-compte`,  `/inscription`
+- Assistants : `/assistant-formation`, `/fiscaliste`
 - Pages légales : `/mentions-legales`, `/politique-confidentialite`
 
 ### CSS et Styling

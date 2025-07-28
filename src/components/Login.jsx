@@ -27,7 +27,7 @@ export default function Login() {
 
     // Si succès
     console.log('Login réussi:', data)
-    window.location.href = '/mon-compte-v2'
+    window.location.href = '/assistants'
   }
 
   return (

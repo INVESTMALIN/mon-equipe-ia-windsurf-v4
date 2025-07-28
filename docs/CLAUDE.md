@@ -40,8 +40,8 @@ Créer une app web avec 4 assistants IA :
 src/components/ (TOUT est ici, pas de sous-dossiers)
 ├── Home.jsx (Landing page)
 ├── Login.jsx, Inscription.jsx (Auth)
-├── MonCompte-v2.jsx (Dashboard principal)
-├── AssistantFormationWithHistory-v3.jsx (Chat opérationnel)
+├── Assistants.jsx (Accueil des assistants)
+├── AssistantFormation.jsx (Chat opérationnel)
 ├── SidebarConversations.jsx (Navigation historique)
 └── [Composants pages légales, 404, etc.]
 ```
@@ -81,7 +81,7 @@ users (
 - Système d'authentification Supabase (inscription, connexion, reset)
 - Assistant Formation avec webhook n8n opérationnel
 - Historique des conversations avec sidebar
-- Dashboard utilisateur (MonCompte-v2.jsx)
+- Accueil utilisateur (Assistants.jsx)
 - Design system cohérent (couleur dorée, Tailwind, responsive)
 - Déploiement Vercel configuré
 
@@ -91,7 +91,7 @@ users (
 - **Système Stripe** pour le paywall
 
 ### 📋 Prochaines Actions Prioritaires
-1. **Pages "Coming Soon"** pour les 3 assistants payants
+1. **Pages "Coming Soon"** pour les 3 assistants payants (terminé)
 2. **Intégration webhooks n8n** dès réception
 3. **Paywall Stripe** pour protéger les assistants premium
 4. **Tests et optimisations**
@@ -197,8 +197,8 @@ await supabase.from('conversations').insert({
 // App.jsx - Routes principales
 <Route path="/" element={<Home />} />
 <Route path="/connexion" element={<Login />} />
-<Route path="/mon-compte-v2" element={<MonCompteV2 />} />
-<Route path="/mon-compte/assistant-formation-v3" element={<AssistantFormationWithHistoryV3 />} />
+<Route path="/assistants" element={<Assistants />} />
+<Route path="/assistant-formation" element={<AssistantFormation />} />
 ```
 
 ## 🚨 Pièges à Éviter - Leçons Apprises
@@ -229,8 +229,8 @@ await supabase.from('conversations').insert({
 - `CLAUDE.md` - Ce fichier (instructions pour Claude)
 
 ### Composants Clés à Examiner
-1. `AssistantFormationWithHistory-v3.jsx` - Modèle de chat avec historique
-2. `MonCompte-v2.jsx` - Dashboard utilisateur principal
+1. `AssistantFormation.jsx` - Modèle de chat avec historique
+2. `Assistants.jsx` - Dashboard utilisateur principal
 3. `SidebarConversations.jsx` - Navigation conversations
 4. `Home.jsx` - Landing page avec grille assistants
 5. `supabaseClient.js` - Configuration BDD

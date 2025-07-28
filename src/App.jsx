@@ -8,20 +8,18 @@ import AssistantFormation from './components/AssistantFormation'
 import Inscription from './components/Inscription'
 import MotDePasseOublie from './components/MotDePasseOublie'
 import EmailConfirmation from './components/EmailConfirmation'
-import AssistantFormationWithHistory from './components/AssistantFormationWithHistory'
-import AssistantFormationWithHistoryV3 from './components/AssistantFormationWithHistory-v3'
+import Assistants from './components/Assistants'
 
 // Import des pages légales
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
 import PolitiqueConfidentialite from './components/PolitiqueConfidentialite'
 import ConditionsUtilisation from './components/ConditionsUtilisation'
-import MonCompteV2 from './components/MonCompte-v2'
+
 
 // Import paywall
 import UpgradeRequired from './components/UpgradeRequired'
 import ComingSoon from './components/ComingSoon'
-
 
 function AppWrapper() {
   return (
@@ -31,14 +29,21 @@ function AppWrapper() {
           <Route path="/" element={<Home />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/compte-cree" element={<AccountCreated />} />
+          
+          {/* Mon Compte V1 - Future page gestion abonnement */}
           <Route path="/mon-compte" element={<MonCompte />} />
+          
+          {/* Assistants - Ex Mon Compte V2 */}
+          <Route path="/assistants" element={<Assistants />} />
+          
           <Route path="/inscription" element={<Inscription />} />
           <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
           
           {/* Assistant Formation (gratuit) */}
-          <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
-          <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
-          <Route path="/mon-compte/assistant-formation-v3" element={<AssistantFormationWithHistoryV3 />} />
+          <Route path="/assistant-formation" element={<AssistantFormation />} />
+
+          {/* Page Coming Soon générale depuis UpgradeRequired */}
+          <Route path="/coming-soon" element={<ComingSoon />} />
           
           {/* Paywall */}
           <Route path="/upgrade" element={<UpgradeRequired />} />
@@ -55,7 +60,6 @@ function AppWrapper() {
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
-          <Route path="/mon-compte-v2" element={<MonCompteV2 />} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>

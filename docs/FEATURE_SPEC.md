@@ -46,7 +46,7 @@ Application web pour Mon Équipe IA, plateforme d'assistants IA dédiée aux cli
 - [x] **Pages légales** - CGU, politique de confidentialité, mentions légales
 
 #### 3. Assistant de Formation Opérationnel
-- [x] **Interface de chat** (`AssistantFormation.jsx`, `AssistantFormationWithHistory-v3.jsx`)
+- [x] **Interface de chat** (`AssistantFormation.jsx`)
 - [x] **Historique des conversations** - Stockage et récupération Supabase
 - [x] **Sidebar de conversations** (`SidebarConversations.jsx`) - Navigation entre discussions
 - [x] **Nouvelle conversation** - Bouton pour créer une session fraîche
@@ -54,8 +54,8 @@ Application web pour Mon Équipe IA, plateforme d'assistants IA dédiée aux cli
 - [x] **Persistance** - Sauvegarde automatique en base de données
 
 #### 4. Tableau de Bord Utilisateur
-- [x] **Mon Compte v1** (`MonCompte.jsx`) - Interface basique
-- [x] **Mon Compte v2** (`MonCompte-v2.jsx`) - Design amélioré
+- [x] **Mon Compte** (`MonCompte.jsx`) - Espace utilisateur
+- [x] **Assistants** (`Assistants.jsx`) - Accueil des assistants
 - [x] **Accès direct Assistant Formation** - Lien vers l'assistant fonctionnel
 
 ### ⏳ En Attente d'Intégration
@@ -94,10 +94,9 @@ src/
 │   ├── Home.jsx                    // Landing page
 │   ├── Login.jsx                   // Authentification
 │   ├── Inscription.jsx
-│   ├── MonCompte.jsx               // Dashboard v1
-│   ├── MonCompte-v2.jsx            // Dashboard v2
-│   ├── AssistantFormation.jsx      // Chat basic
-│   ├── AssistantFormationWithHistory-v3.jsx  // Chat avancé
+│   ├── MonCompte.jsx               // GEstion abonnements
+│   ├── Assistants.jsx              // Accueil assistants
+│   ├── AssistantFormation.jsx      // Chat avec historique (V3)
 │   └── SidebarConversations.jsx    // Navigation conversations
 ├── App.jsx                         // Router principal
 ├── supabaseClient.js               // Config BDD
@@ -148,7 +147,7 @@ Page d'accueil
     ↓
 Clic "Accéder à mon compte" → Connexion directe
     ↓
-Tableau de bord (Mon Compte v2)
+Accueuil des assistants (Assistants)
     ↓
 Assistant Formation (chat + historique)
     ↓
@@ -191,7 +190,7 @@ Affichage + historique accessible
 
 ### 2. Assistant de Formation
 ```jsx
-// AssistantFormationWithHistory-v3.jsx - Fonctionnalités complètes
+// AssistantFormation.jsx - Fonctionnalités complètes
 - Interface chat en temps réel
 - Historique persistant (localStorage + Supabase)
 - Sidebar conversations avec chargement dynamique
@@ -203,9 +202,9 @@ Affichage + historique accessible
 - Header avec navigation
 ```
 
-### 3. Tableau de Bord
+### 3. Accueil
 ```jsx
-// MonCompte-v2.jsx - Version améliorée
+// Assistants.jsx - Version améliorée
 - Présentation Assistant Formation avec CTA
 - Grid des 3 assistants payants
 - Design moderne avec images et descriptions

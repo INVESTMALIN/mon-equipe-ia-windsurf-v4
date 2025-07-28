@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock, CheckCircle, Scale, Users, MessageCircle } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, Clock, CheckCircle, Scale, Users, MessageCircle, Rocket } from 'lucide-react'
 
 export default function ComingSoon({ assistant }) {
   
@@ -9,7 +9,7 @@ export default function ComingSoon({ assistant }) {
     window.scrollTo(0, 0)
   }, [assistant])
   
-  // Configuration des assistants
+  // Configuration des assistants spécifiques
   const assistantConfig = {
     fiscaliste: {
       name: "Fiscaliste IA",
@@ -58,7 +58,25 @@ export default function ComingSoon({ assistant }) {
     }
   }
 
-  const config = assistantConfig[assistant] || assistantConfig.fiscaliste
+  // Configuration générale (quand pas d'assistant spécifique)
+  const generalConfig = {
+    name: "Assistants Premium",
+    icon: Rocket,
+    color: "#dbae61",
+    image: "/images/hero-image.png",
+    description: "Votre équipe IA complète bientôt disponible",
+    features: [
+      "Fiscaliste IA - Expert fiscal personnalisé",
+      "LegalBNB IA - Juriste spécialisé location courte durée", 
+      "Négociateur IA - Coach en négociation avancée",
+      "Support premium 24h/24",
+      "Mises à jour automatiques et nouvelles fonctionnalités"
+    ],
+    comingSoon: "Nos assistants IA spécialisés sont actuellement en cours de développement. Le système de paiement sera bientôt disponible pour vous permettre d'accéder à toute la puissance de votre équipe IA."
+  }
+
+  // Choisir la configuration selon le contexte
+  const config = assistant ? assistantConfig[assistant] : generalConfig
   const IconComponent = config.icon
 
   return (
@@ -76,60 +94,44 @@ export default function ComingSoon({ assistant }) {
           </div>
           
           <Link 
-            to="/mon-compte-v2" 
+            to={assistant ? "/assistants" : "/upgrade"}
             className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden md:inline">Retour au dashboard</span>
-            <span className="md:hidden">Retour</span>
+            <span className="hidden md:inline">Retour</span>
           </Link>
         </div>
       </header>
 
-      {/* Hero Section compacte */}
-      <section className="relative py-12 overflow-hidden">
-        {/* Background avec gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
-        
-        {/* Contenu */}
-        <div className="relative z-10 px-6 md:px-20">
-          <div className="max-w-6xl mx-auto text-center">
-            
-            {/* Status badge centré */}
-            <div className="mb-8">
-              <div className="inline-flex items-center gap-3 bg-[#dbae61]/20 border border-[#dbae61]/30 rounded-full px-6 py-3">
-                <Clock className="w-5 h-5 text-[#dbae61]" />
-                <span className="text-[#dbae61] font-semibold">Bientôt disponible</span>
-              </div>
-            </div>
-
-            {/* Titre principal */}
-            <div className="text-white">
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <div className="p-4 bg-[#dbae61] rounded-2xl">
-                  <IconComponent className="w-12 h-12 text-black" />
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold">
-                  {config.name}
-                </h1>
-              </div>
-              
-              <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {config.description}
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Section Fonctionnalités */}
-      <section className="bg-white py-20">
-        <div className="max-w-4xl mx-auto px-6 md:px-20">
+      {/* Hero Section */}
+      <section className="px-6 md:px-20 py-16">
+        <div className="max-w-4xl mx-auto">
           
+          {/* En-tête avec icône */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-black mb-4">
-              Ce qui vous attend
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: config.color }}>
+              <IconComponent className="w-10 h-10 text-black" />
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl font-bold text-black mb-6">
+              {config.name}
+            </h1>
+            
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed mb-8">
+              {config.description}
+            </p>
+
+            {/* Badge Coming Soon */}
+            <div className="inline-flex items-center gap-2 bg-[#dbae61] text-black px-6 py-3 rounded-full font-semibold mb-8">
+              <Clock className="w-5 h-5" />
+              Bientôt disponible
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-black mb-4">
+              {assistant ? `${config.name} qui vous attend` : "Votre équipe IA qui vous attend"}
             </h2>
             <p className="text-lg text-gray-600">
               {config.comingSoon}
@@ -139,7 +141,7 @@ export default function ComingSoon({ assistant }) {
           {/* Liste des fonctionnalités */}
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             {config.features.map((feature, index) => (
-              <div key={index} className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
+              <div key={index} className="flex items-start gap-4 p-6 bg-white rounded-xl shadow-sm">
                 <CheckCircle className="w-6 h-6 text-[#dbae61] flex-shrink-0 mt-1" />
                 <div>
                   <p className="text-gray-800 font-medium">
@@ -162,7 +164,10 @@ export default function ComingSoon({ assistant }) {
               Février 2025
             </p>
             <p className="text-gray-600">
-              Nous peaufinons actuellement les derniers détails pour vous offrir une expérience exceptionnelle.
+              {assistant 
+                ? "Nous peaufinons actuellement les derniers détails pour vous offrir une expérience exceptionnelle."
+                : "Nos équipes finalisent le développement des assistants et l'intégration du système de paiement sécurisé."
+              }
             </p>
           </div>
 
@@ -184,40 +189,21 @@ export default function ComingSoon({ assistant }) {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/mon-compte/assistant-formation-v3"
-              className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+              to="/assistant-formation"
+              className="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold px-8 py-4 rounded-lg transition-colors"
             >
-              Assistant Formation
-              <span className="ml-2">→</span>
+              Accéder à l'Assistant Formation
             </Link>
             
             <Link
-              to="/mon-compte-v2"
-              className="inline-flex items-center bg-transparent border-2 border-white hover:bg-white hover:text-black text-white font-bold px-8 py-4 rounded-xl transition-all duration-300"
+              to="/assistants"
+              className="border-2 border-white text-white hover:bg-white hover:text-black font-bold px-8 py-4 rounded-lg transition-colors"
             >
-              Retour au dashboard
+              Retour aux assistants
             </Link>
           </div>
-          
         </div>
       </section>
-
-      {/* Footer simple */}
-      <footer className="bg-gray-900 text-white px-6 md:px-20 py-8">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img 
-              src="/images/invest-malin-logo.png" 
-              alt="Invest Malin Logo" 
-              className="h-6"
-            />
-            <span className="text-lg font-bold">MON ÉQUIPE IA</span>
-          </div>
-          <p className="text-gray-400 text-sm">
-            © 2025 Mon Équipe IA - Invest Malin. Tous droits réservés.
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }

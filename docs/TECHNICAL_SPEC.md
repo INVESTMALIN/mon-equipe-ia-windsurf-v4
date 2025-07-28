@@ -49,11 +49,9 @@ mon-equipe-ia-windsurf-v4/
 │   │   ├── Login.jsx              # Authentification
 │   │   ├── Inscription.jsx
 │   │   ├── MotDePasseOublie.jsx
-│   │   ├── MonCompte.jsx          # Dashboard v1
-│   │   ├── MonCompte-v2.jsx       # Dashboard v2 amélioré
-│   │   ├── AssistantFormation.jsx # Chat basique
-│   │   ├── AssistantFormationWithHistory.jsx  # Chat avec historique
-│   │   ├── AssistantFormationWithHistory-v3.jsx # Version avancée
+│   │   ├── MonCompte.jsx          # Espace utilisateur (gestion abonnements)
+│   │   ├── Assistants.jsx         # Accueil des assistants
+│   │   ├── AssistantFormation.jsx # Chat avec historique
 │   │   ├── SidebarConversations.jsx # Navigation conversations
 │   │   ├── AccountCreated.jsx     # Confirmations
 │   │   ├── EmailConfirmation.jsx
@@ -83,29 +81,44 @@ mon-equipe-ia-windsurf-v4/
 ### Routing React Router
 ```jsx
 // App.jsx - Configuration des routes
-<Routes>
-  <Route path="/" element={<Home />} />
-  <Route path="/connexion" element={<Login />} />
-  <Route path="/inscription" element={<Inscription />} />
-  <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
-  <Route path="/compte-cree" element={<AccountCreated />} />
-  <Route path="/email-confirmation" element={<EmailConfirmation />} />
-  
-  <Route path="/mon-compte" element={<MonCompte />} />
-  <Route path="/mon-compte-v2" element={<MonCompteV2 />} />
-  
-  <Route path="/mon-compte/assistant-formation" element={<AssistantFormation />} />
-  <Route path="/mon-compte/assistant-formation-v2" element={<AssistantFormationWithHistory />} />
-  <Route path="/mon-compte/assistant-formation-v3" element={<AssistantFormationWithHistoryV3 />} />
-  
-  {/* Pages légales */}
-  <Route path="/faq" element={<FAQ />} />
-  <Route path="/mentions-legales" element={<MentionsLegales />} />
-  <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
-  <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
-  
-  <Route path="*" element={<NotFound />} />
-</Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/connexion" element={<Login />} />
+          <Route path="/compte-cree" element={<AccountCreated />} />
+          
+          {/* Mon Compte V1 -> Future page gestion abonnement */}
+          <Route path="/mon-compte" element={<MonCompte />} />
+          
+          {/* Assistants - Ex Mon Compte V2 */}
+          <Route path="/assistants" element={<Assistants />} />
+          
+          <Route path="/inscription" element={<Inscription />} />
+          <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+          
+          {/* Assistant Formation (gratuit) */}
+          <Route path="/assistant-formation" element={<AssistantFormation />} />
+
+          {/* Page Coming Soon générale depuis UpgradeRequired */}
+          <Route path="/coming-soon" element={<ComingSoon />} />
+          
+          {/* Paywall */}
+          <Route path="/upgrade" element={<UpgradeRequired />} />
+          
+          {/* Assistants Premium - Temporairement vers upgrade (en attendant les composants) */}
+          <Route path="/fiscaliste" element={<ComingSoon assistant="fiscaliste" />} />
+          <Route path="/legalbnb" element={<ComingSoon assistant="legalbnb" />} />
+          <Route path="/negociateur" element={<ComingSoon assistant="negociateur" />} />
+          
+          <Route path="/email-confirmation" element={<EmailConfirmation />} />
+          
+          {/* Pages légales */}
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+          <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
 ```
 
 ## Base de Données (Supabase)
