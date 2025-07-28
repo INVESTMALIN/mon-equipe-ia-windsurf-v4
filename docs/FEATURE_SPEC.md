@@ -1,283 +1,410 @@
-# Spécifications des Fonctionnalités - Mon Équipe IA
+# Notes de Développement - Mon Équipe IA
 
 ## Vue d'ensemble
-Application web pour Mon Équipe IA, plateforme d'assistants IA dédiée aux clients Invest Malin pour la gestion de conciergerie immobilière locative.
+Application React moderne pour Mon Équipe IA, plateforme d'assistants IA pour la gestion de conciergerie immobilière Invest Malin.
 
-## Histoires d'Utilisateurs
+## Installation
 
-### 1. Authentification et Gestion de Compte
-- **En tant que nouveau concierge**, je veux créer un compte pour accéder à la plateforme d'assistants IA
-- **En tant qu'utilisateur existant**, je veux me connecter à mon compte rapidement
-- **En tant qu'utilisateur**, je veux réinitialiser mon mot de passe si je l'oublie
-- **En tant qu'utilisateur connecté**, je veux accéder à mon tableau de bord personnalisé
+### Prérequis
+- **Node.js** v18 ou supérieur
+- **npm** v9 ou supérieur  
+- **Git**
 
-### 2. Assistant de Formation (Public/Gratuit)
-- **En tant que concierge**, je veux poser des questions sur la formation Invest Malin
-- **En tant que concierge**, je veux accéder à l'historique de mes conversations précédentes
-- **En tant que concierge**, je veux recevoir des réponses personnalisées basées sur la documentation
-- **En tant que concierge**, je veux pouvoir créer de nouvelles conversations facilement
+### Installation Locale
+```bash
+# Cloner le repository
+git clone [URL_DU_REPOSITORY]
 
-### 3. Assistants Thématiques Payants
-- **En tant que concierge Premium**, je veux accéder à l'assistant Fiscaliste IA pour mes questions fiscales
-- **En tant que concierge Premium**, je veux accéder à LegalBNB pour les aspects légaux
-- **En tant que concierge Premium**, je veux accéder au Négociateur IA pour l'aide à la négociation
-- **En tant que concierge freemium**, je veux voir un aperçu des assistants payants avec option d'upgrade
+# Accéder au dossier
+cd mon-equipe-ia-windsurf-v4
 
-### 4. Expérience Landing Page
-- **En tant que visiteur**, je veux comprendre rapidement la valeur des assistants IA
-- **En tant que prospect**, je veux voir les différents assistants disponibles
-- **En tant que client Invest Malin**, je veux accéder facilement à la connexion
-
-## Statut des Fonctionnalités
-
-### ✅ Implémenté et Fonctionnel
-
-#### 1. Système d'Authentification
-- [x] **Inscription** (`Inscription.jsx`) - Création de compte avec email/mot de passe
-- [x] **Connexion** (`Login.jsx`) - Authentification via Supabase
-- [x] **Réinitialisation de mot de passe** (`MotDePasseOublie.jsx`) - Reset par email
-- [x] **Confirmation d'email** (`EmailConfirmation.jsx`) - Validation des comptes
-- [x] **Gestion de sessions** - Persistance via Supabase Auth
-
-#### 2. Landing Page et Navigation
-- [x] **Page d'accueil publique** (`Home.jsx`) - Présentation des 4 assistants
-- [x] **Design responsive** - Mobile-first avec Tailwind CSS
-- [x] **Navigation fluide** - React Router v6 pour toutes les routes
-- [x] **Pages légales** - CGU, politique de confidentialité, mentions légales
-
-#### 3. Assistant de Formation Opérationnel
-- [x] **Interface de chat** (`AssistantFormation.jsx`)
-- [x] **Historique des conversations** - Stockage et récupération Supabase
-- [x] **Sidebar de conversations** (`SidebarConversations.jsx`) - Navigation entre discussions
-- [x] **Nouvelle conversation** - Bouton pour créer une session fraîche
-- [x] **Webhook n8n** - Intégration fonctionnelle pour les réponses IA
-- [x] **Persistance** - Sauvegarde automatique en base de données
-
-#### 4. Tableau de Bord Utilisateur
-- [x] **Mon Compte** (`MonCompte.jsx`) - Espace utilisateur
-- [x] **Assistants** (`Assistants.jsx`) - Accueil des assistants
-- [x] **Accès direct Assistant Formation** - Lien vers l'assistant fonctionnel
-
-### ⏳ En Attente d'Intégration
-
-#### 1. Assistants Thématiques Payants
-- [ ] **Fiscaliste IA** - Webhook n8n à recevoir
-- [ ] **LegalBNB** - Webhook n8n à recevoir  
-- [ ] **Négociateur IA** - Webhook n8n à recevoir
-- [ ] **Pages individuelles** - Interface de chat pour chaque assistant (à créer)
-
-#### 2. Système de Paiement
-- [ ] **Intégration Stripe** - Paywall pour assistants premium
-- [ ] **Gestion des abonnements** - Statuts gratuit/premium
-- [ ] **Interface de facturation** - Historique et gestion des paiements
-
-### 🚧 À Développer
-
-#### 1. Fonctionnalités Avancées
-- [ ] **Export des conversations** - PDF ou texte
-- [ ] **Recherche dans l'historique** - Filtres et mots-clés
-- [ ] **Favoris/Bookmarks** - Marquer des réponses importantes
-- [ ] **Partage de conversations** - Liens temporaires
-
-#### 2. Administration et Analytics
-- [ ] **Dashboard admin** - Gestion des utilisateurs
-- [ ] **Métriques d'usage** - Statistiques par assistant
-- [ ] **Modération** - Contrôle des conversations
-
-## Architecture Technique Actuelle
-
-### Frontend (React + Vite)
-```jsx
-// Structure simplifiée réelle - AUCUN dossier Context/ ou Hooks/
-src/
-├── components/                     // TOUS les composants React
-│   ├── Home.jsx                    // Landing page
-│   ├── Login.jsx                   // Authentification
-│   ├── Inscription.jsx
-│   ├── MonCompte.jsx               // GEstion abonnements
-│   ├── Assistants.jsx              // Accueil assistants
-│   ├── AssistantFormation.jsx      // Chat avec historique (V3)
-│   └── SidebarConversations.jsx    // Navigation conversations
-├── App.jsx                         // Router principal
-├── supabaseClient.js               // Config BDD
-└── main.jsx                        // Point d'entrée
+# Installer les dépendances
+npm install
 ```
 
-### Backend (Supabase)
+## Configuration
+
+### Variables d'Environnement
+Créez un fichier `.env` à la racine du projet :
+
+```env
+# Supabase (obligatoire)
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Application
+VITE_APP_URL=http://localhost:5173
+
+# Webhooks n8n (pour les assistants payants) - En attente
+VITE_FISCALISTE_WEBHOOK_URL=your_n8n_fiscaliste_webhook
+VITE_LEGALBNB_WEBHOOK_URL=your_n8n_legalbnb_webhook  
+VITE_NEGOCIATEUR_WEBHOOK_URL=your_n8n_negociateur_webhook
+
+# Stripe - SANDBOX PERSONNEL DE JULIEN ⚠️
+# Configuration de test uniquement, à remplacer en production
+STRIPE_SECRET_KEY=sk_test_51RpjzBH8DRxW0tWai2z...     # Secret key côté serveur
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51RpjzBH8DRxW0tWa93d3l8hLLdN1X7VFAU...  # Public key côté client
+```
+
+**⚠️ IMPORTANT STRIPE :**
+- Actuellement configuré avec le **Sandbox personnel de Julien** sur son compte Stripe personnel
+- **Environnement de test uniquement** - toutes les transactions sont factices
+- À migrer vers le compte Stripe d'Invest Malin en production
+- Customer Portal configuré en mode test
+
+### Configuration de Supabase
+1. Créer un projet sur [Supabase](https://supabase.com)
+2. Configurer l'authentification (email/password)
+3. Créer les tables nécessaires (voir section Base de données)
+4. Configurer les Row Level Security (RLS) policies
+5. Récupérer URL et clé anonyme du projet
+
+### Base de données - Extension pour Stripe
+Tables créées et extensions ajoutées :
+
 ```sql
--- Table principale actuelle
-CREATE TABLE conversations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id),
-  source TEXT NOT NULL,              -- 'assistant-formation', 'fiscaliste', etc.
-  question TEXT,
-  answer TEXT,
-  conversation_id UUID NOT NULL,     -- Groupe les messages
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Table users étendue pour Stripe
+ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free';
+ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;
+ALTER TABLE users ADD COLUMN stripe_subscription_id TEXT;
+ALTER TABLE users ADD COLUMN subscription_current_period_end TIMESTAMP;
+
+-- Index pour performance
+CREATE INDEX idx_users_stripe_customer ON users(stripe_customer_id);
+CREATE INDEX idx_users_subscription_end ON users(subscription_current_period_end);
 ```
 
-### Intégrations Externes
-- **n8n Webhooks** : Assistant Formation opérationnel, 3 autres en attente
-- **Supabase Auth** : Gestion complète des utilisateurs
-- **Vercel** : Déploiement et hébergement
+États `subscription_status` possibles :
+- `free` : Utilisateur gratuit (défaut)
+- `premium` : Abonnement actif et payé
+- `expired` : Abonnement annulé ou paiement échoué
 
-## Flux Utilisateur Détaillés
+## Développement
 
-### 1. Parcours Nouveau Utilisateur
-```
-Visiteur anonyme
-    ↓
-Page d'accueil (découverte des 4 assistants)
-    ↓
-Clic "Accéder à mon compte" → Redirection /connexion
-    ↓
-Clic "Créer un compte" → Inscription
-    ↓
-Confirmation email → Connexion
-    ↓
-Mon Compte (accès Assistant Formation)
-    ↓
-Chat avec Assistant Formation
-```
+### Scripts disponibles
+```bash
+# Lancer le serveur de développement
+npm run dev
 
-### 2. Parcours Utilisateur Existant
-```
-Page d'accueil
-    ↓
-Clic "Accéder à mon compte" → Connexion directe
-    ↓
-Accueuil des assistants (Assistants)
-    ↓
-Assistant Formation (chat + historique)
-    ↓
-Assistants payants (Coming Soon + upgrade)
+# Linting du code
+npm run lint
+
+# Build de production
+npm run build
+
+# Aperçu du build
+npm run preview
+
+# Préparer le déploiement
+npm run predeploy
+
+# Déployer sur GitHub Pages
+npm run deploy
 ```
 
-### 3. Flux Assistant de Formation
+### Structure du projet actuelle
 ```
-Interface de chat
-    ↓
-Saisie question utilisateur
-    ↓
-Envoi vers webhook n8n
-    ↓
-Réponse IA contextuelle
-    ↓
-Sauvegarde en base Supabase
-    ↓
-Affichage + historique accessible
-```
-
-## Spécifications Techniques des Composants
-
-### 1. Authentification (Supabase)
-```jsx
-// Login.jsx - Fonctionnalités
-- Validation email/mot de passe
-- Gestion erreurs de connexion
-- Redirection après succès
-- Lien vers récupération mot de passe
-- Design cohérent avec la charte
-
-// Inscription.jsx - Fonctionnalités  
-- Validation côté client
-- Confirmation mot de passe
-- Envoi email de confirmation
-- Gestion des erreurs Supabase
-- Redirection vers confirmation
+mon-equipe-ia-windsurf-v4/
+├── api/                          # API Routes Vercel
+│   └── create-portal-session.js  # Endpoint Stripe Customer Portal ✅ NOUVEAU
+├── public/
+│   ├── images/                   # Assets statiques
+│   └── vite.svg
+├── src/
+│   ├── components/               # Composants React uniquement
+│   │   ├── MonCompte.jsx        # Gestion abonnement enrichie ✅ NOUVEAU
+│   │   ├── Assistants.jsx       # Dashboard utilisateur principal
+│   │   ├── AssistantFormation.jsx # Chat opérationnel
+│   │   └── [autres composants...]
+│   ├── App.jsx                  # Configuration des routes
+│   ├── main.jsx                 # Point d'entrée
+│   ├── supabaseClient.js        # Configuration Supabase
+│   ├── App.css
+│   └── index.css
+├── docs/                        # Documentation
+├── package.json
+├── tailwind.config.js
+├── vite.config.js
+└── vercel.json                  # Configuration Vercel
 ```
 
-### 2. Assistant de Formation
-```jsx
-// AssistantFormation.jsx - Fonctionnalités complètes
-- Interface chat en temps réel
-- Historique persistant (localStorage + Supabase)
-- Sidebar conversations avec chargement dynamique
-- Nouvelle conversation (génération UUID)
-- Scroll automatique et bouton scroll-to-bottom
-- États de chargement avec animation points
-- Gestion d'erreurs webhook
-- Responsive mobile/desktop
-- Header avec navigation
+## Technologies et dépendances
+
+### Dépendances principales
+```json
+{
+  "@supabase/auth-helpers-react": "^0.5.0",
+  "@supabase/supabase-js": "^2.49.8",
+  "@tailwindcss/forms": "^0.5.7",
+  "lucide-react": "^0.511.0",
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0",
+  "react-router-dom": "^6.21.3",
+  "stripe": "^18.0.0",             // ✅ NOUVEAU - API Stripe côté serveur
+  "tailwindcss": "^3.4.1",
+  "uuid": "^11.1.0"
+}
 ```
 
-### 3. Accueil
-```jsx
-// Assistants.jsx - Version améliorée
-- Présentation Assistant Formation avec CTA
-- Grid des 3 assistants payants
-- Design moderne avec images et descriptions
-- Navigation fluide vers les différents assistants
-- Statut Coming Soon pour assistants payants
+### Dépendances de développement
+```json
+{
+  "@vitejs/plugin-react": "^4.2.1",
+  "eslint": "^9.25.0",
+  "vite": "^6.3.5",
+  "gh-pages": "^6.0.0"
+}
 ```
 
-## Gestion d'État Simplifiée
+## Déploiement
 
-### État Local (useState uniquement)
-```jsx
-// Chaque composant gère son état localement - PAS de Context API
-const [messages, setMessages] = useState([])
-const [loading, setLoading] = useState(false)
-const [userId, setUserId] = useState(null)
+### Vercel (recommandé)
+1. Connecter le repository GitHub à Vercel
+2. Configurer les variables d'environnement dans l'interface Vercel :
+   - Variables Supabase
+   - Variables Stripe (Sandbox de Julien pour le moment)
+   - Cocher "All Environments" pour chaque variable
+3. Déploiement automatique à chaque push sur `main`
 
-// Communication directe avec Supabase
-// Pas de hooks personnalisés complexes
+**⚠️ Variables Vercel critiques :**
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+STRIPE_SECRET_KEY=sk_test_...                    # NE PAS préfixer VITE_
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...          # Préfixer VITE_
 ```
 
-### Persistance (Supabase + localStorage)
-```jsx
-// Conversations : Table Supabase
-// Sessions utilisateur : Supabase Auth
-// ID conversation active : localStorage
-// Cache UI temporaire : useState local
+### GitHub Pages (alternatif)
+```bash
+npm run deploy
 ```
 
-## Validation et Gestion des Erreurs
+### Build de production
+```bash
+npm run build
+# Génère le dossier dist/ optimisé pour la production
+```
 
-### 1. Authentification
-- **Validation email** - Format + unicité côté Supabase
-- **Mot de passe** - Minimum 6 caractères (configurable)
-- **Messages d'erreur** - Français, utilisateur-friendly
-- **États de chargement** - Boutons désactivés pendant traitement
+## Architecture technique
 
-### 2. Chat Assistant
-- **Timeout webhook** - Gestion si n8n ne répond pas
-- **Erreurs réseau** - Retry automatique ou message d'erreur
-- **Messages vides** - Validation côté client
-- **Historique** - Fallback si erreur de chargement Supabase
+### Frontend
+- **React 18** : Interface utilisateur
+- **React Router v6** : Navigation et routing
+- **Tailwind CSS** : Styling et responsive design
+- **Lucide React** : Bibliothèque d'icônes
+- **Vite** : Bundler et serveur de développement
 
-### 3. UX Responsive
-- **Mobile first** - Design optimisé petit écran d'abord
-- **Breakpoints** - md: pour desktop (768px+)
-- **Navigation mobile** - Header compact avec retour
-- **Scroll** - Auto-scroll messages + bouton manuel
+### Backend
+- **Supabase** : 
+  - Authentification (email/password, sessions)
+  - Base de données PostgreSQL
+  - Policies de sécurité (Row Level Security)
+  - API auto-générée
 
-## Roadmap Prioritaire
+### Intégrations externes
+- **n8n webhooks** : Assistants IA spécialisés (en attente)
+- **Stripe Customer Portal** : Gestion abonnements ✅ OPÉRATIONNEL
+- **API Vercel** : Endpoint `/api/create-portal-session` ✅ OPÉRATIONNEL
 
-### Phase 1 : Assistants Payants (En cours)
-1. **Réception webhooks n8n** pour les 3 assistants spécialisés
-2. **Création des pages de chat** individuelles (copie de AssistantFormation)
-3. **Update des routes** dans App.jsx
+### Stripe - Configuration actuelle
+- **Mode** : Test/Sandbox sur compte personnel Julien
+- **Customer Portal** : Activé avec gestion factures, paiements, annulations
+- **Produit** : "Plan Premium Mon Équipe IA - 4,90€/mois" créé
+- **Payment Link** : Configuré pour les upgrades
+- **API** : Intégration complète pour sessions portal
 
-### Phase 2 : Paywall Stripe
-1. **Intégration Stripe** - API + composants de paiement
-2. **Gestion des statuts** - Gratuit vs Premium en base
-3. **Protection des routes** - Middleware pour assistants payants
+## Conventions de nommage
 
-### Phase 3 : Fonctionnalités Avancées
-1. **Export conversations** - Génération PDF
-2. **Recherche globale** - Dans tout l'historique utilisateur
-3. **Amélioration UX** - Animations, transitions
+### Fichiers et composants
+- **Composants React** : PascalCase (`AssistantFormation.jsx`)
+- **API Routes** : kebab-case (`create-portal-session.js`)
+- **Assets** : kebab-case (`assistant-formation.png`, `invest-malin-logo.png`)
 
-### Phase 4 : Analytics & Admin
-1. **Dashboard admin** - Gestion utilisateurs et statistiques
-2. **Monitoring** - Suivi usage et performance
-3. **A/B Testing** - Optimisation conversion
+### Routes
+- Pages principales : `/`, `/connexion`
+- Espace utilisateur : `/mon-compte`, `/assistants`, `/inscription`
+- Assistants : `/assistant-formation`, `/fiscaliste`, `/legalbnb`, `/negociateur`
+- Paywall : `/upgrade`
+- Pages légales : `/mentions-legales`, `/politique-confidentialite`
+
+### CSS et Styling
+- Classes Tailwind directes : `bg-[#dbae61]`, `hover:bg-[#c49a4f]`
+- Couleurs hex complètes plutôt que raccourcis
+- Mobile-first : classes sans préfixe pour mobile, `md:` pour desktop
+
+## Fonctionnalités implémentées ✅
+
+### 1. Authentification Supabase
+- Inscription/connexion avec email/password
+- Gestion des sessions
+- Reset de mot de passe
+- Redirections automatiques
+
+### 2. Assistant Formation
+- Chat conversationnel avec n8n webhook
+- Historique des conversations
+- Sidebar de navigation
+- Sauvegarde en base Supabase
+
+### 3. Stripe Customer Portal
+- API endpoint `/api/create-portal-session` fonctionnel
+- Intégration complète dans `MonCompte.jsx`
+- Gestion des statuts d'abonnement (`free`, `premium`, `expired`)
+- Interface utilisateur adaptative selon le statut
+- Redirection vers portal Stripe pour gestion factures/paiements
+
+### 4. Interface utilisateur
+- Page d'accueil avec présentation des assistants
+- Dashboard utilisateur (`Assistants.jsx`)
+- Page compte enrichie avec statistiques et accès rapide
+- Design system cohérent (couleur dorée #dbae61)
+- Responsive mobile-first
+
+## Problèmes connus et limitations
+
+### 1. Stripe (Sandbox)
+- [ ] **Migration nécessaire** vers compte Stripe Invest Malin en production
+- [ ] **Webhooks manquants** pour automatiser les changements de statut
+- [ ] **Tests complets** du cycle de vie abonnement
+
+### 2. Assistants IA
+- [ ] **Webhooks n8n manquants** pour les 3 assistants payants
+- [ ] **Pages de chat individuelles** à créer (Fiscaliste, LegalBNB, Négociateur)
+- [ ] **Gestion des erreurs** webhook (timeout, indisponibilité)
+
+### 3. API et Performance
+- [ ] **Rate limiting** des requêtes vers assistants
+- [ ] **Optimisation** des requêtes Supabase
+- [ ] **Tests automatisés** pour les APIs
+
+### 4. UX/UI
+- [ ] **Amélioration responsive** sur certains composants
+- [ ] **Animations** et transitions plus fluides
+- [ ] **États de chargement** plus visuels
+
+## Tests et qualité
+
+### Linting
+```bash
+npm run lint
+# Utilise ESLint avec la configuration React
+```
+
+### Tests (à implémenter)
+- [ ] Tests unitaires avec Vitest
+- [ ] Tests d'intégration React Testing Library
+- [ ] Tests E2E avec Playwright
+- [ ] Tests spécifiques Stripe (webhook simulation)
+
+## Bonnes pratiques
+
+### Code React
+- Utiliser les hooks React (`useState`, `useEffect`)
+- Composants fonctionnels uniquement
+- Props validation avec PropTypes (à ajouter)
+- Gestion d'erreurs avec Error Boundaries (à implémenter)
+
+### Gestion d'état
+- État local avec `useState` pour les composants
+- Pas de Context API complexe (simplicité préférée)
+- Communication directe avec Supabase
+
+### Supabase
+- Toujours utiliser Row Level Security (RLS)
+- Requêtes optimisées avec `.select()` spécifique
+- Gestion des erreurs Supabase dans try/catch
+
+### Stripe
+- **Séparer les clés** : STRIPE_SECRET_KEY (serveur) vs VITE_STRIPE_PUBLISHABLE_KEY (client)
+- **Tester en production** : Les APIs Vercel ne fonctionnent qu'en déploiement
+- **Sécurité** : Valider les webhooks avec signatures Stripe
+
+### Git
+- Commits atomiques et descriptifs
+- Branches feature pour nouvelles fonctionnalités
+- Pull requests avec review
+
+## Ressources et documentation
+
+### Documentation technique
+- [React Documentation](https://react.dev/)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Stripe Documentation](https://docs.stripe.com/)
+- [Stripe Customer Portal](https://docs.stripe.com/customer-management/integrate-customer-portal)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Vite Documentation](https://vitejs.dev/guide/)
+- [React Router Documentation](https://reactrouter.com/)
+
+### Outils de développement recommandés
+- **VS Code** avec extensions :
+  - ES7+ React/Redux/React-Native snippets
+  - Tailwind CSS IntelliSense
+  - ESLint
+  - Prettier
+- **React Developer Tools** (extension navigateur)
+- **Supabase Studio** pour gestion BDD
+- **Stripe Dashboard** pour gestion paiements
+
+### Assets et design
+- **Lucide Icons** : [lucide.dev](https://lucide.dev/)
+- **Tailwind UI** : Composants d'inspiration
+- **Invest Malin Branding** : Respecter la charte graphique dorée (#dbae61)
+
+## Environnements
+
+### Développement
+- URL : `http://localhost:5173`
+- Hot reload activé
+- Source maps disponibles
+- Console de debug Supabase
+- **APIs Stripe** : Ne fonctionnent qu'en production Vercel
+
+### Production
+- URL : Déployé sur Vercel
+- Build optimisé et minifié
+- Variables d'environnement sécurisées
+- Monitoring des erreurs (à implémenter)
+- **APIs Stripe** : Fonctionnelles
+
+### Stripe Sandbox (Actuel)
+- **Compte** : Personnel de Julien
+- **Mode** : Test uniquement
+- **Customer Portal** : https://billing.stripe.com/p/login/test_...
+- **Dashboard** : Mode Sandbox activé
+
+## Migration Production
+
+### Checklist Stripe
+- [ ] **Créer compte Stripe Invest Malin** ou obtenir accès
+- [ ] **Recréer produit 4,90€/mois** en mode live
+- [ ] **Configurer Customer Portal** en mode live
+- [ ] **Mettre à jour variables** Vercel avec nouvelles clés
+- [ ] **Configurer webhooks** pour automation abonnements
+- [ ] **Tests complets** cycle de paiement
+
+## Support et contact
+
+### Issues et bugs
+- Utiliser les GitHub Issues du repository
+- Template de rapport de bug à créer
+
+### Contribution
+1. Fork le repository
+2. Créer une branche feature (`git checkout -b feature/nouvelle-fonctionnalite`)
+3. Commiter les changements (`git commit -m 'Ajout nouvelle fonctionnalité'`)
+4. Pousser vers la branche (`git push origin feature/nouvelle-fonctionnalite`)
+5. Créer une Pull Request
+
+### Roadmap technique
+- [ ] Migration vers TypeScript
+- [ ] Ajout de tests automatisés
+- [ ] Intégration CI/CD
+- [ ] Monitoring et analytics
+- [ ] PWA (Progressive Web App)
 
 ---
 
-**Maintenu par** : Équipe Invest Malin  
-**Dernière mise à jour** : [Date du jour]  
-**Version** : v4 (Windsurf)  
-**Documentation liée** : DESIGN_SYSTEM.md, DEVELOPMENT_NOTES.md
+**Dernière mise à jour** : 28 juillet 2025  
+**Version du projet** : v4  
+**Maintenu par** : Julien - Équipe Invest Malin  
+**Status Stripe** : Sandbox personnel - Migration production à prévoir

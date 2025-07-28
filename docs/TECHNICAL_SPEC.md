@@ -132,7 +132,12 @@ CREATE TABLE public.users (
   prenom TEXT,                     -- Prénom utilisateur
   nom TEXT,                        -- Nom utilisateur  
   email TEXT,                      -- Email (dupliqué de auth.users)
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  -- ✅ NOUVELLES COLONNES STRIPE
+  subscription_status TEXT DEFAULT 'free',         -- 'free', 'premium', 'expired'
+  stripe_customer_id TEXT,                         -- ID client Stripe
+  stripe_subscription_id TEXT,                     -- ID abonnement Stripe  
+  subscription_current_period_end TIMESTAMP        -- Date fin période
 );
 ```
 
@@ -153,6 +158,8 @@ CREATE TABLE public.conversations (
 CREATE INDEX idx_conversations_created_at ON conversations(created_at);
 CREATE INDEX idx_conversations_user_source ON conversations(user_id, source);
 CREATE INDEX idx_conversations_conversation_id ON conversations(conversation_id);
+CREATE INDEX idx_users_stripe_customer ON users(stripe_customer_id);
+CREATE INDEX idx_users_subscription_end ON users(subscription_current_period_end);
 ```
 
 #### Colonnes de la table `conversations`

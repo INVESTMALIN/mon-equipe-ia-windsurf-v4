@@ -10,9 +10,6 @@ import MotDePasseOublie from './components/MotDePasseOublie'
 import EmailConfirmation from './components/EmailConfirmation'
 import Assistants from './components/Assistants'
 
-// Test
-import TestStripe from './components/TestStripe'
-
 
 // Import des pages légales
 import FAQ from './components/FAQ'
@@ -67,9 +64,6 @@ function AppWrapper() {
           
           <Route path="*" element={<NotFound />} />
 
-          {/* Test Stripe */}
-          <Route path="/test-stripe" element={<TestStripe />} />
-          
         </Routes>
       </main>
     </div>

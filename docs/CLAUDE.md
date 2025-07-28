@@ -32,6 +32,7 @@ Créer une app web avec 4 assistants IA :
 - **Frontend** : React 18 + Vite + Tailwind CSS + React Router
 - **Backend** : Supabase (Auth + PostgreSQL)
 - **IA** : Webhooks n8n (hub.cardin.cloud)
+- **Paiements** : Stripe + Customer Portal ✅ OPÉRATIONNEL
 - **Déploiement** : Vercel
 - **Design** : Mobile-first, couleur dorée #dbae61
 
@@ -42,6 +43,7 @@ src/components/ (TOUT est ici, pas de sous-dossiers)
 ├── Login.jsx, Inscription.jsx (Auth)
 ├── Assistants.jsx (Accueil des assistants)
 ├── AssistantFormation.jsx (Chat opérationnel)
+├── MonCompte.jsx (Gestion abonnement + Customer Portal) ✅ NOUVEAU
 ├── SidebarConversations.jsx (Navigation historique)
 └── [Composants pages légales, 404, etc.]
 ```
@@ -66,7 +68,11 @@ users (
   prenom TEXT,
   nom TEXT,
   email TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  subscription_status TEXT DEFAULT 'free',         -- ✅ NOUVEAU
+  stripe_customer_id TEXT,                         -- ✅ NOUVEAU
+  stripe_subscription_id TEXT,                     -- ✅ NOUVEAU
+  subscription_current_period_end TIMESTAMP        -- ✅ NOUVEAU
 );
 ```
 
@@ -82,19 +88,22 @@ users (
 - Assistant Formation avec webhook n8n opérationnel
 - Historique des conversations avec sidebar
 - Accueil utilisateur (Assistants.jsx)
+- **Stripe Customer Portal intégré** ✅ NOUVEAU
+- **Page MonCompte enrichie avec gestion abonnement** ✅ NOUVEAU
+- **API /api/create-portal-session fonctionnelle** ✅ NOUVEAU
 - Design system cohérent (couleur dorée, Tailwind, responsive)
 - Déploiement Vercel configuré
 
 ### ⏳ En Attente
 - **Webhooks n8n** pour Fiscaliste IA, LegalBNB, Négociateur IA
 - **Pages de chat individuelles** pour les 3 assistants payants
-- **Système Stripe** pour le paywall
+- **Webhooks Stripe** pour automatiser subscription_status
 
 ### 📋 Prochaines Actions Prioritaires
-1. **Pages "Coming Soon"** pour les 3 assistants payants (terminé)
+1. **Webhooks Stripe** pour sync automatique des abonnements
 2. **Intégration webhooks n8n** dès réception
-3. **Paywall Stripe** pour protéger les assistants premium
-4. **Tests et optimisations**
+3. **Tests paywall complet** en production
+4. **Optimisations UX**
 
 ## 🎨 Design System - Règles Critiques
 
@@ -135,8 +144,9 @@ VITE_FISCALISTE_WEBHOOK_URL=
 VITE_LEGALBNB_WEBHOOK_URL=
 VITE_NEGOCIATEUR_WEBHOOK_URL=
 
-# Stripe (à implémenter)
-VITE_STRIPE_PUBLISHABLE_KEY=
+# Stripe (opérationnel) ✅
+STRIPE_SECRET_KEY=sk_test_...                    # Côté serveur uniquement
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...          # Côté client
 ```
 
 ### Webhook n8n Format
@@ -148,6 +158,14 @@ const res = await fetch('https://hub.cardin.cloud/webhook/3bab9cc1-054f-4f06-b19
   body: JSON.stringify({ message: fullPrompt })
 })
 // Réponse : { "output": "réponse de l'IA" }
+```
+
+### API Stripe Customer Portal ✅ NOUVEAU
+```javascript
+// Endpoint Vercel opérationnel
+POST /api/create-portal-session
+Body: { customer_id, return_url }
+Réponse: { url: "https://billing.stripe.com/p/session/..." }
 ```
 
 ### Scripts npm (package.json)
@@ -181,6 +199,22 @@ useEffect(() => {
 }, [])
 ```
 
+### Pattern Stripe Customer Portal ✅ NOUVEAU
+```jsx
+const handleManageSubscription = async () => {
+  const response = await fetch('/api/create-portal-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      customer_id: userProfile.stripe_customer_id,
+      return_url: window.location.origin + '/mon-compte'
+    })
+  })
+  const data = await response.json()
+  if (response.ok) window.location.href = data.url
+}
+```
+
 ### Insertion Conversation Pattern
 ```jsx
 await supabase.from('conversations').insert({
@@ -199,6 +233,7 @@ await supabase.from('conversations').insert({
 <Route path="/connexion" element={<Login />} />
 <Route path="/assistants" element={<Assistants />} />
 <Route path="/assistant-formation" element={<AssistantFormation />} />
+<Route path="/mon-compte" element={<MonCompte />} />        // ✅ NOUVEAU
 ```
 
 ## 🚨 Pièges à Éviter - Leçons Apprises
@@ -210,6 +245,7 @@ await supabase.from('conversations').insert({
 - Créer des sous-dossiers dans src/components/
 - Supposer qu'OpenAI est utilisé (c'est n8n !)
 - Hardcoder des URLs ou politiques RLS sans vérifier
+- **Mélanger STRIPE_SECRET_KEY et VITE_STRIPE_PUBLISHABLE_KEY** ✅ NOUVEAU
 
 ### ✅ Toujours Faire
 - Vérifier la structure réelle via project_knowledge_search
@@ -218,6 +254,7 @@ await supabase.from('conversations').insert({
 - Implémenter les états de chargement (loading, dots)
 - Tester l'auth Supabase avant toute requête BDD
 - Maintenir la cohérence du design system
+- **Tester APIs en production (Vercel) pas en local** ✅ NOUVEAU
 
 ## 📚 Documentation Critique
 
@@ -226,6 +263,7 @@ await supabase.from('conversations').insert({
 - `DEVELOPMENT_NOTES.md` - Installation, config, structure
 - `FEATURE_SPEC.md` - Fonctionnalités actuelles et roadmap
 - `TECHNICAL_SPEC.md` - Architecture, BDD, déploiement
+- `PAYWALL_PLAN.md` - Plan d'implémentation Stripe complet ✅ NOUVEAU
 - `CLAUDE.md` - Ce fichier (instructions pour Claude)
 
 ### Composants Clés à Examiner
@@ -233,8 +271,8 @@ await supabase.from('conversations').insert({
 2. `Assistants.jsx` - Dashboard utilisateur principal
 3. `SidebarConversations.jsx` - Navigation conversations
 4. `Home.jsx` - Landing page avec grille assistants
-5. `supabaseClient.js` - Configuration BDD
-
+5. `MonCompte.jsx` - Gestion abonnement + Customer Portal ✅ NOUVEAU
+6. `supabaseClient.js` - Configuration BDD
 
 ## 🔄 Routine de Démarrage de Session
 
@@ -243,10 +281,10 @@ await supabase.from('conversations').insert({
 2. Vérifier l'état des webhooks n8n
 3. Examiner les derniers commits si mentionnés
 4. Proposer la prochaine étape logique :
-   - Pages Coming Soon si webhooks pas reçus
-   - Intégration webhook si reçus
-   - Stripe si assistants opérationnels
-   - Optimisations si tout fonctionne
+   - Webhooks Stripe si on veut automatiser les abonnements
+   - Pages individuelles assistants si webhooks n8n reçus
+   - Tests paywall si tout fonctionne
+   - Optimisations UX si tout est opérationnel
 5. Confirmer avant de commencer le travail
 ```
 
@@ -270,7 +308,7 @@ await supabase.from('conversations').insert({
 ---
 
 **⚡ RÉSUMÉ ULTRA-RAPIDE**
-App React/Supabase avec 4 assistants IA. 1 opérationnel (Formation), 3 en attente de webhooks n8n. Couleur dorée #dbae61, mobile-first, table conversations simple. Prochaine étape : pages Coming Soon ou intégration webhooks selon ce que Julien a reçu.
+App React/Supabase avec 4 assistants IA. 1 opérationnel (Formation), 3 en attente de webhooks n8n. Stripe Customer Portal fonctionnel, page MonCompte enrichie. Couleur dorée #dbae61, mobile-first, table conversations + users avec colonnes Stripe. Prochaine étape : webhooks Stripe pour automatiser les abonnements.
 
 **🔥 ACTION IMMÉDIATE À CHAQUE SESSION**
-Demander : "Salut ! Quels webhooks n8n as-tu reçus ? On continue sur les pages Coming Soon ou autre chose ?"
+Demander : "Salut ! Quels webhooks n8n as-tu reçus ? On continue sur les webhooks Stripe pour automatiser les abonnements ou autre chose ?"
