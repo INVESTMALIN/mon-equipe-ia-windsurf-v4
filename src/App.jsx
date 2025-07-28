@@ -10,6 +10,10 @@ import MotDePasseOublie from './components/MotDePasseOublie'
 import EmailConfirmation from './components/EmailConfirmation'
 import Assistants from './components/Assistants'
 
+// Test
+import TestStripe from './components/TestStripe'
+
+
 // Import des pages légales
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
@@ -30,7 +34,7 @@ function AppWrapper() {
           <Route path="/connexion" element={<Login />} />
           <Route path="/compte-cree" element={<AccountCreated />} />
           
-          {/* Mon Compte V1 - Future page gestion abonnement */}
+          {/* Mon Compte V1 -> Future page gestion abonnement */}
           <Route path="/mon-compte" element={<MonCompte />} />
           
           {/* Assistants - Ex Mon Compte V2 */}
@@ -62,6 +66,10 @@ function AppWrapper() {
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           
           <Route path="*" element={<NotFound />} />
+
+          {/* Test Stripe */}
+          <Route path="/test-stripe" element={<TestStripe />} />
+          
         </Routes>
       </main>
     </div>

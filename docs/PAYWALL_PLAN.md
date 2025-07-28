@@ -40,7 +40,7 @@ ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'free';
 **Status :** ✅ **Fait** (ComingSoon sera remplacé par les vrais assistants quand webhooks n8n reçus)
 
 ### ✅ **Étape 5 : Interface MonCompte** - TERMINÉ
-**`MonCompte-v2.jsx` modifié :**
+**`Assistants.jsx` modifié :**
 - ✅ Affichage conditionnel basé sur `subscription_status`
 - ✅ Utilisateurs gratuits → cadenas + "Passer Premium" → `/upgrade`
 - ✅ Utilisateurs premium → "Accéder à l'assistant" → `/fiscaliste` etc.
@@ -151,7 +151,7 @@ CREATE INDEX idx_users_subscription_end ON users(subscription_current_period_end
 - Message "Votre abonnement a été annulé"
 - Bouton "Réactiver Premium" → UpgradeRequired
 
-#### **Modification `MonCompte-v2.jsx`**
+#### **Modification `Assistants.jsx`**
 ```jsx
 // Ajouter lien vers page abonnement
 <Link to="/mon-compte/abonnement" className="...">
@@ -296,7 +296,7 @@ FOR ALL USING (
 ### **Phase 1 - Paywall Initial** ✅ **En cours**
 1. ✅ Extension BDD (subscription_status)
 2. ✅ Page UpgradeRequired
-3. ✅ Affichage conditionnel MonCompte-v2
+3. ✅ Affichage conditionnel 'free'/'premium' sur Assistants.jsx
 4. ⏳ Accès Stripe + Payment Link
 5. ⏳ Webhook initial Stripe → Supabase
 
