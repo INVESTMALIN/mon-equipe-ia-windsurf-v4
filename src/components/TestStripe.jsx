@@ -13,7 +13,7 @@ export default function TestStripe() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customer_id: 'cus_test123',
+          customer_id: 'cus_SlHT7tl0FqiMEB',
           return_url: window.location.origin + '/assistants'
         })
       })
