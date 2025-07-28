@@ -8,16 +8,6 @@ export default function TestStripe() {
     setLoading(true)
     setResult('')
 
-    // En développement, on simule
-    if (import.meta.env.DEV) {
-      setTimeout(() => {
-        setResult('✅ Mode DEV - API sera testée en production. Structure OK !')
-        setLoading(false)
-      }, 1000)
-      return
-    }
-
-    // Code original pour la production
     try {
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
