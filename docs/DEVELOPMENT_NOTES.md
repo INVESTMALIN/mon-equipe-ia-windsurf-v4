@@ -41,7 +41,8 @@ VITE_LEGALBNB_WEBHOOK_URL=your_n8n_legalbnb_webhook
 VITE_NEGOCIATEUR_WEBHOOK_URL=your_n8n_negociateur_webhook
 
 # Stripe (pour le paywall)
-VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+VITE_STRIPE_PUBLISHABLE_KEY=k_test_51Rq1ETRI...
+STRIPE_SECRET_KEY=sk_test_51Rq1ETRIbFu...
 ```
 
 ### Configuration de Supabase

@@ -404,7 +404,7 @@ export default function MonCompteV2() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/mon-compte/assistant-formation-v2" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                <li><Link to="/mon-compte/assistant-formation" className="hover:text-white transition-colors">Assistant Formation</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">Assistant Fiscaliste</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>

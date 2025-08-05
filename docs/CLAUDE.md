@@ -14,7 +14,7 @@
 ## 🎯 Vue d'Ensemble du Projet
 
 ### Qui & Quoi
-- **Client** : Invest Malin (marque immobilière locative)
+- **Client** : Invest Malin (vente de conciergeries immobilières)
 - **Produit** : Mon Équipe IA - Plateforme d'assistants IA pour conciergerie
 - **Utilisateurs** : Clients ayant acheté la formation "conciergerie clé en main"
 - **Développeur** : Julien (linguiste → spécialiste automation IA/no-code)
@@ -245,7 +245,7 @@ await supabase.from('conversations').insert({
 - Créer des sous-dossiers dans src/components/
 - Supposer qu'OpenAI est utilisé (c'est n8n !)
 - Hardcoder des URLs ou politiques RLS sans vérifier
-- **Mélanger STRIPE_SECRET_KEY et VITE_STRIPE_PUBLISHABLE_KEY** ✅ NOUVEAU
+- **Mélanger STRIPE_SECRET_KEY et VITE_STRIPE_PUBLISHABLE_KEY**
 
 ### ✅ Toujours Faire
 - Vérifier la structure réelle via project_knowledge_search
@@ -254,7 +254,8 @@ await supabase.from('conversations').insert({
 - Implémenter les états de chargement (loading, dots)
 - Tester l'auth Supabase avant toute requête BDD
 - Maintenir la cohérence du design system
-- **Tester APIs en production (Vercel) pas en local** ✅ NOUVEAU
+- Poser des questions si nécessaire pour clarifier
+- **Tester APIs en production (Vercel) pas en local**
 
 ## 📚 Documentation Critique
 
@@ -263,7 +264,7 @@ await supabase.from('conversations').insert({
 - `DEVELOPMENT_NOTES.md` - Installation, config, structure
 - `FEATURE_SPEC.md` - Fonctionnalités actuelles et roadmap
 - `TECHNICAL_SPEC.md` - Architecture, BDD, déploiement
-- `PAYWALL_PLAN.md` - Plan d'implémentation Stripe complet ✅ NOUVEAU
+- `PAYWALL_PLAN.md` - Plan d'implémentation Stripe complet
 - `CLAUDE.md` - Ce fichier (instructions pour Claude)
 
 ### Composants Clés à Examiner
@@ -271,7 +272,7 @@ await supabase.from('conversations').insert({
 2. `Assistants.jsx` - Dashboard utilisateur principal
 3. `SidebarConversations.jsx` - Navigation conversations
 4. `Home.jsx` - Landing page avec grille assistants
-5. `MonCompte.jsx` - Gestion abonnement + Customer Portal ✅ NOUVEAU
+5. `MonCompte.jsx` - Gestion abonnement + Customer Portal
 6. `supabaseClient.js` - Configuration BDD
 
 ## 🔄 Routine de Démarrage de Session
@@ -285,7 +286,7 @@ await supabase.from('conversations').insert({
    - Pages individuelles assistants si webhooks n8n reçus
    - Tests paywall si tout fonctionne
    - Optimisations UX si tout est opérationnel
-5. Confirmer avant de commencer le travail
+5. Toujours confirmer et poser des questions si besoin pour clarifier
 ```
 
 ## 💡 Aide-Mémoire Julien
