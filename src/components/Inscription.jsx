@@ -18,7 +18,10 @@ export default function Inscription() {
 
     const { data, error } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        emailRedirectTo: 'https://mon-equipe-ia.vercel.app/email-confirmation'
+      }
     })
 
     if (error) {
