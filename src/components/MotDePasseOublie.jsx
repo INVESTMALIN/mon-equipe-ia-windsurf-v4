@@ -15,7 +15,7 @@ export default function MotDePasseOublie() {
     setMessage('')
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://julinhio.github.io/mon-equipe-ia-windsurf-v4/connexion'
+      redirectTo: 'https://mon-equipe-ia.vercel.app/nouveau-mot-de-passe'
     })
 
     if (error) {

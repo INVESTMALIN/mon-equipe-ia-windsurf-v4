@@ -9,6 +9,7 @@ import Inscription from './components/Inscription'
 import MotDePasseOublie from './components/MotDePasseOublie'
 import EmailConfirmation from './components/EmailConfirmation'
 import Assistants from './components/Assistants'
+import NouveauMotDePasse from './components/NouveauMotDePasse'
 
 
 // Import des pages légales
@@ -39,6 +40,7 @@ function AppWrapper() {
           
           <Route path="/inscription" element={<Inscription />} />
           <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+          <Route path="/nouveau-mot-de-passe" element={<NouveauMotDePasse />} />
           
           {/* Assistant Formation (gratuit) */}
           <Route path="/assistant-formation" element={<AssistantFormation />} />
