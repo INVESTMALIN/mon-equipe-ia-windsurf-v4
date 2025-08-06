@@ -165,7 +165,7 @@ export default function AssistantFormationWithHistoryV3() {
           
           <div className="flex items-center gap-1">
             <Link
-              to="/mon-compte"
+              to="/assistants"
               className="p-2 text-white hover:text-[#dbae61] transition-colors border border-white/80 hover:border-[#dbae61] rounded-md"
               title="Retour"
             >

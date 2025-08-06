@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { LogOut, CreditCard, User, ArrowLeft, Settings } from 'lucide-react'
 import { supabase } from '../supabaseClient'
+import ChangePasswordModal from './ChangePasswordModal'
 
 export default function MonCompte() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -211,31 +213,41 @@ export default function MonCompte() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Informations personnelles */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <User className="w-6 h-6 text-[#dbae61]" />
-              <h2 className="text-xl font-bold text-black">Informations</h2>
+          
+        {/* Informations personnelles */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <User className="w-6 h-6 text-[#dbae61]" />
+            <h2 className="text-xl font-bold text-black">Informations</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+              <p className="text-gray-600">{user?.email || 'Chargement...'}</p>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <p className="text-gray-600">{user?.email || 'Chargement...'}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Statut</label>
-                <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                  Actif
-                </span>
-              </div>
-              
-              <button className="mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors text-sm">
-                Modifier les informations
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Sécurité</label>
+              <button 
+                onClick={() => setShowPasswordModal(true)}
+                className="text-[#dbae61] hover:text-[#c49a4f] font-medium transition-colors"
+              >
+                Modifier le mot de passe
               </button>
             </div>
+            
+            <button className="mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors text-sm">
+              Modifier les informations
+            </button>
           </div>
+        </div>
+
+        {/* Modal changement mot de passe */}
+        <ChangePasswordModal 
+          isOpen={showPasswordModal} 
+          onClose={() => setShowPasswordModal(false)} 
+        />
 
           {/* Section Abonnement dynamique */}
           {renderSubscriptionSection()}
