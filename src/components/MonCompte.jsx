@@ -192,7 +192,7 @@ export default function MonCompte() {
               className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">Retour aux assistants</span>
+              <span className="text-sm font-medium">Retour</span>
             </Link>
             
             <button
