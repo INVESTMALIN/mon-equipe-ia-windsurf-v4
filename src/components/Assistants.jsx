@@ -27,14 +27,6 @@ export default function MonCompteV2() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) navigate('/connexion')
-    }
-    checkAuth()
-  }, [])
-
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/connexion')

@@ -12,17 +12,16 @@ export default function MonCompte() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const loadUserData = async () => {
+      // Plus besoin de vérifier l'auth - ProtectedRoute s'en occupe
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        navigate('/connexion')
-      } else {
-        setUser(session.user)
-        await loadUserProfile(session.user.id)
-      }
+      
+      // L'utilisateur est forcément connecté ici
+      setUser(session.user)
+      await loadUserProfile(session.user.id)
     }
-    checkAuth()
-  }, [navigate])
+    loadUserData()
+  }, [])
 
   const loadUserProfile = async (userId) => {
     try {

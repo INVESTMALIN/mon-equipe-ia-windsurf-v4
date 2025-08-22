@@ -212,7 +212,7 @@ export default function AssistantFormationWithHistoryV3() {
               className="flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-4 py-2 rounded-md text-sm transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Nouvelle conversation
+              Conversation
             </button>
           </div>
         </div>
