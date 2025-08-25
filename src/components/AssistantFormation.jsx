@@ -68,6 +68,7 @@ export default function AssistantFormationWithHistoryV3() {
     const newMessage = { sender: 'user', text: input }
     const updatedMessages = [...messages, newMessage]
     setMessages(updatedMessages)
+    const userInput = input
     setInput('')
     setLoading(true)
 
@@ -89,13 +90,28 @@ export default function AssistantFormationWithHistoryV3() {
 
       await supabase.from('conversations').insert({
         source: 'assistant-formation',
-        question: input,
+        question: userInput,
         answer: reply.text,
         conversation_id: conversationIdRef.current,
         user_id: userId
       })
     } catch (err) {
-      setMessages((prev) => [...prev, { sender: 'bot', text: 'Erreur lors de la connexion à l\'agent.' }])
+      console.error('Erreur webhook:', err)
+      
+      // Messages d'erreur user-friendly selon le type
+      let errorMessage = "Une erreur est survenue, merci de réessayer dans quelques instants."
+      
+      if (err.message?.includes('504')) {
+        errorMessage = "L'assistant prend plus de temps que prévu à analyser votre demande. Merci de réessayer dans quelques instants.\n\nSi le problème persiste, contactez le support : contact@invest-malin.com"
+      } else if (err.name === 'TimeoutError' || err.message?.includes('timeout')) {
+        errorMessage = "La connexion semble lente. Merci de vérifier votre connexion et de réessayer."
+      } else if (err.message?.includes('500') || err.message?.includes('502') || err.message?.includes('503')) {
+        errorMessage = "Une erreur technique s'est produite. Merci de réessayer dans quelques instants.\n\nSi le problème persiste, contactez le support : contact@invest-malin.com"
+      }
+      setMessages((prev) => [...prev, { 
+        sender: 'bot', 
+        text: errorMessage 
+      }])
     } finally {
       setLoading(false)
     }
@@ -130,15 +146,6 @@ export default function AssistantFormationWithHistoryV3() {
     conversationIdRef.current = newId
     setMessages([{ sender: 'bot', text: welcome }])
 
-    if (userId) {
-      await supabase.from('conversations').insert({
-        user_id: userId,
-        source: 'assistant-formation',
-        question: '(Nouvelle conversation)',
-        answer: '',
-        conversation_id: newId
-      })
-    }
   }
 
   return (
