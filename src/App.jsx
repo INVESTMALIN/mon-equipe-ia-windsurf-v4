@@ -24,6 +24,9 @@ import ConditionsUtilisation from './components/ConditionsUtilisation'
 import UpgradeRequired from './components/UpgradeRequired'
 import ComingSoon from './components/ComingSoon'
 
+// Test de l'assistant juridique
+import TestAssistantJuridique from './components/TestAssistantJuridique'
+
 function AppWrapper() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -120,6 +123,15 @@ function AppWrapper() {
               </ProtectedRoute>
             } 
           />
+
+          <Route 
+            path="/test-juridique" 
+            element={
+              <ProtectedRoute>
+                <TestAssistantJuridique />
+              </ProtectedRoute>
+            } 
+          />          
 
         </Routes>
       </main>
