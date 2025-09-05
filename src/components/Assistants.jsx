@@ -159,7 +159,7 @@ export default function MonCompteV2() {
 
       {/* Section Assistants spécialisés */}
       <section className="bg-white py-20">
-        <div className="max-w-6xl mx-auto px-6 md:px-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-20">
           {/* Header */}
           <div className="text-center mb-16">
             <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 mb-6">
@@ -233,19 +233,19 @@ export default function MonCompteV2() {
               </div>
             </div>
 
-            {/* LegalBNB IA */}
+            {/* Annonce IA */}
             <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
               <div className="aspect-[4/3] overflow-hidden">
                 <img 
-                  src="/images/legalbnb-ia.png" 
-                  alt="LegalBNB IA" 
+                  src="/images/annonce-ia.png" 
+                  alt="Annonce IA" 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex items-center gap-3 mb-4">
                   <Users className="w-8 h-8 text-[#dbae61]" />
-                  <h3 className="text-2xl font-bold text-black">LEGALBNB IA</h3>
+                  <h3 className="text-2xl font-bold text-black">ANNONCE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
                   L'IA qui vous répond comme un juriste

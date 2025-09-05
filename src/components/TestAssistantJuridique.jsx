@@ -26,7 +26,7 @@ export default function TestAssistantJuridique() {
     try {
       let requestBody = { 
         chatInput: input,
-        sessionId: 'test-session-123'
+        sessionId: conversationIdRef.current
       }
       
       // Si un PDF est sélectionné, on l'ajoute dans le format attendu par n8n
