@@ -192,20 +192,20 @@ export default function MonCompteV2() {
                   <h3 className="text-2xl font-bold text-black">FISCALISTE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
-                  Simplifiez vos démarches fiscales
+                  L'IA qui simplifie vos démarches fiscales
                 </p>
                 <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Posez vos questions de fiscalité courte durée
+                    Répond aux questions fiscales liées à la courte durée
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    L'IA vous éclaire, sans jargon
+                    Propose des solutions sur mesure pour votre situation
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Réponses adaptées à votre situation
+                    Vous éclaire, sans jargon
                   </li>
                 </ul>
                 {isPremium ? (
@@ -248,20 +248,20 @@ export default function MonCompteV2() {
                   <h3 className="text-2xl font-bold text-black">ANNONCE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
-                  L'IA qui vous répond comme un juriste
+                L'IA qui rend la création d'annonces facile
                 </p>
                 <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Assistant spécialisé dans l'analyse de règlements
+                    Rédige des descriptions adaptées à votre bien
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Lit vos documents et sort les points clés
+                    Liste les équipements Airbnb/Booking
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Répond sur vos droits et obligations
+                    Optimise votre guide d'arrivée
                   </li>
                 </ul>
                 {isPremium ? (
@@ -304,7 +304,7 @@ export default function MonCompteV2() {
                   <h3 className="text-2xl font-bold text-black">NÉGOCIATEUR IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
-                  Vous accompagne dans les négociations
+                  L'IA qui vous aide à négocier avec efficacité
                 </p>
                 <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
                   <li className="flex items-start gap-2">
@@ -317,7 +317,7 @@ export default function MonCompteV2() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Propose une stratégie adaptée
+                    Suggère une stratégie adaptée
                   </li>
                 </ul>
                 {isPremium ? (
