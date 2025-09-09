@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock } from 'lucide-react'
+import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock, FileText, CheckCircle} from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function MonCompteV2() {
@@ -342,6 +342,79 @@ export default function MonCompteV2() {
                     </Link>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section Fiche Logement - Bannière Premium */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-20">
+          <div className="bg-gradient-to-r from-[#dbae61] to-[#c49a4f] rounded-3xl p-10 md:p-16 shadow-2xl">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              {/* Left content */}
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center gap-3 justify-center lg:justify-start mb-4">
+                  <FileText className="w-8 h-8 text-white" />
+                  <h2 className="text-2xl md:text-3xl font-bold text-white">
+                    FICHE LOGEMENT
+                  </h2>
+                </div>
+                
+                <p className="text-xl font-semibold text-white mb-4">
+                  Créez vos fiches d'inspection professionnelles
+                </p>
+                
+                <ul className="text-white mb-6 space-y-2 text-left max-w-md mx-auto lg:mx-0">
+                  <li className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
+                    <span>Formulaire complet 23 sections</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
+                    <span>Génération PDF automatique</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
+                    <span>Création d'annonces Airbnb/Booking</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
+                    <span>Rappels visuels pour photos</span>
+                  </li>
+                </ul>
+
+                {isPremium ? (
+                  <Link
+                    to="/dashboard"
+                    className="inline-flex items-center bg-white hover:bg-gray-100 text-[#dbae61] font-bold px-8 py-4 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    <FileText className="w-5 h-5 mr-2" />
+                    Accéder à mes fiches
+                    <span className="ml-2">→</span>
+                  </Link>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-white justify-center lg:justify-start">
+                      <Lock className="w-5 h-5" />
+                      <span className="font-semibold">Premium requis</span>
+                    </div>
+                    <Link
+                      to="/upgrade"
+                      className="inline-flex items-center bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-lg"
+                    >
+                      Premium (bientôt) →
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Right illustration */}
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 md:w-40 md:h-40 bg-white bg-opacity-20 rounded-3xl flex items-center justify-center backdrop-blur-sm">
+                  <FileText className="w-16 h-16 md:w-20 md:h-20 text-white" />
+                </div>
               </div>
             </div>
           </div>

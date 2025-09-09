@@ -23,7 +23,7 @@
 Créer une app web avec 4 assistants IA :
 1. **Assistant Formation** (gratuit/public) ✅ OPÉRATIONNEL
 2. **Fiscaliste IA** (payant) ⏳ WEBHOOK EN ATTENTE
-3. **LegalBNB** (payant) ⏳ WEBHOOK EN ATTENTE  
+3. **Annonce IA** (payant) ⏳ WEBHOOK EN ATTENTE  
 4. **Négociateur IA** (payant) ⏳ WEBHOOK EN ATTENTE
 
 ## 🏗️ Architecture Technique - Points Clés

@@ -10,6 +10,9 @@ import MotDePasseOublie from './components/MotDePasseOublie'
 import EmailConfirmation from './components/EmailConfirmation'
 import Assistants from './components/Assistants'
 import NouveauMotDePasse from './components/NouveauMotDePasse'
+import Dashboard from './components/Dashboard'
+import FicheForm from './components/FicheForm'
+
 
 // Import du nouveau ProtectedRoute
 import ProtectedRoute from './components/ProtectedRoute'
@@ -131,7 +134,22 @@ function AppWrapper() {
                 <TestAssistantJuridique />
               </ProtectedRoute>
             } 
-          />          
+          /> 
+
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />         
+
+          <Route path="/nouvelle-fiche" element={
+            <ProtectedRoute>
+              <FicheForm />
+            </ProtectedRoute>
+          } />
 
         </Routes>
       </main>
