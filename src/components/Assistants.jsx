@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock, FileText, CheckCircle} from 'lucide-react'
+import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock, FileText, CheckCircle, PenTool} from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function MonCompteV2() {
@@ -244,7 +244,7 @@ export default function MonCompteV2() {
               </div>
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex items-center gap-3 mb-4">
-                  <Users className="w-8 h-8 text-[#dbae61]" />
+                  <PenTool className="w-8 h-8 text-[#dbae61]" />
                   <h3 className="text-2xl font-bold text-black">ANNONCE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
@@ -266,7 +266,7 @@ export default function MonCompteV2() {
                 </ul>
                 {isPremium ? (
                   <Link 
-                    to="/legalbnb" 
+                    to="/annonce-ia" 
                     className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
                     style={{ backgroundColor: '#dbae61' }}
                   >
@@ -472,7 +472,7 @@ export default function MonCompteV2() {
                 <li><Link to="/mon-compte/assistant-formation" className="hover:text-white transition-colors">Assistant Formation</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
                 <li><Link to="#" className="hover:text-white transition-colors">Assistant Fiscaliste</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>
+                <li><Link to="#" className="hover:text-white transition-colors">Assistant Annonce IA</Link></li>
               </ul>
             </div>
             <div>

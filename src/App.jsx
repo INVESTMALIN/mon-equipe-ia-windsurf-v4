@@ -110,10 +110,10 @@ function AppWrapper() {
           />
           
           <Route 
-            path="/legalbnb" 
+            path="/annonce-ia" 
             element={
               <ProtectedRoute>
-                <ComingSoon assistant="legalbnb" />
+                <ComingSoon assistant="annonce" />
               </ProtectedRoute>
             } 
           />

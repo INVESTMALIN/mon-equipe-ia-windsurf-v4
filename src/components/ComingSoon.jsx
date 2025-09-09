@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Clock, CheckCircle, Scale, Users, MessageCircle, Rocket } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, Scale, PenTool, MessageCircle, Rocket } from 'lucide-react'
 
 export default function ComingSoon({ assistant }) {
   
@@ -26,20 +26,18 @@ export default function ComingSoon({ assistant }) {
       ],
       comingSoon: "L'assistant Fiscaliste IA arrive bientôt avec des fonctionnalités avancées pour vous accompagner dans toutes vos démarches fiscales."
     },
-    legalbnb: {
-      name: "LegalBNB IA",
-      icon: Users,
+    annonce: {
+      name: "ANNONCE IA",
+      icon: PenTool,
       color: "#dbae61",
-      image: "/images/legalbnb-ia.png",
-      description: "Votre juriste IA spécialisé en location courte durée",
+      image: "/images/annonce-ia.png",
+      description: "L'IA qui rend la création d'annonces facile",
       features: [
-        "Analyse de règlements de copropriété",
-        "Vérification de conformité légale",
-        "Conseils juridiques personnalisés",
-        "Rédaction de documents types",
-        "Mise à jour réglementaire automatique"
+        "Rédige des descriptions adaptées à votre bien",
+        "Liste les équipements Airbnb/Booking", 
+        "Optimise votre guide d'arrivée"
       ],
-      comingSoon: "LegalBNB IA sera votre expert juridique pour naviguer sereinement dans le monde de la location courte durée."
+      comingSoon: "L'assistant Annonce IA arrive bientôt pour transformer la création de vos annonces immobilières."
     },
     negociateur: {
       name: "Négociateur IA",
@@ -67,7 +65,7 @@ export default function ComingSoon({ assistant }) {
     description: "Votre équipe IA complète bientôt disponible",
     features: [
       "Fiscaliste IA - Expert fiscal personnalisé",
-      "LegalBNB IA - Juriste spécialisé location courte durée", 
+      "Annonce IA - Création d'annonces optimisées",
       "Négociateur IA - Coach en négociation avancée",
       "Support premium 24h/24",
       "Mises à jour automatiques et nouvelles fonctionnalités"
