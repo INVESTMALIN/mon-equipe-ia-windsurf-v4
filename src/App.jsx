@@ -12,6 +12,7 @@ import Assistants from './components/Assistants'
 import NouveauMotDePasse from './components/NouveauMotDePasse'
 import Dashboard from './components/Dashboard'
 import FicheForm from './components/FicheForm'
+import { FormProvider } from './components/FormContext'
 
 
 // Import du nouveau ProtectedRoute
@@ -147,7 +148,9 @@ function AppWrapper() {
 
           <Route path="/nouvelle-fiche" element={
             <ProtectedRoute>
-              <FicheForm />
+              <FormProvider>
+                <FicheForm />
+              </FormProvider>
             </ProtectedRoute>
           } />
 

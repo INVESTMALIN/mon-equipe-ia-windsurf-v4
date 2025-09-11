@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { getUserFiches } from '../lib/supabaseHelpers'
 import { 
   FileText, 
   ArrowLeft, 
@@ -19,36 +20,12 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
+  const [fiches, setFiches] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [activeFilter, setActiveFilter] = useState("Tous")
   const [viewMode, setViewMode] = useState('grid') // 'grid' ou 'list'
   const [showDropdown, setShowDropdown] = useState(null)
-
-  // Données de démo
-  const demoFiches = [
-    {
-      id: 1,
-      nom: "Appartement Montmartre - 2P",
-      statut: "Complété",
-      created_at: "2024-12-05T10:30:00Z",
-      updated_at: "2024-12-06T14:20:00Z"
-    },
-    {
-      id: 2,
-      nom: "Studio République - Centre ville",
-      statut: "Brouillon",
-      created_at: "2024-12-04T16:45:00Z",
-      updated_at: "2024-12-04T16:45:00Z"
-    },
-    {
-      id: 3,
-      nom: "Maison Bordeaux - 4 chambres",
-      statut: "Complété",
-      created_at: "2024-12-01T09:15:00Z",
-      updated_at: "2024-12-03T11:30:00Z"
-    }
-  ]
 
   useEffect(() => {
     checkUserAndPremium()
@@ -75,6 +52,11 @@ export default function Dashboard() {
         console.error('Erreur récupération profil:', profileError)
       } else {
         setUserProfile(profile)
+        
+        // Charger les fiches si premium
+        if (profile?.subscription_status === 'premium') {
+          await loadUserFiches(user.id)
+        }
       }
 
     } catch (error) {
@@ -85,17 +67,31 @@ export default function Dashboard() {
     }
   }
 
+  const loadUserFiches = async (userId) => {
+    try {
+      const result = await getUserFiches(userId)
+      if (result.success) {
+        setFiches(result.data)
+      } else {
+        console.error('Erreur chargement fiches:', result.error)
+      }
+    } catch (error) {
+      console.error('Erreur chargement fiches:', error)
+    }
+  }
+
   const handleMenuAction = (action, fiche) => {
     switch (action) {
       case 'edit':
-        console.log('Modifier fiche:', fiche.nom)
-        // TODO: Navigation vers formulaire
+        navigate(`/nouvelle-fiche?id=${fiche.id}`)
         break
       case 'archive':
         console.log('Archiver fiche:', fiche.nom)
+        // TODO: Implémenter archivage
         break
       case 'delete':
         console.log('Supprimer fiche:', fiche.nom)
+        // TODO: Implémenter suppression
         break
     }
     setShowDropdown(null)
@@ -156,7 +152,7 @@ export default function Dashboard() {
 
   // Filtrage
   const statusFilters = ["Tous", "Complété", "Brouillon"]
-  const filteredFiches = demoFiches.filter(fiche => {
+  const filteredFiches = fiches.filter(fiche => {
     const matchesSearch = fiche.nom.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = activeFilter === "Tous" || fiche.statut === activeFilter
     return matchesSearch && matchesStatus
@@ -174,8 +170,8 @@ export default function Dashboard() {
   // Compter les fiches par filtre
   const getFilterCount = (filter) => {
     return filter === "Tous" 
-      ? demoFiches.length
-      : demoFiches.filter(f => f.statut === filter).length
+      ? fiches.length
+      : fiches.filter(f => f.statut === filter).length
   }
 
   return (
@@ -231,7 +227,9 @@ export default function Dashboard() {
                 >
                   {filter}
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                    activeFilter === filter ? 'bg-white bg-opacity-20' : 'bg-gray-100'
+                    activeFilter === filter 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 text-gray-600'
                   }`}>
                     {getFilterCount(filter)}
                   </span>
@@ -239,39 +237,29 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Recherche + Toggle vues */}
-            <div className="flex gap-3 items-center">
-              {/* Barre de recherche */}
+            {/* Barre de recherche et options d'affichage */}
+            <div className="flex gap-3">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Rechercher..."
-                  className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent text-sm transition-all duration-200"
+                  placeholder="Rechercher une fiche..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent"
                 />
               </div>
-
-              {/* Toggle Grid/List */}
-              <div className="flex bg-white rounded-lg border border-gray-300 p-1">
+              
+              <div className="flex bg-white border border-gray-300 rounded-lg">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-gray-100 text-gray-900' 
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-gray-100 text-[#dbae61]' : 'text-gray-400'}`}
                 >
                   <Grid3X3 size={18} />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-gray-100 text-gray-900' 
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-gray-100 text-[#dbae61]' : 'text-gray-400'}`}
                 >
                   <List size={18} />
                 </button>
@@ -282,28 +270,19 @@ export default function Dashboard() {
 
         {/* Vue Grid */}
         {viewMode === 'grid' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredFiches.map((fiche) => (
-              <div
-                key={fiche.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-visible group"
-              >
+              <div key={fiche.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 min-w-0 pr-3">
-                      <h3 className="text-lg font-semibold text-gray-900 leading-tight group-hover:text-[#dbae61] transition-colors truncate mb-2">
-                        {fiche.nom}
-                      </h3>
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(fiche.statut)}`}>
-                        {fiche.statut}
-                      </span>
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors cursor-pointer">
+                      {fiche.nom}
+                    </h3>
                     
-                    {/* Menu contextuel */}
                     <div className="relative">
                       <button
                         onClick={() => setShowDropdown(showDropdown === fiche.id ? null : fiche.id)}
-                        className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded"
                       >
                         <MoreVertical size={16} />
                       </button>
@@ -336,8 +315,12 @@ export default function Dashboard() {
                     </div>
                   </div>
                   
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(fiche.statut)}`}>
+                    {fiche.statut}
+                  </span>
+                  
                   {/* Informations supplémentaires */}
-                  <div className="text-sm text-gray-500 space-y-1">
+                  <div className="text-sm text-gray-500 space-y-1 mt-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       <span>Créée le {new Date(fiche.created_at).toLocaleDateString('fr-FR')}</span>
