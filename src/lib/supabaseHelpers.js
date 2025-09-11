@@ -163,7 +163,7 @@ export const loadFiche = async (ficheId) => {
 export const deleteFiche = async (ficheId) => {
   try {
     const { error } = await supabase
-      .from('fiche_lite')  // ← CHANGÉ ICI
+      .from('fiche_lite')
       .delete()
       .eq('id', ficheId)
     
