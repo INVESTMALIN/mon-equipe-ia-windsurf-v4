@@ -3,6 +3,7 @@ import { ArrowLeft, Save, ArrowRight, FileText, User, MapPin, Mail, Phone } from
 import { useForm } from '../../FormContext'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
+import NavigationButtons from '../NavigationButtons'
 
 export default function FicheForm() {
   const { formData, updateField, handleSave, saveStatus, next, back, currentStep, totalSteps } = useForm()
@@ -29,24 +30,8 @@ export default function FicheForm() {
         {/* 🔥 AJOUT : ProgressBar */}
         <ProgressBar />
         
-        {/* 🔥 AJOUT : Messages de sauvegarde (pattern wizard) */}
         <div className="flex-1 p-6 bg-gray-100">
-          {saveStatus.saving && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
-              ⏳ Sauvegarde en cours...
-            </div>
-          )}
-          {saveStatus.saved && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-              ✅ Sauvegardé avec succès !
-            </div>
-          )}
-          {saveStatus.error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-              ❌ {saveStatus.error}
-            </div>
-          )}
-
+          
           {/* Contenu principal - garde le design existant mais dans le bon container */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Informations Propriétaire</h1>
@@ -173,48 +158,10 @@ export default function FicheForm() {
                   </div>
                 </div>
 
-                {/* Informations supplémentaires */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-medium text-blue-900 mb-2">Navigation Wizard</h3>
-                  <p className="text-blue-700 text-sm">
-                    Utilisez le menu latéral pour naviguer entre les 23 sections du formulaire. 
-                    Vos données sont sauvegardées automatiquement.
-                  </p>
-                </div>
               </div>
             </div>
-
-            {/* 🔥 MODIFICATION : Boutons navigation wizard */}
-            <div className="mt-8 flex justify-between items-center">
-              <button 
-                onClick={back} 
-                disabled={currentStep === 0}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Retour
-              </button>
-              
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleSaveClick}
-                  disabled={saveStatus.saving}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  {saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}
-                </button>
-                
-                <button 
-                  onClick={next}
-                  disabled={currentStep === totalSteps - 1}
-                  className="flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Section suivante
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            {/* Boutons navigation standardisés */}
+            <NavigationButtons />
           </div>
         </div>
       </div>

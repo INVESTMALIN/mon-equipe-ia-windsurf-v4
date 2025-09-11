@@ -187,7 +187,7 @@ export default function Dashboard() {
             
             <div className="flex gap-3">
               <button
-                onClick={() => navigate('/nouvelle-fiche')}
+                onClick={() => navigate('/fiche')}
                 className="bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-6 py-3 rounded-xl transition-colors"
               >
                 <FileText className="w-4 h-4 mr-2 inline" />

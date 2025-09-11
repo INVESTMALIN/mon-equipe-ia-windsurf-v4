@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 import FicheForm from './sections/FicheForm'
 import SidebarMenu from './SidebarMenu'
 import ProgressBar from './ProgressBar'
+import FicheLogement from './sections/FicheLogement'
 
 // Composant placeholder pour les sections pas encore créées
 function PlaceholderSection({ title, sectionNumber }) {
@@ -110,7 +111,7 @@ export default function FicheWizard() {
   // 🔥 Définition des sections (étendre au fur et à mesure)
   const steps = [
     <FicheForm key="proprietaire" />,
-    <PlaceholderSection key="logement" title="Logement" sectionNumber="2" />,
+    <FicheLogement key="logement" title="Logement" sectionNumber="2" />,
     <PlaceholderSection key="avis" title="Avis" sectionNumber="3" />,
     <PlaceholderSection key="clefs" title="Clefs" sectionNumber="4" />,
     <PlaceholderSection key="airbnb" title="Airbnb" sectionNumber="5" />,

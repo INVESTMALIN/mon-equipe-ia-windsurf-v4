@@ -51,7 +51,24 @@ const initialFormData = {
       codePostal: ""
     }
   },
-  section_logement: {},
+  
+  section_logement: {
+    type_propriete: "",
+    type_autre_precision: "",
+    surface: "",
+    numero_bien: "",
+    typologie: "",
+    nombre_personnes_max: "",
+    nombre_lits: "",
+    appartement: {
+      nom_residence: "",
+      batiment: "",
+      acces: "",
+      etage: "",
+      numero_porte: ""
+    }
+  },
+  
   section_avis: {},
   section_clefs: {},
   section_airbnb: {},
