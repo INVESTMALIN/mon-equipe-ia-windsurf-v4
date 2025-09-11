@@ -68,13 +68,187 @@ const initialFormData = {
       numero_porte: ""
     }
   },
+
+  section_avis: {
+    // Évaluation quartier
+    quartier_types: [],
+    quartier_securite: "",
+    quartier_perturbations: "",
+    quartier_perturbations_details: "",
+    
+    // Évaluation immeuble
+    immeuble_etat_general: "",
+    immeuble_proprete: "",
+    immeuble_accessibilite: "",
+    immeuble_niveau_sonore: "",
+    
+    // Évaluation logement
+    logement_etat_general: "",
+    logement_etat_details: "",
+    logement_proprete: "",
+    logement_proprete_details: "",
+    logement_ambiance: [],
+    logement_absence_decoration_details: "",
+    logement_decoration_personnalisee_details: "",
+    logement_vis_a_vis: "",
+    
+    // Atouts du logement
+    atouts_logement: {
+      lumineux: false,
+      rustique: false,
+      central: false,
+      convivial: false,
+      authentique: false,
+      douillet: false,
+      design_moderne: false,
+      terrasse_balcon: false,
+      proche_transports: false,
+      piscine: false,
+      jacuzzi: false,
+      cheminee: false,
+      charmant: false,
+      elegant: false,
+      atypique: false,
+      renove: false,
+      familial: false,
+      cosy_confortable: false,
+      decoration_traditionnelle: false,
+      jardin: false,
+      proche_commerces: false,
+      sauna_spa: false,
+      video_projecteur: false,
+      station_recharge_electrique: false,
+      romantique: false,
+      paisible: false,
+      chic: false,
+      accueillant: false,
+      tranquille: false,
+      spacieux: false,
+      vue_panoramique: false,
+      parking_prive: false,
+      equipements_haut_gamme: false,
+      billard: false,
+      jeux_arcade: false,
+      table_ping_pong: false,
+      autres_atouts: false
+    },
+    atouts_logement_autre: "",
+    autres_caracteristiques: "",
+    
+    // Types de voyageurs
+    types_voyageurs: {
+      duo_amoureux: false,
+      nomades_numeriques: false,
+      aventuriers_independants: false,
+      tribus_familiales: false,
+      bandes_amis: false,
+      voyageurs_experience: false,
+      autres_voyageurs: false
+    },
+    types_voyageurs_autre: "",
+    explication_adaptation: "",
+    
+    // Rappels photos (VERSION LITE)
+    photos_rappels: {
+      video_globale_taken: false,
+      vis_a_vis_taken: false
+    }
+  },
+
+section_clefs: {
+    // Type de boîte à clés
+    boiteType: "", // "TTlock", "Igloohome", "Masterlock"
+    emplacementBoite: "",
+    
+    // Configurations spécifiques par type
+    ttlock: {
+      masterpinConciergerie: "",
+      codeProprietaire: "",
+      codeMenage: ""
+    },
+    igloohome: {
+      masterpinConciergerie: "",
+      codeVoyageur: "",
+      codeProprietaire: "",
+      codeMenage: ""
+    },
+    masterlock: {
+      code: ""
+    },
+    
+    // Interphone
+    interphone: null, // true/false/null
+    interphoneDetails: "",
+    
+    // Tempo-gâche
+    tempoGache: null, // true/false/null
+    tempoGacheDetails: "",
+    
+    // Digicode
+    digicode: null, // true/false/null
+    digicodeDetails: "",
+    
+    // Clefs physiques
+    clefs: {
+      precision: "",
+      prestataire: null, // true/false/null
+      details: ""
+    },
+    
+    // Rappels photos (VERSION LITE)
+    photos_rappels: {
+      emplacement_taken: false,
+      interphone_taken: false,
+      tempo_gache_taken: false,
+      digicode_taken: false,
+      clefs_taken: false
+    }
+  },
   
-  section_avis: {},
-  section_clefs: {},
-  section_airbnb: {},
-  section_booking: {},
-  section_reglementation: {},
-  section_exigences: {},
+  section_airbnb: {
+    annonce_active: null, // true/false/null
+    url_annonce: "",
+    identifiants_obtenus: null, // true/false/null
+    email_compte: "",
+    mot_passe: "",
+    explication_refus: ""
+  },
+  
+  section_booking: {
+    annonce_active: null, // true/false/null
+    url_annonce: "",
+    identifiants_obtenus: null, // true/false/null
+    email_compte: "",
+    mot_passe: "",
+    explication_refus: ""
+  },
+
+  section_reglementation: {
+    // Villes et réglementation
+    ville_changement_usage: "",
+    ville_declaration_simple: "",
+    date_expiration_changement: "",
+    numero_declaration: "",
+    details_reglementation: "",
+    
+    // Documents checklist
+    documents: {
+      carte_identite: false,
+      rib: false,
+      cerfa: false,
+      assurance_pno: false,
+      rcp: false,
+      acte_propriete: false
+    }
+  },
+
+  section_exigences: {
+  nombre_nuits_minimum: "",
+  tarif_minimum_nuit: "",
+  dates_bloquees: "",
+  precisions_exigences: ""
+},
+
   section_gestion_linge: {},
   section_equipements: {},
   section_consommables: {},

@@ -8,6 +8,12 @@ import FicheForm from './sections/FicheForm'
 import SidebarMenu from './SidebarMenu'
 import ProgressBar from './ProgressBar'
 import FicheLogement from './sections/FicheLogement'
+import FicheAvis from './sections/FicheAvis'
+import FicheClefs from './sections/FicheClefs'
+import FicheAirbnb from './sections/FicheAirbnb'
+import FicheBooking from './sections/FicheBooking'
+import FicheReglementation from './sections/FicheReglementation'
+import FicheExigences from './sections/FicheExigences'
 
 // Composant placeholder pour les sections pas encore créées
 function PlaceholderSection({ title, sectionNumber }) {
@@ -111,13 +117,13 @@ export default function FicheWizard() {
   // 🔥 Définition des sections (étendre au fur et à mesure)
   const steps = [
     <FicheForm key="proprietaire" />,
-    <FicheLogement key="logement" title="Logement" sectionNumber="2" />,
-    <PlaceholderSection key="avis" title="Avis" sectionNumber="3" />,
-    <PlaceholderSection key="clefs" title="Clefs" sectionNumber="4" />,
-    <PlaceholderSection key="airbnb" title="Airbnb" sectionNumber="5" />,
-    <PlaceholderSection key="booking" title="Booking" sectionNumber="6" />,
-    <PlaceholderSection key="reglementation" title="Réglementation" sectionNumber="7" />,
-    <PlaceholderSection key="exigences" title="Exigences" sectionNumber="8" />,
+    <FicheLogement key="logement" />,
+    <FicheAvis key="avis" />,
+    <FicheClefs key="clefs" />,
+    <FicheAirbnb key="airbnb" />,
+    <FicheBooking key="booking" />, 
+    <FicheReglementation key="reglementation" />, 
+    <FicheExigences key="exigences" />,  
     <PlaceholderSection key="linge" title="Gestion Linge" sectionNumber="9" />,
     <PlaceholderSection key="equipements" title="Équipements" sectionNumber="10" />,
     <PlaceholderSection key="consommables" title="Consommables" sectionNumber="11" />,

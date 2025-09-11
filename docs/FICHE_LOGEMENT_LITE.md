@@ -53,7 +53,7 @@ fiches (
 ### Structure Proposée Fiche Logement Lite
 ```sql
 -- Table simplifiée (même structure, colonnes médias adaptées)
-fiche_logement_light (
+fiche_lite (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   nom TEXT NOT NULL,
@@ -73,8 +73,8 @@ fiche_logement_light (
 )
 
 -- RLS Policies
-ALTER TABLE fiche_logement_light ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can only see their own fiches" ON fiche_logement_light
+ALTER TABLE fiche_lite ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can only see their own fiches" ON fiche_lite
   FOR ALL USING (auth.uid() = user_id);
 ```
 
@@ -93,7 +93,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ### Scripts SQL à Exécuter (Phase 1 post-validation)
 ```sql
 -- 1. Création table principale
-CREATE TABLE fiche_logement_light (
+CREATE TABLE fiche_lite (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   nom TEXT NOT NULL,
@@ -113,18 +113,18 @@ CREATE TABLE fiche_logement_light (
 );
 
 -- 2. RLS Policies
-ALTER TABLE fiche_logement_light ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fiche_lite ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "fiche_select_policy" ON fiche_logement_light
+CREATE POLICY "fiche_select_policy" ON fiche_lite
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "fiche_insert_policy" ON fiche_logement_light  
+CREATE POLICY "fiche_insert_policy" ON fiche_lite
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "fiche_update_policy" ON fiche_logement_light
+CREATE POLICY "fiche_update_policy" ON fiche_lite
   FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "fiche_delete_policy" ON fiche_logement_light
+CREATE POLICY "fiche_delete_policy" ON fiche_lite
   FOR DELETE USING (auth.uid() = user_id);
 
 -- 3. Trigger auto-update updated_at
@@ -136,14 +136,14 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_fiche_logement_light_updated_at 
-  BEFORE UPDATE ON fiche_logement_light 
+CREATE TRIGGER update_fiche_lite_updated_at 
+  BEFORE UPDATE ON fiche_lite
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 4. Index pour performance
-CREATE INDEX idx_fiche_logement_light_user_id ON fiche_logement_light(user_id);
-CREATE INDEX idx_fiche_logement_light_statut ON fiche_logement_light(statut);
-CREATE INDEX idx_fiche_logement_light_created_at ON fiche_logement_light(created_at DESC);
+CREATE INDEX idx_fiche_lite_user_id ON fiche_lite(user_id);
+CREATE INDEX idx_fiche_lite_statut ON fiche_lite(statut);
+CREATE INDEX idx_fiche_lite_created_at ON fiche_lite(created_at DESC);
 ```
 
 ## 📋 Mapping Fonctionnel - 23 Sections
@@ -177,7 +177,7 @@ CREATE INDEX idx_fiche_logement_light_created_at ON fiche_logement_light(created
 - [x] Navigation Dashboard ↔ Formulaire
 
 ### ⏳ Phase 1 - Backend Complet (Post-validation)
-- [ ] Création table `fiche_logement_light` complète
+- [ ] Création table `fiche_lite` complète
 - [ ] Migration schéma des 23 sections
 - [ ] Tests CRUD complets
 - [ ] Sauvegarde progressive formulaire
