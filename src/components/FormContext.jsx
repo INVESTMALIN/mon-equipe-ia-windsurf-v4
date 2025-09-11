@@ -1,10 +1,35 @@
-// src/components/FormContext.jsx
 import { supabase } from '../supabaseClient'
 import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 
-
 const FormContext = createContext()
+
+// 🔥 SECTIONS DE FICHE LOGEMENT LITE (23 sections)
+const sections = [
+  "Propriétaire",
+  "Logement", 
+  "Avis",
+  "Clefs",
+  "Airbnb",
+  "Booking",
+  "Réglementation",
+  "Exigences",
+  "Gestion Linge",
+  "Équipements",
+  "Consommables", 
+  "Visite",
+  "Chambres",
+  "Salle de Bains",
+  "Cuisine 1",
+  "Cuisine 2",
+  "Salon SAM",
+  "Équip. Extérieur",
+  "Communs",
+  "Télétravail",
+  "Bébé",
+  "Guide Accès",
+  "Sécurité"
+]
 
 const initialFormData = {
   id: null,
@@ -54,28 +79,26 @@ const initialFormData = {
 }
 
 export function FormProvider({ children }) {
-    const [user, setUser] = useState(null)
-
-    useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-        setUser(user)
-    })
-    }, [])
-
-    // Ajoute cet useEffect pour récupérer l'utilisateur
-    useEffect(() => {
-      const getUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      }
-      getUser()
-    }, [])
+  const [user, setUser] = useState(null)
   const [formData, setFormData] = useState(initialFormData)
   const [saveStatus, setSaveStatus] = useState({ 
     saving: false, 
     saved: false, 
     error: null 
   })
+  
+  // 🔥 État de navigation
+  const [currentStep, setCurrentStep] = useState(0)
+  const totalSteps = sections.length
+
+  // Récupération utilisateur
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
 
   const updateField = useCallback((fieldPath, value) => {
     setFormData(prev => {
@@ -126,6 +149,29 @@ export function FormProvider({ children }) {
     
     return current !== null && current !== undefined ? current : ""
   }, [formData])
+
+  // Fonctions de navigation
+  const next = useCallback(() => {
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(prev => prev + 1)
+    }
+  }, [currentStep, totalSteps])
+
+  const back = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1)
+    }
+  }, [currentStep])
+
+  const goTo = useCallback((step) => {
+    if (step >= 0 && step < totalSteps) {
+      setCurrentStep(step)
+    }
+  }, [totalSteps])
+
+  const getCurrentSection = useCallback(() => {
+    return sections[currentStep]
+  }, [currentStep])
 
   const handleSave = useCallback(async () => {
     if (!user?.id) {
@@ -186,19 +232,33 @@ export function FormProvider({ children }) {
 
   const resetForm = useCallback(() => {
     setFormData(initialFormData)
+    setCurrentStep(0) // Reset de l'étape
     setSaveStatus({ saving: false, saved: false, error: null })
   }, [])
 
   return (
     <FormContext.Provider value={{ 
+      // Données
       formData,
       updateField,
       updateSection,
       getField,
+      
+      // Persistance
       handleSave,
       handleLoad,
+      loadFicheData: handleLoad, // Alias pour FicheForm
       saveStatus,
-      resetForm
+      resetForm,
+      
+      // Navigation
+      currentStep,
+      totalSteps,
+      sections,
+      next,
+      back,
+      goTo,
+      getCurrentSection
     }}>
       {children}
     </FormContext.Provider>
@@ -210,5 +270,8 @@ export function useForm() {
   if (!context) {
     throw new Error('useForm must be used within a FormProvider')
   }
-  return context
+  return {
+    ...context,
+    loadFicheData: context.handleLoad // Alias pour compatibilité
+  }
 }

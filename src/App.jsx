@@ -1,3 +1,4 @@
+// src/App.jsx - MISE À JOUR pour FicheWizard
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from './components/Home'
 import Login from './components/Login'
@@ -11,9 +12,10 @@ import EmailConfirmation from './components/EmailConfirmation'
 import Assistants from './components/Assistants'
 import NouveauMotDePasse from './components/NouveauMotDePasse'
 import Dashboard from './components/Dashboard'
-import FicheForm from './components/FicheForm'
-import { FormProvider } from './components/FormContext'
 
+// 🔥 CHANGEMENT : Import FicheWizard au lieu de FicheForm
+import FicheWizard from './components/fiche/FicheWizard'
+import { FormProvider } from './components/FormContext'
 
 // Import du nouveau ProtectedRoute
 import ProtectedRoute from './components/ProtectedRoute'
@@ -146,13 +148,29 @@ function AppWrapper() {
             } 
           />         
 
-          <Route path="/nouvelle-fiche" element={
-            <ProtectedRoute>
-              <FormProvider>
-                <FicheForm />
-              </FormProvider>
-            </ProtectedRoute>
-          } />
+          {/* 🔥 CHANGEMENT : Route /fiche au lieu de /nouvelle-fiche + FicheWizard + FormProvider */}
+          <Route 
+            path="/fiche" 
+            element={
+              <ProtectedRoute>
+                <FormProvider>
+                  <FicheWizard />
+                </FormProvider>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* 🔥 OPTION : Redirection de l'ancienne route vers la nouvelle */}
+          <Route 
+            path="/nouvelle-fiche" 
+            element={
+              <ProtectedRoute>
+                <FormProvider>
+                  <FicheWizard />
+                </FormProvider>
+              </ProtectedRoute>
+            } 
+          />
 
         </Routes>
       </main>

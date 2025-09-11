@@ -83,15 +83,13 @@ export default function Dashboard() {
   const handleMenuAction = (action, fiche) => {
     switch (action) {
       case 'edit':
-        navigate(`/nouvelle-fiche?id=${fiche.id}`)
+        navigate(`/fiche?id=${fiche.id}`)
         break
       case 'archive':
         console.log('Archiver fiche:', fiche.nom)
-        // TODO: Implémenter archivage
         break
       case 'delete':
         console.log('Supprimer fiche:', fiche.nom)
-        // TODO: Implémenter suppression
         break
     }
     setShowDropdown(null)
