@@ -149,40 +149,41 @@ CREATE INDEX idx_fiche_lite_created_at ON fiche_lite(created_at DESC);
 ## 📋 Mapping Fonctionnel - 23 Sections
 
 ### Sections Fiche Logement Existantes
-1. **FicheForm** - Propriétaire ✅ DEMO CRÉÉE
-2. **FicheLogement** - Informations logement ⏳ À CRÉER
-3. **FicheClefs** - Gestion des clefs ⏳ À CRÉER
-4. **FicheEquipements** - Équipements disponibles ⏳ À CRÉER
-5. **FicheCuisine** - État cuisine ⏳ À CRÉER
-6. **FicheSalleDeBain** - État salle de bain ⏳ À CRÉER
-7. **FicheChambre1** - Chambre principale ⏳ À CRÉER
-8. **FicheChambre2** - Chambre secondaire ⏳ À CRÉER
-9. **FicheChambre3** - Chambre tertiaire ⏳ À CRÉER
-10. **FicheSalon** - État salon ⏳ À CRÉER
-... (13 autres sections)
+1. **FicheForm** - Propriétaire
+2. **FicheLogement** - Informations logement
+3. **FicheClefs** - Gestion des clefs
+4. **FicheEquipements** - Équipements disponibles
+5. **FicheCuisine** - État cuisine
+6. **FicheSalleDeBain** - État salle de bain
+7. **FicheChambre1** - Chambre principale 
+8. **FicheChambre2** - Chambre secondaire 
+9. **FicheChambre3** - Chambre tertiaire 
+10. **FicheSalon** - État salon 
+... etc (13 autres sections)
 
 ### Adaptations Version Lite
-- **Structure identique** : Même formulaire, mêmes champs
+- **Structure quasi-identique** : Même formulaire, mêmes champs (à quelques exception près)
 - **Suppression uploads** : Remplacer `PhotoUpload.jsx` par checkboxes rappel
 - **Suppression admin** : Pas de console, réaffectation, etc.
 - **Design adapté** : Couleurs Mon Équipe IA (#dbae61)
+- **Logique métier** : Adaptée à utilisation externe pour concierges (branding, wording, PDF, 'num de bien', etc.)
 
 ## 🚀 Roadmap de Développement
 
-### ✅ Phase 0 - MVP Démo (TERMINÉ - Jeudi)
+### ✅ Phase 0 - MVP Démo
 - [x] Bannière Fiche Logement sur `/assistants`
 - [x] Route `/dashboard` protégée premium
 - [x] Dashboard avec 3 fiches de démo
 - [x] Page formulaire démo (1 section)
 - [x] Navigation Dashboard ↔ Formulaire
 
-### ⏳ Phase 1 - Backend Complet (Post-validation)
-- [ ] Création table `fiche_lite` complète
-- [ ] Migration schéma des 23 sections
-- [ ] Tests CRUD complets
-- [ ] Sauvegarde progressive formulaire
+### ✅ Phase 1 - Backend Complet
+- [x] Création table `fiche_lite` complète
+- [x] Migration schéma des 23 sections
+- [x] Tests CRUD complets
+- [x] Sauvegarde progressive formulaire
 
-### ⏳ Phase 2 - Formulaire Multi-Pages
+### 🚧 Phase 2 - Formulaire Multi-Pages (EN COURS)
 - [ ] Création des 22 autres composants de section
 - [ ] FormContext adapté (sans hooks custom Letahost)
 - [ ] Navigation entre sections (FormWizard simplifié)
@@ -209,7 +210,7 @@ src/components/
 │   ├── FormWizard.jsx            # Navigation 23 sections
 │   ├── ProgressBar.jsx           # Barre progression
 │   ├── sections/                  # 23 sections formulaire
-│   │   ├── FicheForm.jsx         # ✅ Existant (section propriétaire)
+│   │   ├── FicheForm.jsx         # Section 1 - section propriétaire
 │   │   ├── FicheLogement.jsx     # Section 2 - infos logement
 │   │   ├── FicheClefs.jsx        # Section 3 - gestion clefs
 │   │   └── ... (20 autres)       # Sections 4-23
@@ -220,7 +221,6 @@ src/components/
 - **FormContext** : État global formulaire (sans hooks custom Letahost)  
 - **Sauvegarde auto** : Toutes les 30s + navigation
 - **Validation** : Côté React (comme Fiche Logement original)
-- **Génération nom auto** : Logique à conserver
 - **Navigation conditionnelle** : Pas de branches, 23 sections linéaires
 
 ## 🚫 Éléments À NE PAS Migrer
@@ -268,13 +268,13 @@ src/components/
 
 ## 🎯 Critères de Réussite
 
-### MVP Jeudi (✅ ATTEINT)
+### MVP (✅ ATTEINT)
 - Démonstration visuelle convincante
 - Navigation fluide Dashboard → Formulaire  
 - Design professionnel et cohérent
 - Protection premium fonctionnelle
 
-### Version Production (Objectifs)
+### Version Production
 - 23 sections formulaire opérationnelles
 - Sauvegarde/reprise fiches sans perte données
 - Génération PDF identique qualité Letahost
