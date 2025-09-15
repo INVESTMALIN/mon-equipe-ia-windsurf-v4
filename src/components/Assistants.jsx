@@ -163,15 +163,16 @@ export default function MonCompteV2() {
           {/* Header */}
           <div className="text-center mb-16">
             <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 mb-6">
-              <MessageSquareText className="w-6 h-6 md:w-8 md:h-8 text-[#dbae61]" />
+              
               <h2 className="text-2xl md:text-3xl font-bold text-black text-center">
                 CHOISISSEZ VOTRE ASSISTANT IA SPÉCIALISÉ
               </h2>
             </div>
             <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Découvrez nos agents IA les plus demandés, conçus pour accompagner les conciergeries 
-              sur tous les sujets clés. Chaque assistant est spécialisé pour répondre à un besoin 
-              précis de nos concierges.
+            Découvrez nos agents IA les plus demandés, vos nouveaux alliés du quotidien ! 
+            </p>
+            <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            Conçus pour vous accompagner sur les sujets clé de votre conciergerie, ces assistants spécialisés répondent à vos besoins avec précision et rapidité. 
             </p>
           </div>
 
@@ -192,16 +193,20 @@ export default function MonCompteV2() {
                   <h3 className="text-2xl font-bold text-black">FISCALISTE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
-                  L'IA qui simplifie vos démarches fiscales
+                L'IA qui simplifie vos démarches fiscales & légales
                 </p>
                 <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Répond aux questions fiscales liées à la courte durée
+                    L'IA qui simplifie vos démarches fiscales & légales
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
                     Propose des solutions sur mesure pour votre situation
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Lit et analyse les règlements (copro, mairie)
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
@@ -248,7 +253,7 @@ export default function MonCompteV2() {
                   <h3 className="text-2xl font-bold text-black">ANNONCE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
-                L'IA qui rend la création d'annonces facile
+                L'IA qui facilite la création d'annonces
                 </p>
                 <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
                   <li className="flex items-start gap-2">
@@ -257,11 +262,15 @@ export default function MonCompteV2() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Liste les équipements Airbnb/Booking
+                    Liste les équipements pour Airbnb & Booking
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Optimise votre guide d'arrivée
+                    Propose un guide d'arrivée personnalisé
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Optimise votre annonce
                   </li>
                 </ul>
                 {isPremium ? (
@@ -314,6 +323,10 @@ export default function MonCompteV2() {
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
                     Détecte la personnalité de l'interlocuteur
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Propose des modèles de discours et d'emails
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>

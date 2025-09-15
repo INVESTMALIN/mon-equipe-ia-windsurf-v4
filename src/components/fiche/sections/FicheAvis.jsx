@@ -615,17 +615,6 @@ export default function FicheAvis() {
                 </div>
               </div>
 
-              {/* Information sur la navigation */}
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-medium text-blue-900 mb-2">Navigation Wizard</h3>
-                  <p className="text-blue-700 text-sm">
-                    Utilisez le menu latéral pour naviguer entre les 23 sections du formulaire. 
-                    Vos données sont sauvegardées automatiquement.
-                  </p>
-                </div>
-              </div>
-
               {/* Boutons navigation standardisés - OBLIGATOIRE */}
               <NavigationButtons />
             </div>
