@@ -107,7 +107,7 @@ export default function FicheAvis() {
                     <MessageSquare className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Votre avis compte !</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Votre avis fait la différence !</h2>
                     <p className="text-gray-600">Partagez votre perception unique du logement</p>
                   </div>
                 </div>
@@ -116,9 +116,7 @@ export default function FicheAvis() {
               {/* Message d'information */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
                 <p className="text-sm text-blue-900 leading-relaxed">
-                  Votre avis compte énormément ! En tant que concierge, votre perception du logement sur place est unique et précieuse.
-                  Vos observations peuvent révéler des atouts cachés ou des particularités que seul quelqu'un ayant visité le lieu peut remarquer.
-                  Ces détails peuvent faire toute la différence dans l'annonce, alors n'hésitez pas à partager vos impressions !
+                Votre perception sur place compte énormément ! Ces observations vous serviront directement pour créer des annonces qui convertissent. L'assistant IA utilisera vos impressions pour générer des descriptions qui mettent en avant les vrais points forts du logement et séduisent vos futurs locataires.
                 </p>
               </div>
 

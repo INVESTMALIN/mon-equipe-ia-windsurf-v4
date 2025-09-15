@@ -10,6 +10,8 @@ export default function FicheClefs() {
     updateField
   } = useForm()
 
+  const isAutreBoite = getField('section_clefs.boiteType') === 'Autres'
+
   // Récupération des données de la section
   const formData = getField('section_clefs')
 
@@ -49,17 +51,18 @@ export default function FicheClefs() {
               </div>
 
               <div className="space-y-8">
+
                 {/* Type de boîte à clés */}
                 <div>
                   <label className="block font-medium text-gray-900 mb-3">Type de boîte à clés *</label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {["TTlock", "Igloohome", "Masterlock"].map(type => (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    {["TTlock", "Igloohome", "Masterlock", "Autres"].map(type => (
                       <label key={type} className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg hover:border-[#dbae61] hover:bg-[#dbae61]/5">
                         <input
                           type="radio"
                           name="boiteType"
                           value={type}
-                          checked={formData.boiteType === type}
+                          checked={getField('section_clefs.boiteType') === type}
                           onChange={(e) => handleInputChange('section_clefs.boiteType', e.target.value)}
                           className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                         />
@@ -67,6 +70,22 @@ export default function FicheClefs() {
                       </label>
                     ))}
                   </div>
+                  
+                  {/* Champ conditionnel pour "Autres" - DÉPLACÉ ICI */}
+                  {isAutreBoite && (
+                    <div className="mt-4">
+                      <label className="block font-medium text-gray-900 mb-2">
+                      Précisez le type de boîte *
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Boîte magnétique, coffre-fort, etc."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        value={getField('section_clefs.boiteType_autre_precision') || ''}
+                        onChange={(e) => handleInputChange('section_clefs.boiteType_autre_precision', e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Emplacement de la boîte à clés */}
@@ -87,6 +106,8 @@ export default function FicheClefs() {
                         type="checkbox"
                         id="emplacement_photo_taken"
                         className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                        checked={getField('section_clefs.photos_rappels.clefs_taken') || false}
+                        onChange={(e) => handleInputChange('section_clefs.photos_rappels.clefs_taken', e.target.checked)}
                       />
                       <label htmlFor="emplacement_photo_taken" className="text-sm text-yellow-800">
                         📸 Pensez à prendre une photo de l'emplacement de la boîte à clés

@@ -286,12 +286,11 @@ export default function FicheReglementation() {
                 <div className="border-t border-gray-200 pt-8">
                   <h3 className="text-lg font-semibold text-blue-600 mb-4">Documents</h3>
                   
-                  <p className="text-sm text-gray-600 mb-6">
-                    Vérifiez sur Monday la possession des documents suivants :
+                  <p className="block font-medium text-gray-900 mb-2">
+                  Vérifiez que vous avez bien récupéré les documents suivants auprès du propriétaire :
                   </p>
                   
                   <div>
-                    <p className="font-medium text-gray-900 mb-4">Documents :</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {[
                         { key: 'carte_identite', label: "Carte d'identité" },

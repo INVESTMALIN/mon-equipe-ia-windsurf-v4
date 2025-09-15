@@ -48,9 +48,15 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB, photos_prises)
 - **Route `/fiche`** avec gestion ID et FormContext
 
 ### ⏳ Fiche Logement Lite - En Cours  
-- **Sections 2-23** : Développement des composants restants
+- **Sections** : Développement des composants restants
 - **Process standardisé** défini pour ajout sécurisé de sections
 - **Validation** des workflows d'inspection complets
+
+### Architecture Technique
+- **BDD** : Table `fiche_lite` avec colonnes JSONB par section
+- **Frontend** : Wizard navigation (SidebarMenu + ProgressBar + sections)
+- **État** : FormContext global avec auto-save
+- **Sécurité** : RLS policies Supabase (isolation utilisateurs)
 
 ### ✅ Mon Équipe IA - Opérationnel
 - Landing page + système auth complet
@@ -66,7 +72,7 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB, photos_prises)
 
 ## 🧭 Hiérarchie Priorités
 
-### 1. PRIORITÉ ABSOLUE - Fiche Logement 
+### 1. PRIORITÉ - Fiche Logement Lite
 - **Développement sections** : FicheLogement, FicheAvis, FicheClefs...
 - **Suivre process défini** : Colonne JSONB → FormContext → Composant → Tests
 - **Objectif** : 23 sections opérationnelles avant fin septembre
@@ -110,15 +116,16 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB, photos_prises)
 
 ## 💡 Contexte Julien
 
-### Profil
-- Transition linguiste → spécialiste IA/no-code
-- Approche step-by-step (ne pas faire d'outline complet)
-- Ton direct, humain, tutoiement
-- Contester les suppositions si nécessaire
+### Approche de Travail
+- **Step-by-step** : Une étape à la fois, pas d'outline complet
+- **Ton direct** : Humain, tutoiement, pas de jargon IA
+- **Critique constructive** : Contester les suppositions si nécessaire
+- **Pragmatique** : Solutions durables, pas de fix rapides
 
-### Projets Parallèles
-- **Letahost** : Conciergerie immobilière (source Fiche Logement)
-- **Invest Malin** : Formation conciergerie (cible Mon Équipe IA)
+### Écosystème Projets
+- **Letahost** : Conciergerie interne (source Fiche Logement lourde)
+- **Invest Malin** : Formation concierges (cible Mon Équipe IA)
+- **Transition** : Adaptation outils internes → usage externe
 
 ## 🚨 Points Critiques
 
@@ -146,6 +153,11 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB, photos_prises)
 5. Tests validation à chaque étape
 6. Consulter le doc du AJOUT_SECTIONS.md (process d'ajout de nouvelles sections)
 ```
+
+### Resources Disponibles  
+- **AJOUT_SECTIONS.md** : Process détaillé step-by-step
+- **Claude Brain** : Contexte projets et historique
+- **Codebase repo** : Code source Fiche Logement original
 
 ---
 

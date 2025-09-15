@@ -83,11 +83,6 @@ export default function FicheExigences() {
                   <label className="block font-medium text-gray-900 mb-2">
                     Dates à bloquer pour utilisation personnelle du propriétaire
                   </label>
-                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800 font-medium">
-                      📅 CONSEIL : 60 jours maximum par an et 15 jours max Juillet - Août.
-                    </p>
-                  </div>
                   <input 
                     type="text"
                     placeholder="Ex: du 15/07/2024 au 30/07/2024, du 20/12/2024 au 05/01/2025"

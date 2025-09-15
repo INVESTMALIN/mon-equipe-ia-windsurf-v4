@@ -152,39 +152,27 @@ export default function FicheLogement() {
                   </div>
 
                   <div>
-                    <label className="block font-medium text-gray-900 mb-2">
-                      Numéro du bien
-                    </label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: 1234"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
-                      value={getField('section_logement.numero_bien') || ''}
-                      onChange={(e) => handleInputChange('section_logement.numero_bien', e.target.value)}
-                    />
-                  </div>
-                </div>
+    <label className="block font-medium text-gray-900 mb-2">
+      Typologie *
+    </label>
+    <select 
+      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+      value={getField('section_logement.typologie')}
+      onChange={(e) => handleInputChange('section_logement.typologie', e.target.value)}
+    >
+      <option value="">Sélectionner</option>
+      <option value="Studio">Studio</option>
+      <option value="T2">T2</option>
+      <option value="T3">T3</option>
+      <option value="T4">T4</option>
+      <option value="T5">T5</option>
+      <option value="T6+">T6+</option>
+    </select>
+  </div>
+</div>
 
                 {/* Typologie et capacité - grille 3 colonnes */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block font-medium text-gray-900 mb-2">
-                      Typologie *
-                    </label>
-                    <select 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
-                      value={getField('section_logement.typologie')}
-                      onChange={(e) => handleInputChange('section_logement.typologie', e.target.value)}
-                    >
-                      <option value="">Sélectionner</option>
-                      <option value="Studio">Studio</option>
-                      <option value="T2">T2</option>
-                      <option value="T3">T3</option>
-                      <option value="T4">T4</option>
-                      <option value="T5">T5</option>
-                      <option value="T6+">T6+</option>
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                   <div>
                     <label className="block font-medium text-gray-900 mb-2">

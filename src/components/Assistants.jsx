@@ -163,7 +163,6 @@ export default function MonCompteV2() {
           {/* Header */}
           <div className="text-center mb-16">
             <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 mb-6">
-              
               <h2 className="text-2xl md:text-3xl font-bold text-black text-center">
                 CHOISISSEZ VOTRE ASSISTANT IA SPÉCIALISÉ
               </h2>

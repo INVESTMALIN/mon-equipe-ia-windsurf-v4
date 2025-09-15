@@ -145,61 +145,70 @@ import { useForm } from '../FormContext'            // NON !
 import Button from '../../Button'                   // N'existe pas !
 ```
 
-### 2.3 Classes CSS obligatoires pour cohérence
+### 🔥 2.3 RAPPELS PHOTOS (VERSION LITE) - ERREUR FRÉQUENTE
 
-**Container principal :**
-- `max-w-4xl mx-auto` - Container centré
-- `bg-white rounded-xl shadow-sm p-8` - Carte blanche principale
+**ATTENTION CRITIQUE** : Les rappels photos doivent OBLIGATOIREMENT être connectés au FormContext !
 
-**Champs de formulaire :**
-- `w-full px-4 py-3 border border-gray-300 rounded-lg` - Style de base
-- `focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all` - Focus doré
-
-**Grilles responsive :**
-- `grid grid-cols-1 md:grid-cols-2 gap-4` - 1 col mobile, 2 desktop
-- `grid grid-cols-1 md:grid-cols-3 gap-4` - 1 col mobile, 3 desktop
-
-### 2.4 Adaptations Version Lite
-
-- **PhotoUpload → Rappels visuels** : Remplacer tous les `<PhotoUpload />` par des checkboxes de rappel
-- **Champs conditionnels** : Conserver la logique d'affichage conditionnel
-- **Validation** : Côté React uniquement (pas de validation serveur complexe)
-
+#### ✅ BONNE MÉTHODE (testée et validée)
 ```javascript
-// Exemple remplacement PhotoUpload
+// 1. Dans FormContext.jsx, ajouter la structure photos_rappels :
+section_clefs: {
+  // ... autres champs
+  photos_rappels: {
+    clefs_taken: false,
+    emplacement_taken: false
+  }
+}
+
+// 2. Dans le composant, connecter CORRECTEMENT :
 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
   <div className="flex items-center gap-2">
     <input
       type="checkbox"
-      id="photo_clefs_taken"
+      id="clefs_taken"
       className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+      checked={getField('section_clefs.photos_rappels.clefs_taken') || false}
+      onChange={(e) => handleInputChange('section_clefs.photos_rappels.clefs_taken', e.target.checked)}
     />
-    <label htmlFor="photo_clefs_taken" className="text-sm text-yellow-800">
+    <label htmlFor="clefs_taken" className="text-sm text-yellow-800">
       📸 Pensez à prendre une photo des clefs
     </label>
   </div>
 </div>
 ```
 
-## 🔗 ÉTAPE 3 : INTÉGRATION AU WIZARD
-
-### 3.1 Import dans FicheWizard
+#### ❌ ERREUR TYPIQUE (NE PAS FAIRE)
 ```javascript
-// src/components/fiche/FicheWizard.jsx
-import FicheClefs from './sections/FicheClefs'
-
-// Dans le tableau steps, remplacer le placeholder
-const steps = [
-  <FicheForm key="proprietaire" />,
-  <FicheLogement key="logement" />,
-  <FicheAvis key="avis" />,
-  <FicheClefs key="clefs" />, // ← Remplacer le PlaceholderSection
-  <PlaceholderSection key="airbnb" title="Airbnb" sectionNumber="5" />,
-  // ... autres
-]
+// ERREUR : Checkbox non connectée au FormContext
+<input
+  type="checkbox"
+  id="photo_taken"
+  className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+  // MANQUE : checked={...}
+  // MANQUE : onChange={...}
+/>
 ```
 
-**ATTENTION** : Ne pas ajouter de props `title` ou `sectionNumber` aux vrais composants !
+**CONSÉQUENCE DE L'ERREUR** : La checkbox ne se sauvegarde pas et se remet à zéro à chaque navigation !
+
+## 🔌 ÉTAPE 3 : INTÉGRATION DANS FICHETIWIZARD
+
+### 3.1 Ajouter l'import
+Dans `src/components/fiche/FicheWizard.jsx` :
+```javascript
+import FicheClefs from './sections/FicheClefs'
+```
+
+### 3.2 Remplacer dans le tableau steps
+Remplacer :
+```javascript
+<PlaceholderSection key="clefs" title="Clefs" sectionNumber="4" />,
+```
+
+Par :
+```javascript
+<FicheClefs key="clefs" />,
+```
 
 ## ✅ ÉTAPE 4 : TESTS DE VALIDATION
 
@@ -212,6 +221,7 @@ const steps = [
 - [ ] **Boutons** : Retour/Suivant/Enregistrer fonctionnent
 - [ ] **Messages** : Indicateurs de sauvegarde s'affichent correctement
 - [ ] **Responsive** : Design mobile-first fonctionne
+- [ ] **🔥 Rappels photos** : Checkboxes restent cochées après navigation
 
 ### 4.2 Tests Supabase
 ```sql
@@ -248,6 +258,12 @@ SELECT section_clefs FROM fiche_lite WHERE id = 'TON_ID_TEST';
 - **OBLIGATOIRE** : Respecter la structure de carte blanche avec header
 - **OBLIGATOIRE** : Classes CSS cohérentes (focus doré, espacements)
 
+### 🔥 ⚠️ Rappels photos (SUPER CRITIQUE)
+- **OBLIGATOIRE** : Toujours connecter les checkboxes au FormContext
+- **OBLIGATOIRE** : Utiliser `getField()` et `handleInputChange()`
+- **OBLIGATOIRE** : Tester la persistence après navigation
+- **ERREUR FRÉQUENTE** : Oublier `checked` et `onChange` = checkbox inutile !
+
 ## 🎯 CHECKLIST FINALE
 
 - [ ] initialFormData mis à jour avec structure complète
@@ -262,6 +278,7 @@ SELECT section_clefs FROM fiche_lite WHERE id = 'TON_ID_TEST';
 - [ ] Aucune erreur console
 - [ ] Isolation utilisateurs OK
 - [ ] Design cohérent avec autres sections
+- [ ] **🔥 Rappels photos connectés et testés**
 
 ## 📝 CONVENTION DE COMMIT
 
@@ -270,6 +287,7 @@ feat: Ajouter section Clefs
 
 - Composant FicheClefs.jsx créé avec NavigationButtons
 - Navigation wizard mise à jour
+- Rappels photos connectés au FormContext
 - Tests validation passés
 - Design cohérent avec autres sections
 ```
@@ -282,5 +300,13 @@ feat: Ajouter section Clefs
 4. **Props inutiles** - Pas de `title`/`sectionNumber` sur vrais composants
 5. **Process incomplet** - Suivre TOUTES les étapes
 6. **Tests insuffisants** - Validation complète obligatoire
+7. **🔥 RAPPELS PHOTOS NON CONNECTÉS** - Erreur récurrente qui rend les checkboxes inutiles !
+
+## 🏆 NOTES DE PERFORMANCE
+
+### Adaptations métier réussies
+- **FicheConsommables** : Liste obligatoire → recommandée (adaptation concierges externes)
+- **FicheEquipements** : Logique parking complexe avec nettoyage automatique
+- **FicheVisite** : Validation croisée avec FicheLogement
 
 **IMPORTANT :** Suivre ce process étape par étape sans sauter d'étapes évitera tous les problèmes de configuration, nommage et intégration.

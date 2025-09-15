@@ -122,7 +122,7 @@ export default function FicheForm() {
                 <div>
                   <label className="block font-medium text-gray-900 mb-2">
                     <MapPin className="w-4 h-4 inline mr-2" />
-                    Adresse du propriétaire
+                    Adresse du bien
                   </label>
                   <div className="space-y-4">
                     <input 

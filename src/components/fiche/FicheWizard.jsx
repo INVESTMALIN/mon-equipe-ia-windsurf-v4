@@ -14,6 +14,10 @@ import FicheAirbnb from './sections/FicheAirbnb'
 import FicheBooking from './sections/FicheBooking'
 import FicheReglementation from './sections/FicheReglementation'
 import FicheExigences from './sections/FicheExigences'
+import FicheGestionLinge from './sections/FicheGestionLinge'
+import FicheEquipements from './sections/FicheEquipements'
+import FicheConsommables from './sections/FicheConsommables'
+import FicheVisite from './sections/FicheVisite'
 
 // Composant placeholder pour les sections pas encore créées
 function PlaceholderSection({ title, sectionNumber }) {
@@ -124,10 +128,10 @@ export default function FicheWizard() {
     <FicheBooking key="booking" />, 
     <FicheReglementation key="reglementation" />, 
     <FicheExigences key="exigences" />,  
-    <PlaceholderSection key="linge" title="Gestion Linge" sectionNumber="9" />,
-    <PlaceholderSection key="equipements" title="Équipements" sectionNumber="10" />,
-    <PlaceholderSection key="consommables" title="Consommables" sectionNumber="11" />,
-    <PlaceholderSection key="visite" title="Visite" sectionNumber="12" />,
+    <FicheGestionLinge key="linge" />,
+    <FicheEquipements key="equipements" />,
+    <FicheConsommables key="consommables" />,
+    <FicheVisite key="visite" />,
     <PlaceholderSection key="chambres" title="Chambres" sectionNumber="13" />,
     <PlaceholderSection key="sdb" title="Salle de Bains" sectionNumber="14" />,
     <PlaceholderSection key="cuisine-1" title="Cuisine 1" sectionNumber="15" />,
