@@ -134,9 +134,11 @@ export default function FicheVisite() {
                 {/* Conditionnel : Nombre de chambres si "Chambre" cochée */}
                 {chambreSelectionnee && (
                   <div>
-                    <label className="block font-medium text-gray-900 mb-3">
-                      Visite — Nombre de chambres *
-                    </label>
+                    <div className="mb-3">
+                      <label className="block font-medium text-gray-900 mb-2">
+                        Nombre de chambres *
+                      </label>
+                    </div>
                     <select 
                       className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                       value={formDataVisite.nombre_chambres || ""}
@@ -151,6 +153,10 @@ export default function FicheVisite() {
                       <option value="5">5</option>
                       <option value="6">6</option>
                     </select>
+                    <p className="mt-4 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      💡 <strong>Note pour Studio :</strong> Si vous avez sélectionné "Studio" dans la typologie, 
+                      choisissez 0 chambres.
+                    </p>
                     
                     {/* Alerte de validation croisée */}
                     {showValidationError && (

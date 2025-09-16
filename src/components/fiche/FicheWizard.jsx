@@ -18,6 +18,7 @@ import FicheGestionLinge from './sections/FicheGestionLinge'
 import FicheEquipements from './sections/FicheEquipements'
 import FicheConsommables from './sections/FicheConsommables'
 import FicheVisite from './sections/FicheVisite'
+import FicheChambre from './sections/FicheChambre'
 
 // Composant placeholder pour les sections pas encore créées
 function PlaceholderSection({ title, sectionNumber }) {
@@ -118,7 +119,6 @@ export default function FicheWizard() {
     }
   }, [id, searchParams, loadFicheData])
 
-  // 🔥 Définition des sections (étendre au fur et à mesure)
   const steps = [
     <FicheForm key="proprietaire" />,
     <FicheLogement key="logement" />,
@@ -132,7 +132,7 @@ export default function FicheWizard() {
     <FicheEquipements key="equipements" />,
     <FicheConsommables key="consommables" />,
     <FicheVisite key="visite" />,
-    <PlaceholderSection key="chambres" title="Chambres" sectionNumber="13" />,
+    <FicheChambre key="chambres" />,
     <PlaceholderSection key="sdb" title="Salle de Bains" sectionNumber="14" />,
     <PlaceholderSection key="cuisine-1" title="Cuisine 1" sectionNumber="15" />,
     <PlaceholderSection key="cuisine-2" title="Cuisine 2" sectionNumber="16" />,
