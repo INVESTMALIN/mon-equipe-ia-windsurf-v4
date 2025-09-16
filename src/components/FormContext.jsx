@@ -639,9 +639,335 @@ section_chambres: {
   }
 },
 
-  section_salle_de_bains: {},
-  section_cuisine_1: {},
-  section_cuisine_2: {},
+section_salle_de_bains: {
+  salle_de_bain_1: {
+    nom_description: "",
+    // Équipements
+    equipements_douche: null,
+    equipements_baignoire: null,
+    equipements_douche_baignoire_combinees: null,
+    equipements_double_vasque: null,
+    equipements_wc: null,
+    equipements_bidet: null,
+    equipements_chauffage: null,
+    equipements_lave_linge: null,
+    equipements_seche_serviette: null,
+    equipements_seche_cheveux: null,
+    equipements_autre: null,
+    equipements_autre_details: "",
+    // Logique conditionnelle WC séparé
+    wc_separe: null, // true/false/null - affiché si equipements_wc = true
+    // Accès
+    acces: "", // "privee" ou "partagee"
+    // Éléments abîmés
+    elements_abimes: null, // true/false/null
+    // Photos rappels (VERSION LITE)
+    photos_rappels: {
+      photos_salle_de_bain_taken: false,
+      elements_abimes_taken: false
+    }
+  },
+  
+  salle_de_bain_2: {
+    nom_description: "",
+    equipements_douche: null,
+    equipements_baignoire: null,
+    equipements_douche_baignoire_combinees: null,
+    equipements_double_vasque: null,
+    equipements_wc: null,
+    equipements_bidet: null,
+    equipements_chauffage: null,
+    equipements_lave_linge: null,
+    equipements_seche_serviette: null,
+    equipements_seche_cheveux: null,
+    equipements_autre: null,
+    equipements_autre_details: "",
+    wc_separe: null,
+    acces: "",
+    elements_abimes: null,
+    photos_rappels: {
+      photos_salle_de_bain_taken: false,
+      elements_abimes_taken: false
+    }
+  },
+  
+  salle_de_bain_3: {
+    nom_description: "",
+    equipements_douche: null,
+    equipements_baignoire: null,
+    equipements_douche_baignoire_combinees: null,
+    equipements_double_vasque: null,
+    equipements_wc: null,
+    equipements_bidet: null,
+    equipements_chauffage: null,
+    equipements_lave_linge: null,
+    equipements_seche_serviette: null,
+    equipements_seche_cheveux: null,
+    equipements_autre: null,
+    equipements_autre_details: "",
+    wc_separe: null,
+    acces: "",
+    elements_abimes: null,
+    photos_rappels: {
+      photos_salle_de_bain_taken: false,
+      elements_abimes_taken: false
+    }
+  },
+  
+  salle_de_bain_4: {
+    nom_description: "",
+    equipements_douche: null,
+    equipements_baignoire: null,
+    equipements_douche_baignoire_combinees: null,
+    equipements_double_vasque: null,
+    equipements_wc: null,
+    equipements_bidet: null,
+    equipements_chauffage: null,
+    equipements_lave_linge: null,
+    equipements_seche_serviette: null,
+    equipements_seche_cheveux: null,
+    equipements_autre: null,
+    equipements_autre_details: "",
+    wc_separe: null,
+    acces: "",
+    elements_abimes: null,
+    photos_rappels: {
+      photos_salle_de_bain_taken: false,
+      elements_abimes_taken: false
+    }
+  },
+  
+  salle_de_bain_5: {
+    nom_description: "",
+    equipements_douche: null,
+    equipements_baignoire: null,
+    equipements_douche_baignoire_combinees: null,
+    equipements_double_vasque: null,
+    equipements_wc: null,
+    equipements_bidet: null,
+    equipements_chauffage: null,
+    equipements_lave_linge: null,
+    equipements_seche_serviette: null,
+    equipements_seche_cheveux: null,
+    equipements_autre: null,
+    equipements_autre_details: "",
+    wc_separe: null,
+    acces: "",
+    elements_abimes: null,
+    photos_rappels: {
+      photos_salle_de_bain_taken: false,
+      elements_abimes_taken: false
+    }
+  },
+  
+  salle_de_bain_6: {
+    nom_description: "",
+    equipements_douche: null,
+    equipements_baignoire: null,
+    equipements_douche_baignoire_combinees: null,
+    equipements_double_vasque: null,
+    equipements_wc: null,
+    equipements_bidet: null,
+    equipements_chauffage: null,
+    equipements_lave_linge: null,
+    equipements_seche_serviette: null,
+    equipements_seche_cheveux: null,
+    equipements_autre: null,
+    equipements_autre_details: "",
+    wc_separe: null,
+    acces: "",
+    elements_abimes: null,
+    photos_rappels: {
+      photos_salle_de_bain_taken: false,
+      elements_abimes_taken: false
+    }
+  }
+},
+
+section_cuisine_1: {
+  // Équipements principaux (checkboxes)
+  equipements_refrigerateur: null,
+  equipements_congelateur: null,
+  equipements_mini_refrigerateur: null,
+  equipements_cuisiniere: null,
+  equipements_plaque_cuisson: null,
+  equipements_four: null,
+  equipements_micro_ondes: null,
+  equipements_lave_vaisselle: null,
+  equipements_cafetiere: null,
+  equipements_bouilloire: null,
+  equipements_grille_pain: null,
+  equipements_blender: null,
+  equipements_cuiseur_riz: null,
+  equipements_machine_pain: null,
+  equipements_lave_linge: null,
+  equipements_autre: null,
+  equipements_autre_details: "",
+  
+  // Réfrigérateur (conditionnel)
+  refrigerateur_marque: "",
+  refrigerateur_instructions: "",
+  
+  // Congélateur (conditionnel)
+  congelateur_instructions: "",
+  
+  // Mini réfrigérateur (conditionnel)
+  mini_refrigerateur_instructions: "",
+  
+  // Cuisinière (conditionnel)
+  cuisiniere_marque: "",
+  cuisiniere_type: "", // "Électrique", "Gaz", "Induction", "À bois"
+  cuisiniere_nombre_feux: "",
+  cuisiniere_instructions: "",
+  
+  // Plaque de cuisson (conditionnel)
+  plaque_cuisson_marque: "",
+  plaque_cuisson_type: "", // "Électrique", "Gaz", "Induction"
+  plaque_cuisson_nombre_feux: "",
+  plaque_cuisson_instructions: "",
+  
+  // Four (conditionnel)
+  four_marque: "",
+  four_type: "", // "Simple", "Double"
+  four_instructions: "",
+  
+  // Micro-ondes (conditionnel)
+  micro_ondes_instructions: "",
+  
+  // Lave-vaisselle (conditionnel)
+  lave_vaisselle_instructions: "",
+  
+  // Cafetière (conditionnel)
+  cafetiere_marque: "",
+  cafetiere_instructions: "",
+  cafetiere_cafe_fourni: "", // "Non", "Oui par le propriétaire", "Oui par la fée du logis"
+  cafetiere_marque_cafe: "", // conditionnel si café fourni
+  
+  // Types cafetière (checkboxes multiples)
+  cafetiere_type_filtre: null,
+  cafetiere_type_expresso: null,
+  cafetiere_type_piston: null,
+  cafetiere_type_keurig: null,
+  cafetiere_type_nespresso: null,
+  cafetiere_type_manuelle: null,
+  cafetiere_type_bar_grain: null,
+  cafetiere_type_bar_moulu: null,
+  
+  // Bouilloire (conditionnel)
+  bouilloire_instructions: "",
+  
+  // Grille-pain (conditionnel)
+  grille_pain_instructions: "",
+  
+  // Blender (conditionnel)
+  blender_instructions: "",
+  
+  // Cuiseur riz (conditionnel)
+  cuiseur_riz_instructions: "",
+  
+  // Machine pain (conditionnel)
+  machine_pain_instructions: "",
+  
+  // Éléments abîmés
+  elements_abimes: null, // true/false/null
+  
+  // Photos rappels (VERSION LITE)
+  photos_rappels: {
+    refrigerateur_taken: false,
+    congelateur_taken: false,
+    mini_refrigerateur_taken: false,
+    cuisiniere_taken: false,
+    plaque_cuisson_taken: false,
+    four_taken: false,
+    micro_ondes_taken: false,
+    lave_vaisselle_taken: false,
+    cafetiere_taken: false,
+    bouilloire_taken: false,
+    grille_pain_taken: false,
+    blender_taken: false,
+    cuiseur_riz_taken: false,
+    machine_pain_taken: false,
+    elements_abimes_taken: false
+  }
+},
+
+// Dans src/components/FormContext.jsx, remplacer :
+// section_cuisine_2: {},
+
+// Par cette structure complète :
+section_cuisine_2: {
+  // Vaisselle (compteurs)
+  vaisselle_assiettes_plates: 0,
+  vaisselle_assiettes_dessert: 0,
+  vaisselle_assiettes_creuses: 0,
+  vaisselle_bols: 0,
+
+  // Couverts (compteurs)
+  couverts_verres_eau: 0,
+  couverts_verres_vin: 0,
+  couverts_tasses: 0,
+  couverts_flutes_champagne: 0,
+  couverts_mugs: 0,
+  couverts_couteaux_table: 0,
+  couverts_fourchettes: 0,
+  couverts_couteaux_steak: 0,
+  couverts_cuilleres_soupe: 0,
+  couverts_cuilleres_cafe: 0,
+  couverts_cuilleres_dessert: 0,
+
+  // Ustensiles de cuisine (compteurs)
+  ustensiles_poeles_differentes_tailles: 0,
+  ustensiles_casseroles_differentes_tailles: 0,
+  ustensiles_faitouts: 0,
+  ustensiles_wok: 0,
+  ustensiles_cocotte_minute: 0,
+  ustensiles_couvercle_anti_eclaboussures: 0,
+  ustensiles_robot_cuisine: 0,
+  ustensiles_batteur_electrique: 0,
+  ustensiles_couteaux_cuisine: 0,
+  ustensiles_spatules: 0,
+  ustensiles_ecumoire: 0,
+  ustensiles_ouvre_boite: 0,
+  ustensiles_rape: 0,
+  ustensiles_tire_bouchon: 0,
+  ustensiles_econome: 0,
+  ustensiles_passoire: 0,
+  ustensiles_planche_decouper: 0,
+  ustensiles_rouleau_patisserie: 0,
+  ustensiles_ciseaux_cuisine: 0,
+  ustensiles_balance_cuisine: 0,
+  ustensiles_bac_glacon: 0,
+  ustensiles_pince_cuisine: 0,
+  ustensiles_couteau_huitre: 0,
+  ustensiles_verre_mesureur: 0,
+  ustensiles_presse_agrume_manuel: 0,
+  ustensiles_pichet: 0,
+
+  // Plats et récipients (compteurs)
+  plats_dessous_plat: 0,
+  plats_plateau: 0,
+  plats_saladiers: 0,
+  plats_a_four: 0,
+  plats_carafes: 0,
+  plats_moules: 0,
+  plats_theiere: 0,
+  plats_cafetiere_piston_filtre: 0,
+  plats_ustensiles_barbecue: 0,
+  plats_gants_cuisine: 0,
+  plats_maniques: 0,
+
+  // Champs complémentaires
+  autres_ustensiles: "",
+  quantite_suffisante: null, // true/false/null
+  quantite_insuffisante_details: "", // conditionnel si quantite_suffisante = false
+  casseroles_poeles_testees: null, // true/false/null
+
+  // Photos rappels
+  photos_rappels: {
+    photos_tiroirs_placards_taken: false
+  }
+},
+
   section_salon_sam: {},
   section_equip_spe_exterieur: {},
   section_communs: {},

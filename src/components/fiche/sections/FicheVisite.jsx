@@ -180,7 +180,7 @@ export default function FicheVisite() {
                 {salleDebainsSelectionnee && (
                   <div>
                     <label className="block font-medium text-gray-900 mb-3">
-                      Visite — Nombre de salles de bains *
+                      Nombre de salles de bains *
                     </label>
                     <select 
                       className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
