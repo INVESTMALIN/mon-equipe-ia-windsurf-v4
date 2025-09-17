@@ -968,13 +968,199 @@ section_cuisine_2: {
   }
 },
 
-  section_salon_sam: {},
-  section_equip_spe_exterieur: {},
-  section_communs: {},
-  section_teletravail: {},
-  section_bebe: {},
-  section_guide_acces: {},
-  section_securite: {},
+section_salon_sam: {
+  // Description générale
+  description_generale: "",
+  
+  // Équipements (checkboxes)
+  equipements_table_manger: null,
+  equipements_chaises: null,
+  equipements_canape: null,
+  equipements_canape_lit: null,
+  equipements_fauteuils: null,
+  equipements_table_basse: null,
+  equipements_television: null,
+  equipements_cheminee: null,
+  equipements_jeux_societe: null,
+  equipements_livres_magazines: null,
+  equipements_livres_jouets_enfants: null,
+  equipements_climatisation: null,
+  equipements_chauffage: null,
+  equipements_autre: null,
+  equipements_autre_details: "",
+  
+  // Cheminée (conditionnel)
+  cheminee_type: "", // "Électrique", "Éthanol", "Gaz", "Poêle à granulés", "Bois", "Décorative"
+  
+  // Autres détails
+  autres_equipements_details: "",
+  nombre_places_table: "",
+  
+  // Éléments abîmés salon
+  salon_elements_abimes: null, // true/false/null
+  
+  // Éléments abîmés salle à manger
+  salle_manger_elements_abimes: null, // true/false/null
+  
+  // Photos rappels (VERSION LITE)
+  photos_rappels: {
+    photos_salon_sam_taken: false,
+    salon_elements_abimes_taken: false,
+    salle_manger_elements_abimes_taken: false
+  }
+},
+
+section_equip_spe_exterieur: {
+  // Questions racines
+  dispose_exterieur: null,
+  dispose_piscine: null,
+  dispose_jacuzzi: null,
+  dispose_cuisine_exterieure: null, 
+  
+  // BRANCHE EXTÉRIEUR (conditionnel si dispose_exterieur = true)
+  exterieur_type_espace: [], // array: "Balcon", "Terrasse", "Jardin", "Patio", "Aucun"
+  exterieur_description_generale: "",
+  exterieur_entretien_prestataire: null, // true/false/null
+  exterieur_entretien_frequence: "", // conditionnel si entretien_prestataire = true
+  exterieur_entretien_type_prestation: "", // conditionnel si entretien_prestataire = true
+  exterieur_entretien_qui: "", // conditionnel si entretien_prestataire = false
+  exterieur_equipements: [], // array: "Table extérieure", "Chaises", etc.
+  exterieur_equipements_autre_details: "", // conditionnel si "Autre" dans equipements
+  exterieur_nombre_chaises_longues: null, // conditionnel si "Chaises longues" sélectionné
+  exterieur_nombre_parasols: null, // conditionnel si "Parasol" sélectionné
+  exterieur_acces: "",
+  exterieur_type_acces: "", // "Privé", "Partagé avec d'autres logements", etc.
+  exterieur_type_acces_autre_details: "", // conditionnel si "Autre"
+  
+  // SOUS-BRANCHE BARBECUE (conditionnel si "Barbecue" dans exterieur_equipements)
+  barbecue_instructions: "",
+  barbecue_type: "",
+  barbecue_combustible_fourni: null, // true/false/null
+  barbecue_ustensiles_fournis: null, // true/false/null
+  
+  // BRANCHE PISCINE (conditionnel si dispose_piscine = true)
+  piscine_type: "", // "Privée", "Publique ou partagée"
+  piscine_acces: "", // "Intérieur", "Extérieur"
+  piscine_dimensions: "",
+  piscine_disponibilite: "", // "Disponible toute l'année", "Disponible à certaines périodes"
+  piscine_periode_disponibilite: "", // conditionnel si "certaines périodes"
+  piscine_heures: "", // "Ouverture 24h/24", "Heures d'ouverture spécifiques"
+  piscine_horaires_ouverture: "", // conditionnel si "heures spécifiques"
+  piscine_caracteristiques: [], // array: "Chauffée", "À débordement", etc.
+  piscine_periode_chauffage: "", // conditionnel si "Chauffée" sélectionné
+  piscine_entretien_prestataire: null, // true/false/null
+  piscine_entretien_frequence: "", // conditionnel si entretien_prestataire = true
+  piscine_entretien_type_prestation: "", // conditionnel si entretien_prestataire = true
+  piscine_entretien_qui: "", // conditionnel si entretien_prestataire = false
+  piscine_regles_utilisation: "",
+  
+  // BRANCHE JACUZZI (conditionnel si dispose_jacuzzi = true)
+  jacuzzi_acces: "", // "Intérieur", "Extérieur"
+  jacuzzi_entretien_prestataire: null, // true/false/null
+  jacuzzi_entretien_frequence: "", // conditionnel si entretien_prestataire = true
+  jacuzzi_entretien_type_prestation: "", // conditionnel si entretien_prestataire = true
+  jacuzzi_entretien_qui: "", // conditionnel si entretien_prestataire = false
+  jacuzzi_taille: "",
+  jacuzzi_heures_utilisation: "",
+  jacuzzi_instructions: "",
+  
+  // BRANCHE CUISINE EXTÉRIEURE (conditionnel si dispose_cuisine_exterieure = true)
+  cuisine_ext_entretien_prestataire: null, // true/false/null
+  cuisine_ext_entretien_frequence: "", // conditionnel si entretien_prestataire = true
+  cuisine_ext_entretien_type_prestation: "", // conditionnel si entretien_prestataire = true
+  cuisine_ext_entretien_qui: "", // conditionnel si entretien_prestataire = false
+  cuisine_ext_superficie: "",
+  cuisine_ext_type: "", // "Privée", "Publique ou partagée"
+  cuisine_ext_caracteristiques: [], // array: "Four", "Évier"
+  
+  // Éléments abîmés (3 espaces différents)
+  garage_elements_abimes: null, // true/false/null
+  buanderie_elements_abimes: null, // true/false/null
+  autres_pieces_elements_abimes: null, // true/false/null
+  
+  // Photos rappels (VERSION LITE)
+  photos_rappels: {
+    exterieur_photos_taken: false,
+    barbecue_photos_taken: false,
+    piscine_video_taken: false,
+    jacuzzi_photos_taken: false,
+    garage_elements_abimes_taken: false,
+    buanderie_elements_abimes_taken: false,
+    autres_pieces_elements_abimes_taken: false
+  }
+},
+
+section_communs: {
+  dispose_espaces_communs: null, // true/false/null
+    description_generale: "",
+    entretien_prestataire: null, // true/false/null
+  entretien_frequence: "", // conditionnel si entretien_prestataire = true
+  entretien_qui: "", // conditionnel si entretien_prestataire = false
+  
+  // Photos rappels
+  photos_rappels: {
+    photos_espaces_communs_taken: false
+  }
+},
+
+section_teletravail: {
+  equipements: [],
+  equipements_autre_details: ""
+},
+
+section_bebe: {
+  equipements: [],
+  lit_bebe_type: "", // radio: "Lit pour bébé", "Parc de voyage", "Lit parapluie"
+  lit_parapluie_disponibilite: "", // conditionnel si lit_bebe_type = "Lit parapluie"
+  lit_stores_occultants: null, // boolean, conditionnel si lit_bebe_type = "Lit parapluie"
+  
+  chaise_haute_type: "", // radio: "Indépendante", "Pliable ou transformable", "Rehausseur", "Siège de table"
+  chaise_haute_disponibilite: "", // radio: "Toujours disponible dans le logement", "Sur demande"
+  chaise_haute_caracteristiques: [], // array: "Rembourrée", "Avec sangles ou harnais", "Avec plateau"
+  chaise_haute_prix: "", // radio: "Compris dans votre séjour", "Disponible moyennant un supplément"
+  
+  jouets_tranches_age: [], // array: "0 à 2 ans", "2 à 5 ans", "5 à 10 ans", "Plus de 10 ans"
+  
+  equipements_autre_details: "",
+  
+  photos_rappels: {
+    photos_equipements_bebe_taken: false
+  }
+},
+
+section_guide_acces: {
+  // Points de repère importants
+  point_repere_principal: "", // Ex: "Panneau de rue", "Café en face", etc.
+  
+  // Description étapes d'accès
+  description_acces: "", // Description détaillée du parcours
+  
+  // Éléments à photographier/filmer (conseils)
+  elements_documenter: [], // Checklist des éléments à capturer
+  
+  // Difficultés d'accès identifiées
+  difficultes_acces: [], // Problèmes potentiels à signaler
+  
+  // Conseils supplémentaires
+  conseils_voyageurs: "", // Conseils spécifiques pour faciliter l'arrivée
+  
+  // Photos rappels (version lite)
+  photos_rappels: {
+    photos_etapes_acces_taken: false,
+    video_acces_taken: false
+  }
+},
+
+
+section_securite: {
+  equipements: [],
+  alarme_desarmement: "",
+  equipements_autre_details: "",
+  
+  photos_rappels: {
+    photos_equipements_securite_taken: false
+  }
+},
   
   photos_prises: {},
   rappels_photos: []

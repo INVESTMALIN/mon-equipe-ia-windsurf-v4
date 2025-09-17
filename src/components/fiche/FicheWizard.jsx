@@ -23,6 +23,14 @@ import FicheSalleDeBains from './sections/FicheSalleDeBains'
 import FicheCuisine1 from './sections/FicheCuisine1'
 import FicheCuisine2 from './sections/FicheCuisine2'
 import FicheSalonSam from './sections/FicheSalonSam'
+import FicheEquipExterieur from './sections/FicheEquipExterieur'
+import FicheCommuns from './sections/FicheCommuns'
+import FicheTeletravail from './sections/FicheTeletravail'
+import FicheBebe from './sections/FicheBebe'
+import FicheGuideAcces from './sections/FicheGuideAcces'
+import FicheSécurité from './sections/FicheSécurité'
+
+
 
 // Composant placeholder pour les sections pas encore créées
 function PlaceholderSection({ title, sectionNumber }) {
@@ -141,12 +149,12 @@ export default function FicheWizard() {
     <FicheCuisine1 key="cuisine-1" />,
     <FicheCuisine2 key="cuisine-2" />,
     <FicheSalonSam key="salon-sam" />,
-    <PlaceholderSection key="exterieur" title="Équip. Extérieur" sectionNumber="18" />,
-    <PlaceholderSection key="communs" title="Communs" sectionNumber="19" />,
-    <PlaceholderSection key="teletravail" title="Télétravail" sectionNumber="20" />,
-    <PlaceholderSection key="bebe" title="Bébé" sectionNumber="21" />,
-    <PlaceholderSection key="guide-acces" title="Guide Accès" sectionNumber="22" />,
-    <PlaceholderSection key="securite" title="Sécurité" sectionNumber="23" />
+    <FicheEquipExterieur key="exterieur" />,
+    <FicheCommuns key="communs" />,
+    <FicheTeletravail key="teletravail" />,
+    <FicheBebe key="bebe" />,
+    <FicheGuideAcces key="guide-acces" />,
+    <FicheSécurité key="securite" title="Sécurité" sectionNumber="23" />
   ]
 
   // Vérification de sécurité

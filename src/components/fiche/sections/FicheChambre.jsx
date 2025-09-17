@@ -394,7 +394,7 @@ export default function FicheChambre() {
                     {isStudio && nombreChambres === 0 ? (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                         <p className="text-blue-800">
-                          <strong>💡 Studio :</strong> Configuration de l'espace nuit unique du studio.
+                          <strong>💡 Studio :</strong> Configuration de l'espace nuit du studio.
                         </p>
                       </div>
                     ) : (
