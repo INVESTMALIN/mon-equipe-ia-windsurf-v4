@@ -28,7 +28,8 @@ const sections = [
   "Télétravail",
   "Bébé",
   "Guide Accès",
-  "Sécurité"
+  "Sécurité",
+  "✨ Finalisation"
 ]
 
 const initialFormData = {

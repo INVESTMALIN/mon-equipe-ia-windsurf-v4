@@ -29,6 +29,7 @@ import FicheTeletravail from './sections/FicheTeletravail'
 import FicheBebe from './sections/FicheBebe'
 import FicheGuideAcces from './sections/FicheGuideAcces'
 import FicheSécurité from './sections/FicheSécurité'
+import FicheFinalisation from './sections/FicheFinalisation'
 
 
 
@@ -154,7 +155,8 @@ export default function FicheWizard() {
     <FicheTeletravail key="teletravail" />,
     <FicheBebe key="bebe" />,
     <FicheGuideAcces key="guide-acces" />,
-    <FicheSécurité key="securite" title="Sécurité" sectionNumber="23" />
+    <FicheSécurité key="securite" title="Sécurité" sectionNumber="23" />,
+    <FicheFinalisation key="finalisation" />
   ]
 
   // Vérification de sécurité
