@@ -174,9 +174,9 @@ export default function FicheFinalisation() {
               <div className="space-y-6">
                 {/* Génération PDF */}
                 <div className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">📄 Fiche Logement PDF</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">📄 Fiche logement PDF</h3>
                   <p className="text-gray-600 mb-4">
-                    Générez un PDF professionnel de votre inspection complète
+                    Générez une fiche d'inspection professionnelle au format PDF
                   </p>
                   
                   <button
