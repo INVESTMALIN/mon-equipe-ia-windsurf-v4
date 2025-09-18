@@ -299,7 +299,7 @@ export default function FicheFinalisation() {
               {/* Accordéon technique TRÈS discret */}
               <details className="mt-8 border-t border-gray-100 pt-4">
                 <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                  🔧 Données techniques (debug)
+                  🔧 Données techniques de la fiche
                 </summary>
                 <div className="mt-2 p-3 bg-gray-50 rounded border text-xs">
                   <pre className="text-gray-600 overflow-x-auto whitespace-pre-wrap">

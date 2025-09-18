@@ -59,7 +59,7 @@ const AccordeonChambre = ({
         onClick={() => toggleAccordeon(chambreKey)}
         className="w-full px-4 py-3 bg-[#dbae61] text-white flex items-center justify-between hover:bg-[#c49a4f] transition-colors"
       >
-        <span className="font-semibold">Chambre {numeroAffiche}</span>
+        <span className="font-semibold">{numeroAffiche}</span>
         <svg
           className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"

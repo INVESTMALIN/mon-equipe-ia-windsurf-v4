@@ -188,7 +188,7 @@ export const detectAlertes = (formData) => {
             type: 'elements_abimes',
             titre: `${nom} - Éléments abîmés`,
             message: `Des éléments sont abîmés dans ${nom.toLowerCase()}`,
-            icone: '⚠️',
+            icone: '',
             espace: nom
           })
         }
