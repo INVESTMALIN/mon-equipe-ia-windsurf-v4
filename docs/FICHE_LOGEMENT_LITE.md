@@ -205,16 +205,38 @@ CREATE INDEX idx_fiche_lite_created_at ON fiche_lite(created_at DESC);
 ### Composants à Créer (Phase 2)
 ```
 src/components/
-├── fiche/                          # Nouveau dossier composants Fiche
-│   ├── FormContext.jsx            # Context simplifié (sans hooks Letahost)
-│   ├── FormWizard.jsx            # Navigation 23 sections
-│   ├── ProgressBar.jsx           # Barre progression
-│   ├── sections/                  # 23 sections formulaire
-│   │   ├── FicheForm.jsx         # Section 1 - section propriétaire
-│   │   ├── FicheLogement.jsx     # Section 2 - infos logement
-│   │   ├── FicheClefs.jsx        # Section 3 - gestion clefs
-│   │   └── ... (20 autres)       # Sections 4-23
-│   └── PhotoReminder.jsx         # Remplace PhotoUpload (checkboxes)
+│   ├── fiche/                        # "Fiche" (sheet/form) related components
+│   │   ├── FicheWizard.jsx           # Main wizard for fiche forms
+│   │   ├── MiniDashboard.jsx
+│   │   ├── NavigationButtons.jsx
+│   │   ├── ProgressBar.jsx
+│   │   ├── sections/                 # Subsections for fiche (modular form steps)
+│   │   │   ├── FicheAirbnb.jsx
+│   │   │   ├── FicheAvis.jsx
+│   │   │   ├── FicheBebe.jsx
+│   │   │   ├── FicheBooking.jsx
+│   │   │   ├── FicheChambre.jsx
+│   │   │   ├── FicheClefs.jsx
+│   │   │   ├── FicheCommuns.jsx
+│   │   │   ├── FicheConsommables.jsx
+│   │   │   ├── FicheCuisine1.jsx
+│   │   │   ├── FicheCuisine2.jsx
+│   │   │   ├── FicheEquipements.jsx
+│   │   │   ├── FicheEquipExterieur.jsx
+│   │   │   ├── FicheExigences.jsx
+│   │   │   ├── FicheFinalisation.jsx
+│   │   │   ├── FicheForm.jsx
+│   │   │   ├── FicheGestionLinge.jsx
+│   │   │   ├── FicheGuideAcces.jsx
+│   │   │   ├── FicheLogement.jsx
+│   │   │   ├── FicheReglementation.jsx
+│   │   │   ├── FicheSalleDeBains.jsx
+│   │   │   ├── FicheSalonSam.jsx
+│   │   │   ├── FicheSécurité.jsx
+│   │   │   ├── FicheTeletravail.jsx
+│   │   │   ├── FicheVisite.jsx
+│   │   │   ├── FicheFinalisation.jsx (nouvelle section de finalisation du formulaire)
+│   │   └── SidebarMenu.jsx
 ```
 
 ### Logique Métier à Adapter
@@ -266,19 +288,6 @@ src/components/
 3. **Performance mobile** : Formulaire optimisé mobile-first
 4. **Accessibilité** : Labels, contraste, navigation clavier
 
-## 🎯 Critères de Réussite
-
-### MVP (✅ ATTEINT)
-- Démonstration visuelle convincante
-- Navigation fluide Dashboard → Formulaire  
-- Design professionnel et cohérent
-- Protection premium fonctionnelle
-
-### Version Production
-- 23 sections formulaire opérationnelles
-- Sauvegarde/reprise fiches sans perte données
-- Génération PDF identique qualité Letahost
-- Adoption par 50% utilisateurs premium Mon Équipe IA
 
 ---
 

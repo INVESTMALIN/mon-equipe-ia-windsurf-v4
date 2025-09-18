@@ -34,48 +34,51 @@ Documentation technique complète de l'application Mon Équipe IA, plateforme d'
 ### Architecture des Fichiers (Réelle)
 ```
 mon-equipe-ia-windsurf-v4/
-├── public/
-│   ├── images/                     # Assets statiques
-│   │   ├── invest-malin-logo.png   # Logo principal
-│   │   ├── assistant-formation*.png # Images assistants
-│   │   ├── fiscaliste-ia.png       # Images assistants spécialisés
-│   │   ├── legalbnb-ia.png
-│   │   ├── negociateur-ia.png
-│   │   └── hero-*.png              # Images d'interface
-│   └── vite.svg
-├── src/
-│   ├── components/                 # Tous les composants React
-│   │   ├── Home.jsx               # Landing page
-│   │   ├── Login.jsx              # Authentification
-│   │   ├── Inscription.jsx
-│   │   ├── MotDePasseOublie.jsx
-│   │   ├── MonCompte.jsx          # Espace utilisateur (gestion abonnements)
-│   │   ├── Assistants.jsx         # Accueil des assistants
-│   │   ├── AssistantFormation.jsx # Chat avec historique
-│   │   ├── SidebarConversations.jsx # Navigation conversations
-│   │   ├── AccountCreated.jsx     # Confirmations
-│   │   ├── EmailConfirmation.jsx
-│   │   ├── FAQ.jsx                # Pages légales
-│   │   ├── MentionsLegales.jsx
-│   │   ├── PolitiqueConfidentialite.jsx
-│   │   ├── ConditionsUtilisation.jsx
-│   │   ├── Navbar.jsx             # Navigation (non utilisé)
-│   │   └── NotFound.jsx           # 404
-│   ├── App.jsx                    # Configuration routes
-│   ├── main.jsx                   # Point d'entrée
-│   ├── supabaseClient.js          # Configuration Supabase
-│   ├── App.css                    # Styles globaux
-│   └── index.css                  # Tailwind imports
-├── docs/                          # Documentation
+│
+├── api/                        # Backend or serverless API endpoints (Node.js, JS files)
+│   └── create-portal-session.js
+│
+├── docs/                       # Documentation for the project
+│   ├── AJOUT_SECTIONS.md
+│   ├── CLAUDE.md
 │   ├── DESIGN_SYSTEM.md
 │   ├── DEVELOPMENT_NOTES.md
 │   ├── FEATURE_SPEC.md
-│   └── TECHNICAL_SPEC.md
-├── package.json                   # Dépendances
-├── tailwind.config.js             # Config Tailwind
-├── vite.config.js                 # Config Vite
-├── vercel.json                    # Config déploiement
-└── README.md
+│   ├── FICHE_LOGEMENT_LITE.md
+│   ├── PAYWALL_PLAN.md
+│   ├── PROJET_VUE_DENSEMBLE.md
+│   ├── TECHNICAL_SPEC.md
+│
+├── public/                     # Static assets served directly (images, icons, HTML)
+│   ├── 404.html
+│   ├── images/
+│   ├── sparkles-icon.svg
+│   └── vite.svg
+│
+├── src/                        # Main source code (React frontend)
+│   ├── App.jsx                 # Main React app component
+│   ├── assets/                 # Frontend assets (e.g., SVGs)
+│   ├── components/             # React components (pages, UI, logic)
+│   │   ├── fiche/              # "Fiche" (sheet/form) related components
+│   │   │   ├── sections/       # Subsections for fiche (modular forms)
+│   │   │   └── SidebarMenu.jsx
+│   │   ├── FormContext.jsx     # React context for forms
+│   │   ├── ...                 # Other UI components (Login, Dashboard, etc.)
+│   ├── index.css               # Main CSS (likely Tailwind)
+│   ├── lib/                    # Utility/helper JS modules
+│   ├── main.jsx                # React entry point
+│   └── supabaseClient.js       # Supabase client setup (backend as a service)
+│
+├── .gitignore
+├── eslint.config.js            # Linting configuration
+├── index.html                  # Main HTML template (for Vite/React)
+├── package.json                # Project dependencies and scripts
+├── package-lock.json           # Dependency lock file
+├── postcss.config.js           # PostCSS config (for Tailwind, etc.)
+├── tailwind.config.js          # Tailwind CSS config
+├── vercel.json                 # Vercel deployment config
+├── vite.config.js              # Vite build tool config
+└── node_modules/               # Installed dependencies
 ```
 
 ### Routing React Router

@@ -1,12 +1,12 @@
 # PROCESS OPTIMISÉ - Ajout d'une nouvelle section
 
-## 📋 CHECKLIST AVANT DE COMMENCER
+## 📋 CHECKLIST AVANT DE COMMENCER (terminé)
 
-- [ ] Identifier le nom exact de la section (ex: "FicheClefs")
-- [ ] Consulter la version existante du code de la nouvelle fiche dans le codebase de 'Fiche logement' (non-lite)
-- [ ] Définir les champs nécessaires et leurs types
-- [ ] Vérifier que la section existe dans le tableau `sections` du FormContext
-- [ ] S'assurer que l'ordre est correct dans le wizard
+- [x] Identifier le nom exact de la section (ex: "FicheClefs")
+- [x] Consulter la version existante du code de la nouvelle fiche dans le codebase de 'Fiche logement' (non-lite)
+- [x] Définir les champs nécessaires et leurs types
+- [x] Vérifier que la section existe dans le tableau `sections` du FormContext
+- [x] S'assurer que l'ordre est correct dans le wizard
 
 ## 🎯 CONTEXTE INFRASTRUCTURE (DÉJÀ EN PLACE)
 
@@ -280,17 +280,6 @@ SELECT section_clefs FROM fiche_lite WHERE id = 'TON_ID_TEST';
 - [ ] Design cohérent avec autres sections
 - [ ] **🔥 Rappels photos connectés et testés**
 
-## 📝 CONVENTION DE COMMIT
-
-```
-feat: Ajouter section Clefs
-
-- Composant FicheClefs.jsx créé avec NavigationButtons
-- Navigation wizard mise à jour
-- Rappels photos connectés au FormContext
-- Tests validation passés
-- Design cohérent avec autres sections
-```
 
 ## 🚫 ERREURS FRÉQUENTES À ÉVITER
 
@@ -301,12 +290,3 @@ feat: Ajouter section Clefs
 5. **Process incomplet** - Suivre TOUTES les étapes
 6. **Tests insuffisants** - Validation complète obligatoire
 7. **🔥 RAPPELS PHOTOS NON CONNECTÉS** - Erreur récurrente qui rend les checkboxes inutiles !
-
-## 🏆 NOTES DE PERFORMANCE
-
-### Adaptations métier réussies
-- **FicheConsommables** : Liste obligatoire → recommandée (adaptation concierges externes)
-- **FicheEquipements** : Logique parking complexe avec nettoyage automatique
-- **FicheVisite** : Validation croisée avec FicheLogement
-
-**IMPORTANT :** Suivre ce process étape par étape sans sauter d'étapes évitera tous les problèmes de configuration, nommage et intégration.
