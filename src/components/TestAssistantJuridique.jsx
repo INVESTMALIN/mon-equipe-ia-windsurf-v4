@@ -1,10 +1,19 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function TestAssistantJuridique() {
   const [input, setInput] = useState('')
   const [selectedFile, setSelectedFile] = useState(null)
   const [response, setResponse] = useState('')
   const [loading, setLoading] = useState(false)
+  
+  // Référence pour l'ID de conversation
+  const conversationIdRef = useRef(null)
+  
+  // Générer un ID de conversation au montage du composant
+  useEffect(() => {
+    conversationIdRef.current = uuidv4()
+  }, [])
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
@@ -64,52 +73,65 @@ export default function TestAssistantJuridique() {
       setResponse('Erreur lors de la connexion à l\'agent.')
     } finally {
       setLoading(false)
-      setInput('')
     }
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#dbae61] mb-6">Test Assistant Juridique avec PDF</h1>
-      
-      <form onSubmit={sendMessage} className="space-y-4 mb-6">
-        <input
-          type="text"
-          placeholder="Votre question..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#dbae61]"
-        />
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Test Assistant Juridique</h1>
         
-        <div className="flex gap-2">
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileSelect}
-            className="flex-1 text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-6 py-2 rounded-md disabled:opacity-50"
-          >
-            {loading ? 'Envoi...' : 'Envoyer'}
-          </button>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <form onSubmit={sendMessage} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Question juridique
+              </label>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Posez votre question juridique..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Document PDF (optionnel)
+              </label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileSelect}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              {selectedFile && (
+                <p className="text-sm text-green-600 mt-1">
+                  Fichier sélectionné: {selectedFile.name}
+                </p>
+              )}
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Envoi en cours...' : 'Envoyer'}
+            </button>
+          </form>
         </div>
         
-        {selectedFile && (
-          <p className="text-sm text-gray-600">
-            Fichier sélectionné: {selectedFile.name}
-          </p>
+        {response && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-3">Réponse de l'Assistant</h2>
+            <div className="prose max-w-none">
+              <pre className="whitespace-pre-wrap text-sm">{response}</pre>
+            </div>
+          </div>
         )}
-      </form>
-
-      {response && (
-        <div className="bg-gray-100 rounded-lg p-4">
-          <h3 className="font-semibold mb-2">Réponse:</h3>
-          <p className="whitespace-pre-wrap">{response}</p>
-        </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -86,19 +86,20 @@ export default function FicheFinalisation() {
       
       const requestBody = {
         chatInput: annoncePrompt,
-        sessionId: `annonce_${Date.now()}`,
+        sessionId: `session_${Date.now()}_annonce`,
         ficheData: ficheDataForAI
       }
       
-      const response = await fetch('https://hub.cardin.cloud/webhook/assistant-annonce', {
+      // WEBHOOK - Assistant Création d'Annonce
+      const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       })
       
       if (response.ok) {
-        const result = await response.text()
-        setAnnonceResult(result)
+        const data = await response.json()
+        setAnnonceResult(data.output || 'Réponse indisponible.')
       } else {
         throw new Error('Erreur serveur')
       }

@@ -177,19 +177,19 @@ export default function MonCompteV2() {
 
           {/* Grille des assistants */}
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Fiscaliste IA */}
+            {/* Juridique IA */}
             <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
               <div className="aspect-[4/3] overflow-hidden">
                 <img 
                   src="/images/fiscaliste-ia.png" 
-                  alt="Fiscaliste IA" 
+                  alt="Juridique IA" 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex items-center gap-3 mb-4">
                   <Scale className="w-8 h-8 text-[#dbae61]" />
-                  <h3 className="text-2xl font-bold text-black">FISCALISTE IA</h3>
+                  <h3 className="text-2xl font-bold text-black">JURIDIQUE IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
                 L'IA qui simplifie vos démarches fiscales & légales
@@ -214,7 +214,7 @@ export default function MonCompteV2() {
                 </ul>
                 {isPremium ? (
                   <Link 
-                    to="/fiscaliste" 
+                    to="/juridique" 
                     className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
                     style={{ backgroundColor: '#dbae61' }}
                   >
@@ -274,7 +274,7 @@ export default function MonCompteV2() {
                 </ul>
                 {isPremium ? (
                   <Link 
-                    to="/annonce-ia" 
+                    to="/annonce" 
                     className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
                     style={{ backgroundColor: '#dbae61' }}
                   >

@@ -12,6 +12,9 @@ import EmailConfirmation from './components/EmailConfirmation'
 import Assistants from './components/Assistants'
 import NouveauMotDePasse from './components/NouveauMotDePasse'
 import Dashboard from './components/Dashboard'
+import AssistantAnnonce from './components/AssistantAnnonce'
+import AssistantJuridique from './components/AssistantJuridique'
+import AssistantNegociateur from './components/AssistantNegociateur'
 
 // 🔥 CHANGEMENT : Import FicheWizard au lieu de FicheForm
 import FicheWizard from './components/fiche/FicheWizard'
@@ -111,24 +114,6 @@ function AppWrapper() {
               </ProtectedRoute>
             } 
           />
-          
-          <Route 
-            path="/annonce-ia" 
-            element={
-              <ProtectedRoute>
-                <ComingSoon assistant="annonce" />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/negociateur" 
-            element={
-              <ProtectedRoute>
-                <ComingSoon assistant="negociateur" />
-              </ProtectedRoute>
-            } 
-          />
 
           <Route 
             path="/test-juridique" 
@@ -146,7 +131,34 @@ function AppWrapper() {
                 <Dashboard />
               </ProtectedRoute>
             } 
-          />         
+          />       
+
+          <Route
+            path="/annonce"
+            element={
+              <ProtectedRoute>
+                <AssistantAnnonce />
+              </ProtectedRoute>
+            }
+          />  
+
+          <Route
+            path="/juridique"
+            element={
+              <ProtectedRoute>
+                <AssistantJuridique />
+              </ProtectedRoute>
+            }
+          />  
+
+          <Route
+            path="/negociateur"
+            element={
+              <ProtectedRoute>
+                <AssistantNegociateur />
+              </ProtectedRoute>
+            }
+          />  
 
           {/* 🔥 CHANGEMENT : Route /fiche au lieu de /nouvelle-fiche + FicheWizard + FormProvider */}
           <Route 

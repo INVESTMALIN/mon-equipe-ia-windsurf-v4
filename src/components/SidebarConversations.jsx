@@ -5,7 +5,7 @@ function cn(...args) {
   return args.filter(Boolean).join(' ')
 }
 
-export default function SidebarConversations({ activeId, onSelect, userId }) {
+export default function SidebarConversations({ activeId, onSelect, userId, source = 'assistant-formation' }) {
   const [conversations, setConversations] = useState([])
   const [menuOpenId, setMenuOpenId] = useState(null)
   const [showSidebar, setShowSidebar] = useState(false)
@@ -22,7 +22,7 @@ export default function SidebarConversations({ activeId, onSelect, userId }) {
     const { data, error } = await supabase
       .from('conversations')
       .select('conversation_id, question, created_at, title')
-      .eq('source', 'assistant-formation')
+      .eq('source', source)
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
 
