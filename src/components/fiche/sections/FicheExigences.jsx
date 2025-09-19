@@ -61,7 +61,7 @@ export default function FicheExigences() {
                   {/* Tarif minimum/nuit */}
                   <div>
                     <label className="block font-medium text-gray-900 mb-2">
-                      Tarif minimum/nuit imposé par le propriétaire
+                      Tarif minimum/nuit
                     </label>
                     <input 
                       type="number"

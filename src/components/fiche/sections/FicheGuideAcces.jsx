@@ -79,7 +79,7 @@ export default function FicheGuideAcces() {
                     <MapPin className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Documentation de l'Accès</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Documentation de l'accès</h2>
                     <p className="text-gray-600">Guidez efficacement vos voyageurs</p>
                   </div>
                 </div>
