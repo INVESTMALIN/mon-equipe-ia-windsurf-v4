@@ -1,5 +1,5 @@
 // src/components/fiche/sections/FicheFinalisation.jsx
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
@@ -76,7 +76,17 @@ export default function FicheFinalisation() {
     }
   }
 
-  // Assistant Annonce
+  const annonceSessionIdRef = useRef(null)
+
+  // ✅ AJOUTER dans useEffect d'initialisation
+  useEffect(() => {
+    // Générer un ID de session unique pour l'assistant Annonce intégré
+    if (!annonceSessionIdRef.current) {
+      annonceSessionIdRef.current = `fiche_finalisation_${Date.now()}_annonce`
+    }
+  }, [])
+  
+  // ✅ MODIFIER la fonction handleCreateAnnonce
   const handleCreateAnnonce = async () => {
     try {
       setAnnonceLoading(true)
@@ -86,7 +96,7 @@ export default function FicheFinalisation() {
       
       const requestBody = {
         chatInput: annoncePrompt,
-        sessionId: `session_${Date.now()}_annonce`,
+        sessionId: annonceSessionIdRef.current, // ✅ UTILISER LE REF AU LIEU DE Date.now()
         ficheData: ficheDataForAI
       }
       

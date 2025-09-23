@@ -13,7 +13,6 @@ export default function AssistantNegociateur() {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
-  const chatRef = useRef(null)
   const conversationIdRef = useRef(null)
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export default function AssistantNegociateur() {
     conversationIdRef.current = id
   }, [])
 
-  const welcome = "Salut ! Je suis votre Assistant Négociateur IA 🏡."
+  const welcome = "Salut ! Je suis votre Assistant Negociateur IA 🤝."
 
   useEffect(() => {
     let i = 0
@@ -50,25 +49,41 @@ export default function AssistantNegociateur() {
     return () => clearInterval(interval)
   }, [loading])
 
-  useEffect(() => {
-    const container = chatRef.current
-    if (!container) return
-    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50
-    setShowScrollButton(!isAtBottom)
-  }, [messages])
-
   const scrollToBottom = () => {
-    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
+    endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
   }
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file)
-    } else {
-      alert('Veuillez sélectionner un fichier PDF uniquement.')
+    
+    if (!file) return
+    
+    // Validation du type de fichier
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+    const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.toLowerCase().endsWith('.docx')
+    
+    if (!isPdf && !isDocx) {
+      alert('Veuillez sélectionner un fichier PDF ou DocX uniquement.')
       e.target.value = ''
+      return
     }
+    
+    // Validation de la taille (10MB max)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      alert('Le fichier est trop volumineux. Taille maximum autorisée : 10MB.')
+      e.target.value = ''
+      return
+    }
+    
+    // Validation fichier vide
+    if (file.size === 0) {
+      alert('Le fichier sélectionné est vide.')
+      e.target.value = ''
+      return
+    }
+    
+    setSelectedFile(file)
   }
 
   const removeFile = () => {
@@ -76,80 +91,164 @@ export default function AssistantNegociateur() {
     document.querySelector('input[type="file"]').value = ''
   }
 
+  // ✅ FIX AUTO-SCROLL : Refs pour scroll intelligent
+  const fileInputRef = useRef(null)
+  const listRef = useRef(null)
+  const endRef = useRef(null) 
+  const shouldStickRef = useRef(true)
+
+  // Helper pour détecter si on est proche du bas
+  const isNearBottom = (el) => el ? (el.scrollHeight - el.scrollTop - el.clientHeight) < 40 : true
+
+  // ✅ AUTO-SCROLL : Scroll quand messages changent si l'utilisateur était en bas
+  useEffect(() => {
+    if (shouldStickRef.current) {
+      endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+    }
+  }, [messages])
+
+  // ✅ AUTO-SCROLL : Listener pour détecter le scroll utilisateur
+  useEffect(() => {
+    const el = listRef.current
+    const onScroll = () => { 
+      shouldStickRef.current = isNearBottom(el)
+      setShowScrollButton(!shouldStickRef.current)
+    }
+    el?.addEventListener('scroll', onScroll)
+    return () => el?.removeEventListener('scroll', onScroll)
+  }, [])
+
   const sendMessage = async (e) => {
     e.preventDefault()
     if (!input.trim() || !userId) return
-
+  
+    // Capturer l'état avant d'ajouter le message
+    shouldStickRef.current = isNearBottom(listRef.current)
+  
     const newMessage = { sender: 'user', text: input }
     const updatedMessages = [...messages, newMessage]
     setMessages(updatedMessages)
     const userInput = input
     setInput('')
     setLoading(true)
-
+  
     try {
       let requestBody = {
         chatInput: userInput,
-        sessionId: `session_${Date.now()}_negociateur`
+        sessionId: conversationIdRef.current
       }
-
-      // Si un PDF est sélectionné, on l'ajoute
+  
+      // Si un fichier est sélectionné, on l'ajoute
       if (selectedFile) {
+        // Guards sur la taille du fichier
+        if (selectedFile.size === 0) {
+          throw new Error('HTTP 400 - Fichier vide')
+        }
+        if (selectedFile.size > 10 * 1024 * 1024) {
+          throw new Error('HTTP 413 - Fichier trop volumineux (max 10MB)')
+        }
+  
         const base64Promise = new Promise((resolve, reject) => {
           const reader = new FileReader()
           reader.onload = () => resolve(reader.result.split(',')[1])
           reader.onerror = reject
           reader.readAsDataURL(selectedFile)
         })
-
+  
         const base64Data = await base64Promise
         requestBody.files = [{
           data: base64Data,
           fileName: selectedFile.name,
-          mimeType: 'application/pdf'
+          mimeType: selectedFile.type || 'application/pdf'
         }]
       }
-
+  
+      // AbortController pour timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 60000)
+  
       const res = await fetch('https://hub.cardin.cloud/webhook/1c662402-e9f8-431e-9418-ec3122575872/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       })
-
-      const data = await res.json()
+  
+      clearTimeout(timeoutId)
+  
+      // Lire le corps d'erreur avant de throw
+      if (!res.ok) {
+        let errText = null
+        try {
+          errText = await res.text()
+        } catch {}
+        const tail = errText ? ` - ${errText.slice(0, 200)}` : ''
+        throw new Error(`HTTP ${res.status}${tail}`)
+      }
+  
+      // Gérer le cas JSON invalide
+      let data
+      try {
+        data = await res.json()
+      } catch (jsonError) {
+        throw new Error(`Réponse invalide du serveur (JSON malformé)`)
+      }
+  
       const reply = { sender: 'bot', text: data.output || 'Réponse indisponible.' }
       setMessages((prev) => [...prev, reply])
+  
+      // Détecter si c'est le premier message utilisateur
+      const isFirstUserMessage = messages.every(m => m.sender !== 'user')
+      const title = isFirstUserMessage ? userInput.slice(0, 80) : undefined
 
       await supabase.from('conversations').insert({
         source: 'assistant-negociateur',
         question: userInput,
         answer: reply.text,
         conversation_id: conversationIdRef.current,
-        user_id: userId
+        user_id: userId,
+        ...(title ? { title } : {})   // Titre écrit dès l'INSERT du premier message
       })
 
-      // Reset le fichier après envoi
+      // Force le refresh de la sidebar immédiatement
+      window.dispatchEvent(new CustomEvent('refreshSidebar'))
+  
+      // Reset fichier avec useRef
       setSelectedFile(null)
-      document.querySelector('input[type="file"]').value = ''
-
+      fileInputRef.current && (fileInputRef.current.value = '')
+  
     } catch (err) {
       console.error('Erreur webhook:', err)
       
       let errorMessage = "Une erreur est survenue, merci de réessayer dans quelques instants."
       
-      if (err.message?.includes('504')) {
+      if (err.name === 'AbortError') {
+        errorMessage = "La requête a expiré (30s). Merci de réessayer."
+      } else if (err.message?.includes('HTTP 504')) {
         errorMessage = "L'assistant prend plus de temps que prévu à analyser votre demande. Merci de réessayer dans quelques instants.\n\nSi le problème persiste, contactez le support : contact@invest-malin.com"
-      } else if (err.name === 'TimeoutError' || err.message?.includes('timeout')) {
-        errorMessage = "La connexion semble lente. Merci de vérifier votre connexion et de réessayer."
-      } else if (err.message?.includes('500') || err.message?.includes('502') || err.message?.includes('503')) {
-        errorMessage = "Une erreur technique s'est produite. Notre équipe technique a été notifiée automatiquement.\n\nMerci de réessayer dans quelques instants."
+      } else if (err.message?.includes('HTTP 500') || err.message?.includes('HTTP 502') || err.message?.includes('HTTP 503')) {
+        errorMessage = "Une erreur technique s'est produite côté serveur. Notre équipe technique a été notifiée automatiquement.\n\nMerci de réessayer dans quelques instants."
+      } else if (err.message?.includes('HTTP 413')) {
+        errorMessage = "Le fichier est trop volumineux. Merci d'utiliser un fichier de moins de 10MB."
+      } else if (err.message?.includes('HTTP 400')) {
+        errorMessage = "Problème avec votre demande. Vérifiez le fichier sélectionné et réessayez."
+      } else if (err.message?.includes('HTTP 401') || err.message?.includes('HTTP 403')) {
+        errorMessage = "Problème d'autorisation. Merci de vous reconnecter ou de contacter le support."
+      } else if (err.message?.includes('JSON malformé')) {
+        errorMessage = "Erreur de communication avec le serveur. Merci de réessayer."
+      } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        errorMessage = "Problème de connexion réseau. Vérifiez votre connexion internet et réessayez."
       }
       
-      setMessages((prev) => [...prev, { sender: 'bot', text: errorMessage }])
+      setMessages((prev) => [...prev, { 
+        sender: 'bot', 
+        text: errorMessage 
+      }])
     } finally {
       setLoading(false)
     }
   }
+
 
   const loadConversation = async (conversationId) => {
     const { data, error } = await supabase
@@ -158,18 +257,23 @@ export default function AssistantNegociateur() {
       .eq('conversation_id', conversationId)
       .eq('source', 'assistant-negociateur')
       .order('created_at', { ascending: true })
-
+  
     if (error) {
       console.error(error)
       return
     }
-
+  
     const loadedMessages = []
     data.forEach(row => {
-      if (row.question) loadedMessages.push({ sender: 'user', text: row.question })
-      if (row.answer) loadedMessages.push({ sender: 'bot', text: row.answer })
+      // ✅ Éviter de charger les placeholders
+      if (row.question && row.question !== '(Nouvelle conversation)') {
+        loadedMessages.push({ sender: 'user', text: row.question })
+      }
+      if (row.answer) {
+        loadedMessages.push({ sender: 'bot', text: row.answer })
+      }
     })
-
+  
     setMessages(loadedMessages)
     conversationIdRef.current = conversationId
     localStorage.setItem('conversation_id_negociateur', conversationId)
@@ -180,15 +284,19 @@ export default function AssistantNegociateur() {
     localStorage.setItem('conversation_id_negociateur', newId)
     conversationIdRef.current = newId
     setMessages([{ sender: 'bot', text: welcome }])
-
+  
     if (userId) {
       await supabase.from('conversations').insert({
         user_id: userId,
         source: 'assistant-negociateur',
-        question: '(Nouvelle conversation)',
-        answer: '',
-        conversation_id: newId
+        conversation_id: newId,
+        title: 'Nouvelle conversation',
+        question: '',
+        answer: ''
       })
+      
+      // ✅ FORCER le refresh de la sidebar immédiatement
+      window.dispatchEvent(new CustomEvent('refreshSidebar'))
     }
   }
 
@@ -222,14 +330,7 @@ export default function AssistantNegociateur() {
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            
-            <button
-              onClick={createNewConversation}
-              className="p-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-md transition-colors"
-              title="Nouvelle conversation"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+
           </div>
         </div>
 
@@ -257,14 +358,7 @@ export default function AssistantNegociateur() {
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm font-medium">Retour</span>
             </Link>
-            
-            <button
-              onClick={createNewConversation}
-              className="flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-4 py-2 rounded-md text-sm transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Conversation
-            </button>
+
           </div>
         </div>
       </div>
@@ -275,6 +369,7 @@ export default function AssistantNegociateur() {
             onSelect={loadConversation}
             userId={userId}
             source="assistant-negociateur"
+            onNewConversation={createNewConversation}
         />
         
         <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
@@ -283,7 +378,7 @@ export default function AssistantNegociateur() {
           <p className="text-gray-700 mb-6">Gérez vos négociations pour optimiser vos réservations. Réponses instantanées assurées.</p>
 
           <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[600px] flex flex-col overflow-hidden relative">
-            <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
+            <div ref={listRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
                   {msg.sender === 'bot' && <Bot className="w-4 h-4 text-[#dbae61] mt-1" />}
@@ -292,7 +387,7 @@ export default function AssistantNegociateur() {
                     className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
                       msg.sender === 'user'
                         ? 'bg-orange-100 text-right ml-auto'
-                        : 'bg-gray-100 tet-left'
+                        : 'bg-gray-100 text-left'
                     }`}
                   >
                     {msg.text}
@@ -305,6 +400,7 @@ export default function AssistantNegociateur() {
                   L'IA analyse votre demande{dots}
                 </div>
               )}
+              <div ref={endRef} />
             </div>
 
             {showScrollButton && (
@@ -334,7 +430,8 @@ export default function AssistantNegociateur() {
               <div className="flex items-center gap-2">
                 <input
                   type="file"
-                  accept="application/pdf"
+                  ref={fileInputRef}
+                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="pdf-upload"
@@ -344,9 +441,9 @@ export default function AssistantNegociateur() {
                   className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer text-sm transition-colors"
                 >
                   <Upload className="w-4 h-4" />
-                  Joindre PDF
+                  Pièce jointe
                 </label>
-                <span className="text-xs text-gray-500">Fiche logement, documents...</span>
+                <span className="text-xs text-gray-500">Fiche logement, règlements...</span>
               </div>
               
               <div className="flex gap-2">
