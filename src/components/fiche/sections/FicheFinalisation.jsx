@@ -80,14 +80,18 @@ export default function FicheFinalisation() {
 
   // ✅ AJOUTER dans useEffect d'initialisation
   useEffect(() => {
-    // Générer un ID de session unique pour l'assistant Annonce intégré
-    if (!annonceSessionIdRef.current) {
-      annonceSessionIdRef.current = `fiche_finalisation_${Date.now()}_annonce`
+    // SessionId stable basé sur la fiche, pas sur le timestamp
+    if (!annonceSessionIdRef.current && formData) {
+      const ficheId = formData.id || formData.nom || 'nouvelle_fiche'
+      const slug = String(ficheId).toLowerCase().replace(/\s+/g, '_').replace(/[^\w-]/g, '')
+      annonceSessionIdRef.current = `fiche_${slug}_annonce`
     }
-  }, [])
+  }, [formData])
   
   // ✅ MODIFIER la fonction handleCreateAnnonce
   const handleCreateAnnonce = async () => {
+    if (!annonceSessionIdRef.current) return
+    
     try {
       setAnnonceLoading(true)
       
@@ -96,26 +100,57 @@ export default function FicheFinalisation() {
       
       const requestBody = {
         chatInput: annoncePrompt,
-        sessionId: annonceSessionIdRef.current, // ✅ UTILISER LE REF AU LIEU DE Date.now()
+        sessionId: annonceSessionIdRef.current,
         ficheData: ficheDataForAI
       }
       
-      // WEBHOOK - Assistant Création d'Annonce
+      // ✅ AbortController + timeout + error handling complet
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 30000)
+      
       const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       })
       
-      if (response.ok) {
-        const data = await response.json()
-        setAnnonceResult(data.output || 'Réponse indisponible.')
-      } else {
-        throw new Error('Erreur serveur')
+      clearTimeout(timeout)
+      
+      if (!response.ok) {
+        let errorMsg = ''
+        try { 
+          errorMsg = await response.text() 
+        } catch (e) {
+          // Ignore l'erreur de lecture du texte
+        }
+        throw new Error(`HTTP ${response.status}${errorMsg ? ` - ${errorMsg.slice(0, 200)}` : ''}`)
       }
+      
+      let data
+      try {
+        data = await response.json()
+      } catch (e) {
+        throw new Error('Réponse invalide du serveur (format JSON)')
+      }
+      
+      setAnnonceResult(data.output || 'Réponse indisponible.')
+      
     } catch (error) {
       console.error('Erreur création annonce:', error)
-      setAnnonceResult('Erreur lors de la création de l\'annonce. Veuillez réessayer.')
+      
+      // ✅ Messages d'erreur user-friendly
+      let errorMessage = 'Erreur lors de la création de l\'annonce. Veuillez réessayer.'
+      
+      if (error.name === 'AbortError') {
+        errorMessage = 'La génération a pris trop de temps. Vérifiez votre connexion et réessayez.'
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+        errorMessage = 'Problème de connexion réseau. Vérifiez votre connexion internet et réessayez.'
+      } else if (error.message?.includes('HTTP 500') || error.message?.includes('HTTP 502') || error.message?.includes('HTTP 503')) {
+        errorMessage = 'Service temporairement indisponible. Merci de réessayer dans quelques instants.'
+      }
+      
+      setAnnonceResult(errorMessage)
     } finally {
       setAnnonceLoading(false)
     }
@@ -124,8 +159,14 @@ export default function FicheFinalisation() {
   // Copier l'annonce générée
   const handleCopyAnnonce = () => {
     navigator.clipboard.writeText(annonceResult)
-    setCopiedAnnonce(true)
-    setTimeout(() => setCopiedAnnonce(false), 2000)
+      .then(() => {
+        setCopiedAnnonce(true)
+        setTimeout(() => setCopiedAnnonce(false), 2000)
+      })
+      .catch(() => {
+        // Fail silencieux si pas de permissions clipboard
+        // L'utilisateur peut toujours sélectionner et copier manuellement
+      })
   }
 
   // Finaliser la fiche

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { MessageSquare, Plus, MoreHorizontal, Trash2, Edit2, X, Menu } from 'lucide-react'
+import { MessageSquare, Plus, MoreHorizontal, Trash2, Edit2, X, Menu, ChevronDown } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function SidebarConversations({ activeId, onSelect, userId, source, onNewConversation }) {
@@ -9,19 +9,24 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
   const [editTitle, setEditTitle] = useState('')
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
+  // 🆕 Pagination state
+  const [currentLimit, setCurrentLimit] = useState(5) // 👈 Ici
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  
   // ✅ FIX DEBOUNCE : Anti-tempête d'événements
   const fetchDebounceRef = useRef(null)
 
-  const triggerFetch = () => {
+  const triggerFetch = (shouldReset = false) => {
     clearTimeout(fetchDebounceRef.current)
-    fetchDebounceRef.current = setTimeout(fetchConversations, 120)
+    fetchDebounceRef.current = setTimeout(() => fetchConversations(shouldReset), 120)
   }
 
   // ✅ FIX REALTIME + DELETE : Gère tous les events (INSERT/UPDATE/DELETE)
   useEffect(() => {
     if (!userId) return
     
-    fetchConversations()
+    fetchConversations(true) // Reset au mount
 
     const channel = supabase
       .channel(`conv_${source}_${userId}`)
@@ -34,12 +39,16 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
         // ✅ FIX DELETE : payload.new est null sur DELETE, utiliser old aussi
         const src = payload.new?.source ?? payload.old?.source
         if (src !== source) return
-        triggerFetch() // ✅ Utilise debounce
+        
+        // Reset seulement sur INSERT/DELETE, pas sur UPDATE
+        const shouldReset = payload.eventType === 'INSERT' || payload.eventType === 'DELETE'
+        triggerFetch(shouldReset)
       })
       .subscribe()
 
     return () => { 
-      supabase.removeChannel(channel) 
+      supabase.removeChannel(channel)
+      clearTimeout(fetchDebounceRef.current) // ✅ Cleanup debounce
     }
   }, [userId, source])
 
@@ -47,15 +56,24 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
   useEffect(() => {
     const handleRefresh = () => {
       if (!userId) return // 🔒 Pas d'appel tant que userId n'est pas prêt
-      triggerFetch() // Profite du debounce déjà en place
+      triggerFetch(true) // Reset sur refresh manuel
     }
     window.addEventListener('refreshSidebar', handleRefresh)
     return () => window.removeEventListener('refreshSidebar', handleRefresh)
   }, [userId, source])
 
-  const fetchConversations = async () => {
+  // Fonction utilitaire pour l'aperçu des conversations
+  const previewOf = (conv) => {
+    const preview = conv.title || (conv.question || '').replace(/\s+/g, ' ').trim()
+    return preview.slice(0, 40) || 'Nouvelle conversation'
+  }
+
+  const fetchConversations = async (reset = false) => {
     // 🔒 GARDE GLOBALE : Empêcher fetch avec userId null
     if (!userId) return
+    
+    const base = reset ? 5 : currentLimit // 👈 Et ici
+    const OVERFETCH = 3 // Marge pour la déduplication
     
     const { data, error } = await supabase
       .from('conversations')
@@ -63,22 +81,70 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
       .eq('source', source)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
+      .limit(base * OVERFETCH + 1) // Overfetch pour gérer la déduplication
 
     if (error) {
       console.error(error)
       return
     }
 
-    const map = new Map()
+    // Déduplication AVANT calcul hasMore
+    const seen = new Set()
+    const uniqueConversations = []
     for (const row of data) {
-      if (!map.has(row.conversation_id)) {
-        map.set(row.conversation_id, row)
+      if (!seen.has(row.conversation_id)) {
+        seen.add(row.conversation_id)
+        uniqueConversations.push(row)
       }
     }
-    setConversations([...map.values()])
+    
+    // Maintenant on peut correctement calculer hasMore
+    setHasMore(uniqueConversations.length > base)
+    setConversations(uniqueConversations.slice(0, base))
+    
+    if (reset) {
+      setCurrentLimit(5) // 👈 Et là
+    }
   }
 
-  // 🔒 SÉCURITÉ : Ajouter gardes sur delete/update aussi
+  const loadMoreConversations = async () => {
+    if (loadingMore || !hasMore) return
+    
+    setLoadingMore(true)
+    const newLimit = currentLimit + 5 // 👈 Et aussi l'incrément du "Voir plus"
+    const OVERFETCH = 3
+    
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('conversation_id, question, created_at, title, source')
+      .eq('source', source)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(newLimit * OVERFETCH + 1) // Overfetch pour gérer la déduplication
+
+    if (error) {
+      console.error(error)
+      setLoadingMore(false)
+      return
+    }
+
+    // Déduplication AVANT calcul hasMore
+    const seen = new Set()
+    const uniqueConversations = []
+    for (const row of data) {
+      if (!seen.has(row.conversation_id)) {
+        seen.add(row.conversation_id)
+        uniqueConversations.push(row)
+      }
+    }
+    
+    // Maintenant on peut correctement calculer hasMore
+    setHasMore(uniqueConversations.length > newLimit)
+    setConversations(uniqueConversations.slice(0, newLimit))
+    setCurrentLimit(newLimit)
+    setLoadingMore(false)
+  }
+
   const deleteConversation = async (conversationId) => {
     if (!userId) return // 🔒 Garde anti-null
     
@@ -90,13 +156,23 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
       .eq('source', source)
 
     if (!error) {
+      // Si on supprime la conversation active, sélectionner la première restante
+      if (activeId === conversationId) {
+        const remainingConversations = conversations.filter(c => c.conversation_id !== conversationId)
+        if (remainingConversations.length > 0) {
+          onSelect(remainingConversations[0].conversation_id)
+        } else {
+          onSelect(null) // Aucune conversation restante
+        }
+      }
+      
       setConversations(prev => prev.filter(c => c.conversation_id !== conversationId))
       setDropdownOpen(null)
     }
   }
 
   const updateTitle = async (conversationId, newTitle) => {
-    if (!userId) return // 🔒 Garde anti-null
+    if (!userId || !newTitle.trim()) return // 🔒 Garde anti-null + titre vide
     
     const { error } = await supabase
       .from('conversations')
@@ -120,7 +196,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
 
   const handleRename = (conv) => {
     setEditingId(conv.conversation_id)
-    setEditTitle(conv.title || conv.question?.slice(0, 40) || 'Nouvelle conversation')
+    setEditTitle(previewOf(conv))
     setDropdownOpen(null)
   }
 
@@ -202,7 +278,8 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
             <div
               key={conv.conversation_id}
               className={`relative group border-b border-gray-100 hover:bg-gray-50 ${
-                activeId === conv.conversation_id ? 'bg-[#dbae61] bg-opacity-10 border-l-4 border-l-[#dbae61]' : ''
+                activeId === conv.conversation_id ?
+                  'bg-[#dbae61] bg-opacity-10 border-l-4 border-l-[#dbae61]' : ''
               }`}
             >
               <div
@@ -225,7 +302,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
                 ) : (
                   <>
                     <div className="text-sm font-medium text-gray-900 truncate">
-                      {conv.title || conv.question?.slice(0, 40) || 'Nouvelle conversation'}
+                      {previewOf(conv)}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {new Date(conv.created_at).toLocaleDateString('fr-FR', {
@@ -268,6 +345,29 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
               )}
             </div>
           ))}
+          
+          {/* 🆕 BOUTON "VOIR PLUS" */}
+          {hasMore && (
+            <div className="p-4 border-t border-gray-100">
+              <button
+                onClick={loadMoreConversations}
+                disabled={loadingMore}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingMore ? (
+                  <>
+                    <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
+                    <span>Chargement...</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4" />
+                    <span>Voir plus</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
