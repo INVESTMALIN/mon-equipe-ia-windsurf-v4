@@ -13,19 +13,30 @@ export default function TestStripe() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customer_id: 'cus_SlHT7tl0FqiMEB',
+          customer_id: 'test_without_customer', // On va tester sans customer d'abord
           return_url: window.location.origin + '/assistants'
         })
       })
 
-      const data = await response.json()
-      
+      console.log('Response status:', response.status)
+      console.log('Response headers:', response.headers)
+
+      // Récupérer la réponse en tant que texte d'abord
+      const responseText = await response.text()
+      console.log('Response text:', responseText)
+
       if (response.ok) {
-        setResult('✅ API fonctionne ! URL: ' + data.url)
+        try {
+          const data = JSON.parse(responseText)
+          setResult('✅ API fonctionne ! URL: ' + data.url)
+        } catch (e) {
+          setResult('✅ Réponse OK mais JSON invalide: ' + responseText)
+        }
       } else {
-        setResult('❌ Erreur: ' + data.error)
+        setResult(`❌ Erreur ${response.status}: ${responseText}`)
       }
     } catch (error) {
+      console.error('Network error:', error)
       setResult('❌ Erreur réseau: ' + error.message)
     } finally {
       setLoading(false)
@@ -34,7 +45,7 @@ export default function TestStripe() {
 
   return (
     <div className="p-8 max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-4">Test API Stripe</h2>
+      <h2 className="text-xl font-bold mb-4">Test API Stripe (Debug Mode)</h2>
       
       <button
         onClick={testPortalSession}
@@ -49,6 +60,11 @@ export default function TestStripe() {
           <pre className="text-sm whitespace-pre-wrap">{result}</pre>
         </div>
       )}
+
+      <div className="mt-4 text-xs text-gray-500">
+        <p>Customer ID utilisé: cus_SlHT7tl0FqiMEB</p>
+        <p>Vérifier aussi la console pour les logs détaillés</p>
+      </div>
     </div>
   )
 }

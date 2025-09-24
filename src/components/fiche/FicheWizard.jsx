@@ -155,7 +155,7 @@ export default function FicheWizard() {
     <FicheTeletravail key="teletravail" />,
     <FicheBebe key="bebe" />,
     <FicheGuideAcces key="guide-acces" />,
-    <FicheSécurité key="securite" title="Sécurité" sectionNumber="23" />,
+    <FicheSécurité key="securite" />,
     <FicheFinalisation key="finalisation" />
   ]
 

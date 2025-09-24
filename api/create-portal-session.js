@@ -8,16 +8,36 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Request body:', req.body)
     const { customer_id, return_url } = req.body
 
+    // Si pas de customer ID valide, on crée un customer de test
+    let actualCustomerId = customer_id
+    
+    if (customer_id === 'test_without_customer') {
+      console.log('Creating test customer...')
+      const customer = await stripe.customers.create({
+        email: 'test@example.com',
+        name: 'Test User'
+      })
+      actualCustomerId = customer.id
+      console.log('Created customer:', actualCustomerId)
+    }
+
+    console.log('Creating portal session for customer:', actualCustomerId)
     const session = await stripe.billingPortal.sessions.create({
-      customer: customer_id,
+      customer: actualCustomerId,
       return_url: return_url
     })
 
-    return res.status(200).json({ url: session.url })
+    console.log('Portal session created successfully:', session.url)
+    return res.status(200).json({ url: session.url, customer_id: actualCustomerId })
   } catch (error) {
     console.error('Erreur création session portal:', error)
-    return res.status(500).json({ error: 'Erreur serveur' })
+    return res.status(500).json({ 
+      error: 'Erreur serveur',
+      details: error.message,
+      type: error.type
+    })
   }
 }

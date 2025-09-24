@@ -8,6 +8,7 @@ import { useForm } from '../../FormContext'
 import { cleanFormData, extractSummary, validateDataConsistency } from '../../../lib/DataProcessor'
 import { formatForPdf, prepareForN8nWebhook, generatePdfTitle } from '../../../lib/PdfFormatter'
 import { CheckCircle, FileText, MessageSquare, Send, Copy, Sparkles } from 'lucide-react'
+import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 
 export default function FicheFinalisation() {
   const navigate = useNavigate()
@@ -28,7 +29,6 @@ export default function FicheFinalisation() {
     updateField
   } = useForm()
 
-  // 🔥 Génération PDF avec PdfFormatter
   const handleGeneratePDF = async () => {
     try {
       setPdfLoading(true)
@@ -36,37 +36,11 @@ export default function FicheFinalisation() {
       // Sauvegarder avant génération
       await handleSave()
       
-      // Formater les données pour PDF
-      const webhookData = prepareForN8nWebhook(formData)
+      // Générer le PDF côté client
+      generatePdfClientSide(formData)
       
-      // Debug - Afficher la structure
-      console.log('📤 Données envoyées au webhook n8n:', webhookData)
-      
-      // TODO: Remplacer par le vrai appel webhook n8n de Kévin
-      // Simulation d'appel webhook (à remplacer)
-      setTimeout(() => {
-        setPdfGenerated(true)
-        setShowAnnonceAssistant(true) // Afficher l'assistant après PDF généré
-        setPdfLoading(false)
-      }, 2000)
-      
-      // Appel réel webhook (à décommenter quand prêt)
-      /*
-      const response = await fetch('URL_WEBHOOK_KEVIN', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookData)
-      })
-      
-      if (response.ok) {
-        setPdfGenerated(true)
-        setShowAnnonceAssistant(true)
-      } else {
-        throw new Error('Erreur génération PDF')
-      }
-      */
+      setPdfGenerated(true)
+      setShowAnnonceAssistant(true)
       
     } catch (error) {
       console.error('Erreur génération PDF:', error)

@@ -15,6 +15,7 @@ import Dashboard from './components/Dashboard'
 import AssistantAnnonce from './components/AssistantAnnonce'
 import AssistantJuridique from './components/AssistantJuridique'
 import AssistantNegociateur from './components/AssistantNegociateur'
+import TestStripe from './components/TestStripe'
 
 // 🔥 CHANGEMENT : Import FicheWizard au lieu de FicheForm
 import FicheWizard from './components/fiche/FicheWizard'
@@ -160,7 +161,6 @@ function AppWrapper() {
             }
           />  
 
-          {/* 🔥 CHANGEMENT : Route /fiche au lieu de /nouvelle-fiche + FicheWizard + FormProvider */}
           <Route 
             path="/fiche" 
             element={
@@ -180,6 +180,15 @@ function AppWrapper() {
                 <FormProvider>
                   <FicheWizard />
                 </FormProvider>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/test-stripe" 
+            element={
+              <ProtectedRoute>
+                <TestStripe />
               </ProtectedRoute>
             } 
           />
