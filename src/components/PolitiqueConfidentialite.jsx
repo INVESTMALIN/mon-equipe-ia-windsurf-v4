@@ -34,7 +34,10 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">1. Introduction</h2>
               <p className="text-gray-700 leading-relaxed">
-                Invest Malin s'engage à protéger la confidentialité de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, stockons et protégeons vos informations lorsque vous utilisez la plateforme Mon Équipe IA.
+              La présente politique de traitement des données personnelles explicite la manière dont la société CARDIN CONCIERGERIE LLP dont le siège social est situé 71-75 Shelton Street Covent Garden WC2H 9JQ London au Royaume-Uni recueille, utilise et traite les données à caractère personnel des utilisateurs recueillies sur le site Internet https://invest-malin.com (ci-après le « Site internet »), les formulaires électroniques et dans le cadre de l’exercice de son activité.
+              </p>
+              <p className="text-gray-700 leading-relaxed mt-4">
+              L’utilisateur du Site internet (ci-après « l’Utilisateur ») est informé des réglementations concernant la communication marketing, la Loi no2004-575 du 21 Juin 2014 pour la confiance dans l’économie numérique, la Loi n°2004-801 du 6 août 2004 relative à la protection des personnes physiques à l'égard des traitements de données à caractère personnel, et le Règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données.
               </p>
             </section>
 
@@ -42,7 +45,7 @@ export default function PolitiqueConfidentialite() {
               <h2 className="text-2xl font-bold text-black mb-4">2. Données collectées</h2>
               <h3 className="text-xl font-semibold text-black mb-3">2.1 Données d'identification</h3>
               <p className="text-gray-700 leading-relaxed mb-4">
-                Lors de votre inscription, nous collectons :
+              Le traitement des données personnelles est assuré par CARDIN CONCIERGERIE LLP. Lors de votre inscription, nous collectons :
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2 mb-4">
                 <li>Nom et prénom</li>
@@ -65,7 +68,8 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">3. Finalités du traitement</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                Nous utilisons vos données personnelles pour :
+              Lorsque que des données personnelles sont nécessaires à la fourniture des services, ou au traitement des demandes de l’Utilisateur, le fait de ne pas les communiquer peut retarder, voire rendre impossible, le traitement de la demande, la réponse aux questions ainsi que la vente de services.
+              Nous utilisons vos données personnelles pour :
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2">
                 <li>Gérer votre compte et vous authentifier</li>
@@ -75,6 +79,12 @@ export default function PolitiqueConfidentialite() {
                 <li>Respecter nos obligations légales</li>
                 <li>Analyser l'utilisation de la plateforme à des fins statistiques</li>
               </ul>
+              <p className="text-gray-700 leading-relaxed mb-4">
+              Certaines données de paiement seront également collectées en cas d’achat de services, à savoir notamment les données de facturation, le type ou le moyen de paiement, le numéro de carte de crédit ou de débit utilisée. Ces données ne sont pas collectées par CARDIN CONCIERGERIE LLP mais par la société Stripe Inc. (STRIPE FRANCE) à travers son module de paiement.
+              </p>
+              <p className="text-gray-700 leading-relaxed mb-4">
+              CARDIN CONCIERGERIE LLP peut également recueillir indirectement des données personnelles lorsque l’Utilisateur utilise le Site internet, à savoir notamment l’adresse IP, le moment de la connexion, le navigateur ou le système d’exploitation, par le biais de cookies similaires placés sur l’appareil électronique de l’Utilisateur.
+              </p>
             </section>
 
             <section>
@@ -93,7 +103,7 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">5. Partage des données</h2>
               <p className="text-gray-700 leading-relaxed">
-                Nous ne vendons, ne louons ni ne partageons vos données personnelles avec des tiers, sauf dans les cas suivants :
+              CARDIN CONCIERGERIE LLP s’engage à prendre toutes les précautions nécessaires afin de préserver la sécurité des données personnelles et notamment qu’elles ne soient pas communiquées à des personnes non autorisées. Si un incident impactant l’intégrité ou la confidentialité des données personnelles est porté à la connaissance de CARDIN CONCIERGERIE LLP, elle s’engage à informer l’utilisateur dans les meilleurs délais et lui communiquer les mesures de corrections prises. Nous ne vendons, ne louons ni ne partageons vos données personnelles avec des tiers, sauf dans les cas suivants:
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2">
                 <li><strong>Prestataires de services :</strong> hébergement (Vercel), base de données (Supabase)</li>
@@ -105,13 +115,8 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">6. Conservation des données</h2>
               <p className="text-gray-700 leading-relaxed">
-                Nous conservons vos données personnelles pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées :
+              CARDIN CONCIERGERIE LLP peut conserver les données personnelles des Utilisateurs pendant deux années à compter du consentement des Utilisateurs ou jusqu’au retrait de leur consentement. En cas de relation commerciale, les données relatives aux services proposés par CARDIN CONCIERGERIE LLP sont conservées trois ans à compter de la fin des relations commerciales ou pour une durée supérieure lorsque CARDIN CONCIERGERIE LLP a une raison légitime ou légale de les conserver (notamment sans que cette liste soit exhaustive, les données relatives à la facturation). Nous conservons vos données personnelles pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées :
               </p>
-              <ul className="list-disc ml-6 text-gray-700 space-y-2">
-                <li><strong>Données de compte :</strong> jusqu'à la suppression de votre compte</li>
-                <li><strong>Historique des conversations :</strong> 3 ans après la dernière activité</li>
-                <li><strong>Données de navigation :</strong> 13 mois maximum</li>
-              </ul>
             </section>
 
             <section>
@@ -131,19 +136,26 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">8. Vos droits</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                Conformément au RGPD, vous disposez des droits suivants :
+              Conformément à la Loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés modifiées par la Loi n°2004-801 du 6 août 2004 relative à la protection des personnes physiques à l'égard des traitements de données à caractère personnel et les dispositions de la Loi du 20 juin 2018 adoptée en application du Règlement européen du 27 avril 2016 applicable depuis le 25 mai 2018, chaque Utilisateur dispose des droits suivants :
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2">
-                <li><strong>Droit d'accès :</strong> obtenir une copie de vos données personnelles</li>
-                <li><strong>Droit de rectification :</strong> corriger des données inexactes</li>
-                <li><strong>Droit à l'effacement :</strong> supprimer vos données dans certains cas</li>
-                <li><strong>Droit à la limitation :</strong> restreindre le traitement de vos données</li>
-                <li><strong>Droit à la portabilité :</strong> récupérer vos données dans un format structuré</li>
-                <li><strong>Droit d'opposition :</strong> vous opposer au traitement pour des raisons légitimes</li>
+                <li><strong>Droit d'accès :</strong> chaque Utilisateur a le droit d’être informé, de façon concise, transparente, compréhensible et aisément accessible, de la façon dont ses données personnelles sont traitées. Il dispose également du droit d'obtenir la confirmation que ses données sont ou ne sont pas traitées, et, le cas échéant, l’accès à ces données et une copie desdites données.  </li>
+                <li><strong>Droit de rectification :</strong> chaque Utilisateur a le droit d'obtenir la rectification de ses données et que ses données incomplètes soient complétées. </li>
+                <li><strong>Droit à l'effacement/l'oubli :</strong> sous certaines conditions, chaque Utilisateur a le droit d'obtenir l’effacement de ses données.</li>
+                <li><strong>Droit à la limitation du traitement :</strong> sous certaines conditions, chaque Utilisateur a le droit d’obtenir la limitation du traitement de ses données.</li>
+                <li><strong>Droit à la portabilité :</strong> chaque Utilisateur dispose également du droit récupérer ses données dans un format structuré.</li>
+                <li><strong>Droit d'opposition :</strong> chaque Utilisateur dispose également du droit de s’opposer, dans certaines conditions, au traitement de ses données à caractère personnel. Chaque Utilisateur peut également, à tout moment, s’opposer au traitement de ses données à des fins de prospection commerciale et retirer son consentement au traitement de ses données mis en œuvre à des fins de publicité comportementale, d’analyse de la navigation, et de mesures d’audience.</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mt-4">
-                Pour exercer ces droits, contactez-nous à : 
-                <a href="mailto:privacy@invest-malin.fr" className="text-[#dbae61] hover:underline ml-1">privacy@invest-malin.fr</a>
+              Pour savoir comment CARDIN CONCIERGERIE LLP utilise ses données personnelles et/ou exercer ses droits, l’Utilisateur doit adresser les demandes à CARDIN CONCIERGERIE LLP :
+              </p>
+              <ul className="list-disc ml-6 text-gray-700 space-y-2">
+              <li>Par courrier à CARDIN CONCIERGERIE LLP 71-75 Shelton Street Covent Garden WC2H 9JQ London au Royaume-Uni</li>
+              <li>Par email à contact@invest-malin.com</li>
+              </ul>
+              <p className="text-gray-700 leading-relaxed mt-4">
+              Dans tous les cas, l’Utilisateur devra indiquer les données personnelles qu’il souhaiterait que CARDIN CONCIERGERIE LLP corrige, mette à jour ou supprime, en s’identifiant précisément avec une copie d’une pièce d’identité. Les demandes de suppression de données personnelles seront soumises aux obligations légales, notamment en matière de conservation ou d’archivage des documents. Enfin, l’Utilisateur peut déposer une réclamation auprès des autorités de contrôle, et notamment de la CNIL (https://www.cnil.fr/fr/plaintes). Il est enfin précisé que les Utilisateurs qui ne souhaitent pas faire l’objet de prospection commerciale par voie téléphonique peuvent s’inscrire gratuitement sur la liste d’opposition au démarchage téléphonique sur le site internet www.bloctel.gouv.fr.
+
               </p>
             </section>
 
@@ -172,7 +184,7 @@ export default function PolitiqueConfidentialite() {
               <h2 className="text-2xl font-bold text-black mb-4">12. Contact et réclamations</h2>
               <p className="text-gray-700 leading-relaxed">
                 Pour toute question relative à cette politique de confidentialité ou pour exercer vos droits, contactez-nous à : 
-                <a href="mailto:privacy@invest-malin.fr" className="text-[#dbae61] hover:underline ml-1">privacy@invest-malin.fr</a>
+                <a href="mailto:contact@invest-malin.fr" className="text-[#dbae61] hover:underline ml-1">contact@invest-malin.fr</a>
               </p>
               <p className="text-gray-700 leading-relaxed mt-4">
                 Vous avez également le droit d'introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés (CNIL) si vous estimez que le traitement de vos données personnelles constitue une violation du RGPD.
