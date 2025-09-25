@@ -59,6 +59,10 @@ export default function FicheFinalisation() {
       const ficheId = formData.id || formData.nom || 'nouvelle_fiche'
       const slug = String(ficheId).toLowerCase().replace(/\s+/g, '_').replace(/[^\w-]/g, '')
       annonceSessionIdRef.current = `fiche_${slug}_annonce`
+
+      // 🔥 AJOUT MINIMAL - DEBUG
+      const ficheDataForAI = prepareForN8nWebhook(formData)
+      console.log('ficheDataForAI:', ficheDataForAI)
     }
   }, [formData])
   
