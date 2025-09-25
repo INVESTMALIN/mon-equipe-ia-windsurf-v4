@@ -1,12 +1,52 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, CheckCircle, ArrowLeft } from 'lucide-react'
+import { supabase } from '../supabaseClient'
 
 export default function UpgradeRequired() {
+  const [loading, setLoading] = useState(false)
+
   // Scroll vers le haut au chargement de la page
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  const handleStartTrial = async () => {
+    setLoading(true)
+
+    try {
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        alert('Erreur: Session expirée, veuillez vous reconnecter')
+        setLoading(false)
+        return
+      }
+
+      // Appeler l'API de création de checkout session
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      })
+
+      const data = await response.json()
+      
+      if (response.ok) {
+        // Rediriger vers Stripe Checkout
+        window.location.href = data.url
+      } else {
+        alert('Erreur: ' + data.error)
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert('Erreur réseau: ' + error.message)
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f8f8] flex flex-col">
@@ -43,74 +83,115 @@ export default function UpgradeRequired() {
             </div>
             
             <h1 className="text-3xl md:text-4xl font-bold text-black mb-6">
-              Accès Premium Requis
+              Essai Gratuit de 30 Jours
             </h1>
             
-            <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed mb-8">
               Débloquez l'accès aux assistants IA spécialisés et révolutionnez 
               la gestion de votre conciergerie avec nos experts virtuels.
             </p>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8 max-w-lg mx-auto">
+              <p className="text-green-800 font-semibold">
+                🎉 Essai gratuit pendant 30 jours !
+              </p>
+              <p className="text-green-600 text-sm mt-1">
+                Puis 19,99€/mois - Résiliable à tout moment
+              </p>
+            </div>
           </div>
 
-          {/* Pricing Card */}
-          <div className="bg-white rounded-lg shadow-lg p-8 md:p-12 max-w-2xl mx-auto mb-8">
+          {/* Plan Premium */}
+          <div className="bg-white rounded-2xl shadow-xl border-4 border-[#dbae61] p-8 mb-12 relative overflow-hidden">
+            {/* Badge Premium */}
+            <div className="absolute -top-3 -right-3 bg-[#dbae61] text-black px-6 py-2 rounded-bl-lg font-bold text-sm transform rotate-3">
+              PREMIUM
+            </div>
             
-            {/* Header pricing */}
+            {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-black mb-2">Plan Premium</h2>
-              <div className="flex items-baseline justify-center gap-2">
-                <span className="text-4xl font-bold text-[#dbae61]">4,90€</span>
-                <span className="text-gray-600">/mois</span>
+              <div className="text-4xl font-bold text-[#dbae61] mb-2">
+                <span className="line-through text-2xl text-gray-400 mr-2">19,99€</span>
+                GRATUIT
               </div>
-              <p className="text-gray-600 mt-2">Accès illimité aux assistants spécialisés</p>
+              <p className="text-gray-600">30 premiers jours, puis 19,99€/mois</p>
             </div>
 
-            {/* Features list */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-[#dbae61] flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-black">Fiscaliste IA</h3>
-                  <p className="text-gray-600 text-sm">Expert en fiscalité immobilière et optimisation</p>
+            {/* Fonctionnalités */}
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Assistant Fiscal</h4>
+                    <p className="text-sm text-gray-600">Optimisation fiscale et déclarations</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Assistant Juridique</h4>
+                    <p className="text-sm text-gray-600">Conseils légaux et réglementations</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Assistant Négociateur</h4>
+                    <p className="text-sm text-gray-600">Stratégies de négociation avancées</p>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-[#dbae61] flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-black">LegalBNB</h3>
-                  <p className="text-gray-600 text-sm">Spécialiste juridique location courte durée</p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Accès illimité</h4>
+                    <p className="text-sm text-gray-600">Conversations sans limite</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-[#dbae61] flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-black">Négociateur IA</h3>
-                  <p className="text-gray-600 text-sm">Assistant pour vos négociations immobilières</p>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Historique complet</h4>
+                    <p className="text-sm text-gray-600">Toutes vos conversations sauvegardées</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-[#dbae61] flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-black">Assistant Formation</h3>
-                  <p className="text-gray-600 text-sm">Toujours inclus - Accès illimité maintenu</p>
+                
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Support prioritaire</h4>
+                    <p className="text-sm text-gray-600">Assistance dédiée maintenue</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* CTA Button - Redirection vers ComingSoon */}
-            <Link
-              to="/coming-soon"
-              className="block w-full bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold py-4 px-8 rounded-lg text-lg transition-colors duration-300 hover:scale-105 transform text-center"
+            {/* CTA Button fonctionnel */}
+            <button
+              onClick={handleStartTrial}
+              disabled={loading}
+              className="w-full bg-[#dbae61] hover:bg-[#c49a4f] disabled:bg-gray-400 disabled:cursor-not-allowed text-black font-bold py-4 px-8 rounded-lg text-lg transition-all duration-200 ease-in-out hover:shadow-lg"
             >
-              Découvrir le Plan Premium
-            </Link>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin w-5 h-5 border-2 border-black border-t-transparent rounded-full"></div>
+                  Redirection vers Stripe...
+                </span>
+              ) : (
+                "Démarrer mon essai gratuit de 30 jours"
+              )}
+            </button>
             
             {/* Small print */}
             <p className="text-center text-gray-500 text-sm mt-4">
-              Assistants en cours de développement • Paiement bientôt disponible
+              Aucun engagement • Résiliation possible à tout moment • Sécurisé par Stripe
             </p>
           </div>
 

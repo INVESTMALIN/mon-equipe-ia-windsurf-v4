@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Unauthorized, missing token' })
     }
 
-    // Vérifier l’utilisateur connecté
+    // Vérifier l'utilisateur connecté
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
       return res.status(401).json({ error: 'Unauthorized, invalid user' })
