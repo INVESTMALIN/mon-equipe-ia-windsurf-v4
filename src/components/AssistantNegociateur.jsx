@@ -4,16 +4,18 @@ import { Bot, User, ArrowLeft, Plus, Upload, FileText, X } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
+import useProgressiveLoading from '../hooks/useProgressiveLoading'
 
 export default function AssistantNegociateur() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [dots, setDots] = useState('.')
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
   const conversationIdRef = useRef(null)
+  const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(loading, selectedFile !== null)
+
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -39,15 +41,6 @@ export default function AssistantNegociateur() {
     }, 10)
     return () => clearInterval(interval)
   }, [])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (loading) {
-        setDots((prev) => (prev.length < 3 ? prev + '.' : '.'))
-      }
-    }, 400)
-    return () => clearInterval(interval)
-  }, [loading])
 
   const scrollToBottom = () => {
     endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
@@ -165,7 +158,7 @@ export default function AssistantNegociateur() {
   
       // AbortController pour timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 60000)
+      const timeoutId = setTimeout(() => controller.abort(), 80000)
   
       const res = await fetch('https://hub.cardin.cloud/webhook/1c662402-e9f8-431e-9418-ec3122575872/chat', {
         method: 'POST',
@@ -395,9 +388,9 @@ export default function AssistantNegociateur() {
                 </div>
               ))}
               {loading && (
-                <div className="text-sm text-gray-500 italic flex items-center gap-1">
-                  <Bot className="w-4 h-4 text-[#dbae61]" />
-                  L'IA analyse votre demande{dots}
+                <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
+                  <LoadingIcon className="w-4 h-4 text-[#dbae61]" />
+                  <span>{currentMessage}{dots}</span>
                 </div>
               )}
               <div ref={endRef} />

@@ -22,7 +22,8 @@ export default function MonCompteV2() {
     fetchUserProfile()
   }, [])
 
-  const isPremium = userProfile?.subscription_status === 'premium'
+  const isPremium = userProfile?.subscription_status === 'premium' || 
+                    userProfile?.subscription_status === 'trial'
   
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -230,7 +231,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Premium (bientôt) →
+                      Passer à Premium →
                     </Link>
                   </div>
                 )}
@@ -290,7 +291,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Premium (bientôt) →
+                      Passer à Premium →
                     </Link>
                   </div>
                 )}
@@ -350,7 +351,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Premium (bientôt) →
+                      Passer à Premium →
                     </Link>
                   </div>
                 )}
@@ -416,7 +417,7 @@ export default function MonCompteV2() {
                       to="/upgrade"
                       className="inline-flex items-center bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-lg"
                     >
-                      Premium (bientôt) →
+                      Essai gratuit →
                     </Link>
                   </div>
                 )}
@@ -481,10 +482,91 @@ export default function MonCompteV2() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/mon-compte/assistant-formation" className="hover:text-white transition-colors">Assistant Formation</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">Assistant Fiscaliste</Link></li>
-                <li><Link to="#" className="hover:text-white transition-colors">Assistant Annonce IA</Link></li>
+                {/* Assistant Formation - Toujours accessible */}
+                <li>
+                  <Link 
+                    to="/assistant-formation" 
+                    className="hover:text-white transition-colors"
+                  >
+                    Assistant Formation
+                  </Link>
+                </li>
+                
+                {/* Assistants Premium - Affichage conditionnel */}
+                <li>
+                  {isPremium ? (
+                    <Link 
+                      to="/negociateur" 
+                      className="hover:text-white transition-colors"
+                    >
+                      Assistant Négociateur
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/upgrade" 
+                      className="flex items-center gap-2 hover:text-white transition-colors group"
+                    >
+                      <span>Assistant Négociateur</span>
+                      <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
+                    </Link>
+                  )}
+                </li>
+                
+                <li>
+                  {isPremium ? (
+                    <Link 
+                      to="/juridique" 
+                      className="hover:text-white transition-colors"
+                    >
+                      Assistant Juridique
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/upgrade" 
+                      className="flex items-center gap-2 hover:text-white transition-colors group"
+                    >
+                      <span>Assistant Juridique</span>
+                      <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
+                    </Link>
+                  )}
+                </li>
+                
+                <li>
+                  {isPremium ? (
+                    <Link 
+                      to="/annonce" 
+                      className="hover:text-white transition-colors"
+                    >
+                      Assistant Annonce IA
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/upgrade" 
+                      className="flex items-center gap-2 hover:text-white transition-colors group"
+                    >
+                      <span>Assistant Annonce IA</span>
+                      <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
+                    </Link>
+                  )}
+                </li>
+                <li>
+                  {isPremium ? (
+                    <Link 
+                      to="/dashboard" 
+                      className="hover:text-white transition-colors"
+                    >
+                      Fiche Logement
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/upgrade" 
+                      className="flex items-center gap-2 hover:text-white transition-colors group"
+                    >
+                      <span>Fiche Logement</span>
+                      <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
+                    </Link>
+                  )}
+                </li>
               </ul>
             </div>
             <div>

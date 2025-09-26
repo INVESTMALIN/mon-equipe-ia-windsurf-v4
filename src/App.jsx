@@ -17,25 +17,18 @@ import AssistantJuridique from './components/AssistantJuridique'
 import AssistantNegociateur from './components/AssistantNegociateur'
 import TestStripe from './components/TestStripe'
 
-// 🔥 CHANGEMENT : Import FicheWizard au lieu de FicheForm
 import FicheWizard from './components/fiche/FicheWizard'
 import { FormProvider } from './components/FormContext'
 
-// Import du nouveau ProtectedRoute
 import ProtectedRoute from './components/ProtectedRoute'
 
-// Import des pages légales
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
 import PolitiqueConfidentialite from './components/PolitiqueConfidentialite'
 import ConditionsUtilisation from './components/ConditionsUtilisation'
 
-// Import paywall
 import UpgradeRequired from './components/UpgradeRequired'
 import ComingSoon from './components/ComingSoon'
-
-// Test de l'assistant juridique
-import TestAssistantJuridique from './components/TestAssistantJuridique'
 
 function AppWrapper() {
   return (
@@ -60,7 +53,7 @@ function AppWrapper() {
           {/* 404 - publique */}
           <Route path="*" element={<NotFound />} />
 
-          {/* Routes protégées - Toutes nécessitent une authentification */}
+          {/* Routes protégées gratuites - nécessitent une authentification */}
           <Route 
             path="/assistant-formation" 
             element={
@@ -70,7 +63,6 @@ function AppWrapper() {
             } 
           />
 
-          {/* Toutes les autres routes protégées */}
           <Route 
             path="/mon-compte" 
             element={
@@ -106,29 +98,11 @@ function AppWrapper() {
               </ProtectedRoute>
             } 
           />
-          
-          <Route 
-            path="/fiscaliste" 
-            element={
-              <ProtectedRoute>
-                <ComingSoon assistant="fiscaliste" />
-              </ProtectedRoute>
-            } 
-          />
-
-          <Route 
-            path="/test-juridique" 
-            element={
-              <ProtectedRoute>
-                <TestAssistantJuridique />
-              </ProtectedRoute>
-            } 
-          /> 
 
           <Route 
             path="/dashboard" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePremium={true}>
                 <Dashboard />
               </ProtectedRoute>
             } 
@@ -137,7 +111,7 @@ function AppWrapper() {
           <Route
             path="/annonce"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePremium={true}>
                 <AssistantAnnonce />
               </ProtectedRoute>
             }
@@ -146,7 +120,7 @@ function AppWrapper() {
           <Route
             path="/juridique"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePremium={true}>
                 <AssistantJuridique />
               </ProtectedRoute>
             }
@@ -155,7 +129,7 @@ function AppWrapper() {
           <Route
             path="/negociateur"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePremium={true}>
                 <AssistantNegociateur />
               </ProtectedRoute>
             }
@@ -164,7 +138,7 @@ function AppWrapper() {
           <Route 
             path="/fiche" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePremium={true}>
                 <FormProvider>
                   <FicheWizard />
                 </FormProvider>
@@ -176,7 +150,7 @@ function AppWrapper() {
           <Route 
             path="/nouvelle-fiche" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requirePremium={true}>
                 <FormProvider>
                   <FicheWizard />
                 </FormProvider>
