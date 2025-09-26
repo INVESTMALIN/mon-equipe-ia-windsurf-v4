@@ -7,7 +7,7 @@ import MiniDashboard from '../MiniDashboard'
 import { useForm } from '../../FormContext'
 import { cleanFormData, extractSummary, validateDataConsistency } from '../../../lib/DataProcessor'
 import { formatForPdf, prepareForN8nWebhook, generatePdfTitle } from '../../../lib/PdfFormatter'
-import { CheckCircle, FileText, MessageSquare, Send, Copy, Sparkles } from 'lucide-react'
+import { CheckCircle, FileText, PenTool, MessageSquare, Send, Copy, Sparkles, Bot } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 
 export default function FicheFinalisation() {
@@ -20,6 +20,36 @@ export default function FicheFinalisation() {
   const [annonceLoading, setAnnonceLoading] = useState(false)
   const [annonceResult, setAnnonceResult] = useState('')
   const [copiedAnnonce, setCopiedAnnonce] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [currentInput, setCurrentInput] = useState('')
+
+  const quickPrompts = [
+    { 
+      label: "Créer une annonce attractive", 
+      prompt: "Créez une annonce attractive pour ce logement basée sur l'inspection réalisée",
+      icon: "✨" 
+    },
+    { 
+      label: "Version courte Airbnb", 
+      prompt: "Créez une annonce courte et percutante pour Airbnb, mettant en avant les points forts",
+      icon: "🏠" 
+    },
+    { 
+      label: "Mettre en avant les équipements", 
+      prompt: "Réécris l'annonce en mettant l'accent sur les équipements et commodités disponibles",
+      icon: "⚡" 
+    },
+    { 
+      label: "Plus professionnelle", 
+      prompt: "Transforme cette description en version plus professionnelle pour agence immobilière",
+      icon: "💼" 
+    },
+    { 
+      label: "Ajouter des détails pratiques", 
+      prompt: "Enrichis l'annonce avec des détails pratiques sur l'accès, le quartier et les transports",
+      icon: "📍" 
+    }
+  ]
   
   const { 
     formData,
@@ -84,7 +114,7 @@ export default function FicheFinalisation() {
       
       // ✅ AbortController + timeout + error handling complet
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 30000)
+      const timeout = setTimeout(() => controller.abort(), 90000)
       
       const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
@@ -152,6 +182,78 @@ export default function FicheFinalisation() {
     await handleSave()
     updateField('statut', 'Complété')
     setShowFinalModal(true)
+  }
+
+  const handleQuickPrompt = async (prompt) => {
+    setCurrentInput(prompt)
+    await sendMessage(prompt)
+  }
+  
+  const sendMessage = async (message) => {
+    if (!message.trim()) return
+      // DEBUG - AJOUTE CES 3 LIGNES
+  console.log('sessionId:', annonceSessionIdRef.current)
+  console.log('formData:', formData)
+  
+    // Ajouter le message utilisateur
+    const userMessage = { type: 'user', content: message, timestamp: Date.now() }
+    setChatMessages(prev => [...prev, userMessage])
+    setCurrentInput('')
+  
+    try {
+      setAnnonceLoading(true)
+      
+      const ficheDataForAI = prepareForN8nWebhook(formData)
+      console.log('ficheDataForAI:', ficheDataForAI)
+
+      const requestBody = {
+        chatInput: message,
+        sessionId: annonceSessionIdRef.current,
+        ficheData: ficheDataForAI
+      }
+      
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 80000)
+      
+      const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeout)
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      
+      const data = await response.json()
+      console.log('Response data:', data)
+      const botMessage = { 
+        type: 'bot', 
+        content: data.output || 'Réponse indisponible.', 
+        timestamp: Date.now() 
+      }
+      
+      setChatMessages(prev => [...prev, botMessage])
+      
+    } catch (error) {
+      console.error('Erreur création annonce:', error)
+      const errorMessage = { 
+        type: 'bot', 
+        content: 'Erreur lors de la génération. Merci de réessayer.',
+        timestamp: Date.now() 
+      }
+      setChatMessages(prev => [...prev, errorMessage])
+    } finally {
+      setAnnonceLoading(false)
+    }
+  }
+  
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage(currentInput)
+    }
   }
 
   return (
@@ -227,73 +329,92 @@ export default function FicheFinalisation() {
 
                 {/* Assistant Annonce */}
                 {showAnnonceAssistant && (
-                  <div className="border border-purple-200 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-blue-50">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                        <MessageSquare className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">✨ Assistant Création d'Annonce</h3>
-                        <p className="text-sm text-gray-600">Générez votre annonce personnalisée basée sur votre inspection</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Que souhaitez-vous mettre en avant dans votre annonce ?
-                        </label>
-                        <textarea
-                          value={annonceInput}
-                          onChange={(e) => setAnnonceInput(e.target.value)}
-                          placeholder="Ex: 'Créez une annonce Airbnb qui met en avant la vue, la proximité des transports et le confort...'"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          rows={3}
-                        />
-                      </div>
-                      
-                      <button
-                        onClick={handleCreateAnnonce}
-                        disabled={annonceLoading}
-                        className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                          annonceLoading 
-                            ? 'bg-gray-400 text-white cursor-not-allowed' 
-                            : 'bg-purple-600 hover:bg-purple-700 text-white'
-                        }`}
-                      >
-                        <Send className="w-4 h-4" />
-                        {annonceLoading ? 'Génération en cours...' : 'Générer l\'annonce'}
-                      </button>
+                  <div className="bg-white rounded-xl shadow-sm p-6">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+      <PenTool className="w-5 h-5 text-white" />
+    </div>
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900">Assistant Annonce</h3>
+      <p className="text-sm text-gray-600">Générez et affinez votre annonce</p>
+    </div>
+  </div>
 
-                      {annonceResult && (
-                        <div className="mt-6">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-medium text-gray-900">🎯 Annonce générée</h4>
-                            <button
-                              onClick={handleCopyAnnonce}
-                              className="flex items-center gap-1 px-3 py-1 text-sm bg-white hover:bg-gray-100 rounded-lg transition-colors border"
-                            >
-                              {copiedAnnonce ? (
-                                <>
-                                  <CheckCircle className="w-4 h-4" />
-                                  <span className="text-sm">Copié !</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-4 h-4" />
-                                  <span className="text-sm">Copier</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                          <div className="bg-white rounded-lg p-4 border max-h-64 overflow-y-auto">
-                            <pre className="whitespace-pre-wrap text-sm text-gray-700">{annonceResult}</pre>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+  {/* Boutons de prompts rapides */}
+  <div className="mb-4">
+    <p className="text-sm text-gray-600 mb-3">Suggestions rapides :</p>
+    <div className="flex flex-wrap gap-2">
+      {quickPrompts.map((prompt, index) => (
+        <button
+          key={index}
+          onClick={() => handleQuickPrompt(prompt.prompt)}
+          disabled={annonceLoading}
+          className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 border"
+        >
+          <span>{prompt.icon}</span>
+          <span>{prompt.label}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {/* Zone de chat */}
+  <div className="space-y-4">
+    {/* Messages */}
+    {chatMessages.length > 0 && (
+      <div className="max-h-80 overflow-y-auto space-y-3 bg-gray-50 rounded-lg p-4">
+        {chatMessages.map((msg, index) => (
+          <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] p-3 rounded-lg ${
+              msg.type === 'user' 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-white border shadow-sm text-gray-900'
+            }`}>
+              <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+            </div>
+          </div>
+        ))}
+        
+        {annonceLoading && (
+          <div className="flex justify-start">
+            <div className="bg-white border shadow-sm rounded-lg p-3 max-w-[80%]">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Bot className="w-4 h-4 text-purple-600 animate-pulse" />
+                L'IA génère votre annonce...
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Zone de saisie */}
+    <div className="flex gap-2">
+      <input
+        type="text"
+        value={currentInput}
+        onChange={(e) => setCurrentInput(e.target.value)}
+        onKeyPress={handleKeyPress}
+        placeholder="Demandez une modification ou posez une question..."
+        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        disabled={annonceLoading}
+      />
+      <button
+        onClick={() => sendMessage(currentInput)}
+        disabled={annonceLoading || !currentInput.trim()}
+        className={`px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+          annonceLoading || !currentInput.trim()
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+            : 'bg-purple-600 hover:bg-purple-700 text-white'
+        }`}
+      >
+        <Send className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+</div>
                 )}
+
               </div>
 
               {/* NAVIGATION FINALE - Style Letahost */}
