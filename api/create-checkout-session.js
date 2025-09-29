@@ -10,6 +10,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+// 🔥 IDs Mon Équipe IA (pour metadata)
+const MON_EQUIPE_IA_PRODUCT_ID = 'prod_T4pyi8D8gPloKU'
+const MON_EQUIPE_IA_PRICE_ID = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -62,16 +66,14 @@ export default async function handler(req, res) {
       console.log('👤 Nouveau customer Stripe créé:', customerId)
     }
 
-    const priceId = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
-
     // Créer la Checkout Session avec trial de 30 jours
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      customer: customerId, // ← Important: rattache la session au customer
+      customer: customerId,
       payment_method_types: ['card'],
       
       line_items: [{
-        price: priceId, // Prix 19,99€/mois
+        price: MON_EQUIPE_IA_PRICE_ID, // Prix 19,99€/mois
         quantity: 1,
       }],
 
@@ -80,11 +82,13 @@ export default async function handler(req, res) {
         trial_period_days: 30,
       },
 
-      // Métadonnées pour le webhook
+      // 🔥 Métadonnées pour le webhook (AVEC product/price IDs)
       client_reference_id: user.id, // Pour identifier l'user dans le webhook
       metadata: {
         user_id: user.id,
-        user_email: user.email
+        user_email: user.email,
+        product: MON_EQUIPE_IA_PRODUCT_ID, // 🔥 AJOUTÉ pour filtrage
+        price: MON_EQUIPE_IA_PRICE_ID       // 🔥 AJOUTÉ pour filtrage
       },
 
       // URLs de redirection

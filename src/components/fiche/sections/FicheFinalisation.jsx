@@ -1,4 +1,5 @@
 // src/components/fiche/sections/FicheFinalisation.jsx
+
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SidebarMenu from '../SidebarMenu'

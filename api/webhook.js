@@ -17,6 +17,54 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+// 🔥 FILTRES MON ÉQUIPE IA
+const MON_EQUIPE_IA_PRODUCT_ID = 'prod_T4pyi8D8gPloKU'
+const MON_EQUIPE_IA_PRICE_ID = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
+
+/**
+ * Vérifie si l'événement concerne Mon Équipe IA
+ */
+function isMonEquipeIAEvent(event) {
+  const { type, data } = event
+  
+  // Pour checkout.session.completed
+  if (type === 'checkout.session.completed') {
+    const session = data.object
+    // Vérifier si la session contient notre product_id dans metadata
+    // (on va l'ajouter dans create-checkout-session.js)
+    return session.metadata?.product === MON_EQUIPE_IA_PRODUCT_ID ||
+           session.metadata?.price === MON_EQUIPE_IA_PRICE_ID
+  }
+  
+  // Pour invoice.payment_succeeded et invoice.payment_failed
+  if (type === 'invoice.payment_succeeded' || type === 'invoice.payment_failed') {
+    const invoice = data.object
+    // Vérifier les lignes de l'invoice
+    if (invoice.lines && invoice.lines.data) {
+      return invoice.lines.data.some(line => 
+        line.price?.id === MON_EQUIPE_IA_PRICE_ID ||
+        line.price?.product === MON_EQUIPE_IA_PRODUCT_ID
+      )
+    }
+    return false
+  }
+  
+  // Pour customer.subscription.deleted
+  if (type === 'customer.subscription.deleted') {
+    const subscription = data.object
+    // Vérifier les items de la subscription
+    if (subscription.items && subscription.items.data) {
+      return subscription.items.data.some(item =>
+        item.price?.id === MON_EQUIPE_IA_PRICE_ID ||
+        item.price?.product === MON_EQUIPE_IA_PRODUCT_ID
+      )
+    }
+    return false
+  }
+  
+  return false
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).send('Method Not Allowed')
@@ -33,6 +81,14 @@ export default async function handler(req, res) {
     console.error('❌ Signature webhook invalide:', err.message)
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
+
+  // 🔥 FILTRAGE : Ignorer si ce n'est pas Mon Équipe IA
+  if (!isMonEquipeIAEvent(event)) {
+    console.log(`⏭️ Événement ignoré (pas Mon Équipe IA): ${event.type}`)
+    return res.json({ received: true, ignored: true, reason: 'not_mon_equipe_ia' })
+  }
+
+  console.log(`✅ Événement Mon Équipe IA confirmé: ${event.type}`)
 
   try {
     switch (event.type) {
