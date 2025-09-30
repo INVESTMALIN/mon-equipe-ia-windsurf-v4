@@ -101,72 +101,106 @@ export default async function handler(req, res) {
       case 'checkout.session.completed': {
         const session = event.data.object
         console.log('🛒 Checkout session completed:', session.id)
-
+      
+        // Récupérer user_id depuis metadata (priorité) ou client_reference_id (fallback)
+        const userId = session.metadata?.user_id || session.client_reference_id
+        
+        if (!userId) {
+          console.error('❌ Aucun user_id trouvé dans session metadata ou client_reference_id')
+          throw new Error('Missing user_id in checkout session')
+        }
+      
+        console.log('👤 User ID:', userId)
+      
+        // Récupérer les détails de la subscription depuis Stripe
         const subscription = await stripe.subscriptions.retrieve(session.subscription)
         console.log('📋 Subscription status:', subscription.status)
         console.log('⏰ Trial end:', subscription.trial_end)
-
+        console.log('⏰ Current period end:', subscription.current_period_end)
+      
+        // Déterminer le statut selon si c'est un trial ou pas
         const isOnTrial = subscription.status === 'trialing'
         const subscriptionStatus = isOnTrial ? 'trial' : 'premium'
-
+      
+        // Préparer les données à mettre à jour
         const updateData = {
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           subscription_status: subscriptionStatus
         }
-
+      
+        // Ajouter les dates seulement si elles existent
         if (isOnTrial && subscription.trial_end) {
           updateData.subscription_trial_end = new Date(subscription.trial_end * 1000)
           console.log('📅 Trial end date:', updateData.subscription_trial_end)
         }
-
+      
         if (!isOnTrial && subscription.current_period_end) {
           updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
+          console.log('📅 Period end date:', updateData.subscription_current_period_end)
         }
-
+      
+        console.log('💾 Update data:', JSON.stringify(updateData, null, 2))
+      
+        // Mettre à jour Supabase
         const { error } = await supabase
           .from('users')
           .update(updateData)
-          .eq('id', session.metadata?.user_id || session.client_reference_id)
-
+          .eq('id', userId)
+      
         if (error) {
           console.error('❌ Erreur Supabase:', error)
           throw error
         }
-
+      
         console.log('✅ Utilisateur mis à jour:', {
-          user_id: session.client_reference_id,
+          user_id: userId,
           status: subscriptionStatus,
           customer_id: session.customer
         })
-
+      
         // Marquer l'event comme traité APRÈS succès
         await markEventAsProcessed()
         break
       }
 
+
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object
         console.log('💰 Paiement réussi pour customer:', invoice.customer)
-
+      
+        // Récupérer la subscription pour avoir les dates
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription)
-
+        console.log('📋 Subscription current_period_end:', subscription.current_period_end)
+      
+        const updateData = {
+          subscription_status: 'premium',
+          subscription_trial_end: null
+        }
+      
+        // Sécuriser la date - ne l'ajouter que si elle existe
+        if (subscription.current_period_end) {
+          updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
+          console.log('📅 Period end date:', updateData.subscription_current_period_end)
+        } else {
+          console.warn('⚠️ Pas de current_period_end dans la subscription')
+          updateData.subscription_current_period_end = null
+        }
+      
+        console.log('💾 Update data:', JSON.stringify(updateData, null, 2))
+      
         const { error } = await supabase
           .from('users')
-          .update({
-            subscription_status: 'premium',
-            subscription_current_period_end: new Date(subscription.current_period_end * 1000),
-            subscription_trial_end: null
-          })
+          .update(updateData)
           .eq('stripe_customer_id', invoice.customer)
-
+      
         if (error) {
           console.error('❌ Erreur Supabase payment succeeded:', error)
           throw error
         }
-
+      
         console.log('✅ Utilisateur passé en premium:', invoice.customer)
-
+      
         // Marquer l'event comme traité APRÈS succès
         await markEventAsProcessed()
         break
