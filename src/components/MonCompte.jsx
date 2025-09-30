@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { LogOut, CreditCard, User, ArrowLeft, Settings, MessageSquare } from 'lucide-react'
+import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ChangePasswordModal from './ChangePasswordModal'
+import EditProfileModal from './EditProfileModal'
 
 export default function MonCompte() {
   const navigate = useNavigate()
@@ -10,6 +11,7 @@ export default function MonCompte() {
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -27,7 +29,7 @@ export default function MonCompte() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('subscription_status, stripe_customer_id, subscription_current_period_end, subscription_trial_end') // ← AJOUT ICI
+        .select('subscription_status, stripe_customer_id, subscription_current_period_end, subscription_trial_end, prenom, nom')
         .eq('id', userId)
         .single()
   
@@ -283,38 +285,60 @@ export default function MonCompte() {
         <div className="grid md:grid-cols-2 gap-8">
           
         {/* Informations personnelles */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <User className="w-6 h-6 text-[#dbae61]" />
-            <h2 className="text-xl font-bold text-black">Informations</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-              <p className="text-gray-600">{user?.email || 'Chargement...'}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Sécurité</label>
-              <button 
-                onClick={() => setShowPasswordModal(true)}
-                className="text-[#dbae61] hover:text-[#c49a4f] font-medium transition-colors"
-              >
-                Modifier le mot de passe
-              </button>
-            </div>
-            
-            <button className="mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors text-sm">
-              Modifier les informations
-            </button>
-          </div>
-        </div>
+        {/* Informations personnelles */}
+<div className="bg-white rounded-xl shadow-lg p-8">
+  <div className="flex items-center gap-3 mb-6">
+    <User className="w-6 h-6 text-[#dbae61]" />
+    <h2 className="text-xl font-bold text-black">Informations</h2>
+  </div>
+  
+  <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Prénom</label>
+        <p className="text-gray-900 font-medium">{userProfile?.prenom || 'Non renseigné'}</p>
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nom</label>
+        <p className="text-gray-900 font-medium">{userProfile?.nom || 'Non renseigné'}</p>
+      </div>
+    </div>
+    
+    <div>
+      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+      <p className="text-gray-900 font-medium">{user?.email || 'Chargement...'}</p>
+    </div>
+    
+    <div>
+      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Mot de passe</label>
+      <p className="text-gray-400 font-mono text-sm">••••••••••••</p>
+    </div>
+    
+    <button 
+      onClick={() => setShowEditModal(true)}
+      className="w-full mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg transition-colors font-medium"
+    >
+      Modifier les informations
+    </button>
+  </div>
+</div>
 
         {/* Modal changement mot de passe */}
         <ChangePasswordModal 
           isOpen={showPasswordModal} 
           onClose={() => setShowPasswordModal(false)} 
+        />
+
+        {/* Modal édition profil */}
+        <EditProfileModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          user={user}
+          onPasswordClick={() => {
+            setShowEditModal(false)
+            setShowPasswordModal(true)
+          }}
+          onPortalClick={handleManageSubscription}
         />
 
           {/* Section Abonnement dynamique */}
@@ -454,6 +478,29 @@ export default function MonCompte() {
             </div>
           </div>
         </div>
+
+{/* Section FAQ - À ajouter en bas de la page, après les deux cards principales */}
+<div className="mt-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-sm p-8 border border-gray-200">
+  <div className="max-w-2xl mx-auto text-center">
+    <div className="mb-4">
+      <HelpCircle className="w-12 h-12 text-[#dbae61] mx-auto" />
+    </div>
+    <h3 className="text-xl font-bold text-gray-900 mb-2">
+      Une question ?
+    </h3>
+    <p className="text-gray-600 mb-6">
+      Consultez notre foire aux questions pour trouver rapidement des réponses sur votre compte, les assistants IA, et bien plus encore.
+    </p>
+    <Link
+      to="/faq"
+      className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 font-semibold px-6 py-3 rounded-lg border-2 border-gray-200 transition-colors"
+    >
+      Accéder à la FAQ
+      <ArrowRight className="w-4 h-4" />
+    </Link>
+  </div>
+</div>
+        
       </div>
     </div>
   )
