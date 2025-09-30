@@ -1,83 +1,218 @@
-# Mon Équipe IA – Application React + Supabase + Vercel
+# Mon Équipe IA
 
-Mon Équipe IA est une application web développée en React avec Vite. Elle permet aux utilisateurs d'accéder à plusieurs assistants IA spécialisés pour des tâches spécifiques comme la fiscalité, les aspects juridiques, et la gestion des appels. 
+**Plateforme d'assistants IA spécialisés pour concierges immobiliers**
 
-## Fonctionnalités principales
+Application web développée pour Invest Malin, offrant un écosystème complet d'outils IA et de gestion pour professionnels de la conciergerie immobilière.
 
-- **Authentification des utilisateurs** :  
-  - Inscription avec création de compte  
-  - Connexion sécurisée avec gestion des sessions utilisateurs via **Supabase**  
-  - Mot de passe oublié avec réinitialisation via email  
-  - Redirection automatique si l'utilisateur n'est pas connecté  
+## 🎯 Fonctionnalités principales
 
-- **Stockage des utilisateurs et des conversations** :
-  - **Supabase** est utilisé pour gérer l'authentification, stocker les utilisateurs et leurs sessions
-  - Les **conversations** avec l'IA sont également stockées et accessibles pour chaque utilisateur connecté, permettant ainsi un suivi historique
+### Assistants IA Spécialisés
+- **Assistant Formation** (gratuit) : Support sur la formation Invest Malin avec contexte des 10 derniers messages
+- **Assistant Annonce** (premium) : Création d'annonces optimisées pour Airbnb/Booking avec analyse de documents
+- **Assistant Juridique** (premium) : Conseils juridiques spécialisés en location courte durée
+- **Assistant Négociateur** (premium) : Support pour négociations propriétaires et clients
 
-- **Accès conditionnel aux pages** :  
-  - L'accès aux assistants IA est protégé, seuls les utilisateurs connectés peuvent y accéder
-  - Si l'utilisateur essaie d'accéder à une page protégée sans être connecté, il est redirigé vers la page de connexion
+Tous les assistants premium incluent :
+- Upload et analyse de fichiers PDF/DOCX
+- Historique temps réel des conversations avec sidebar
+- SessionId stable pour mémoire contextuelle
+- Feedback progressif pendant génération (jusqu'à 2 minutes)
+- Auto-scroll intelligent et gestion d'erreurs robuste
 
-- **Chatbot IA** :
-  - Un assistant IA appelé **Coach Malin** est disponible pour répondre aux questions sur la formation Invest Malin
-  - L'IA est intégrée pour fournir des réponses instantanées à chaque question
-  - Le chatbot utilise un backend pour récupérer et envoyer des réponses via un webhook
+### Fiche Logement Lite
+Système d'inspection professionnelle intégré avec :
+- 23 sections de formulaire détaillées (+ 1 finalisation)
+- Sauvegarde automatique et navigation wizard
+- Génération PDF client-side professionnelle
+- Système d'alertes intelligent (critiques, modérées, dégâts)
+- Intégration Assistant Annonce pour création annonces depuis inspection
+- Mini-dashboard avec aperçu temps réel
 
-- **Assistant IA spécialisé** :  
-  Plusieurs agents IA sont disponibles, chacun spécialisé pour un domaine spécifique (Fiscalité, Juridique, Résumé d'appel). Ces assistants sont accessibles depuis un tableau de bord après connexion.
+### Gestion d'abonnement Stripe
+- **Essai gratuit 30 jours** avec capture carte
+- Abonnement **19.99€/mois** après trial
+- Customer Portal Stripe intégré
+- Webhooks automatisés avec idempotence
+- Protection premium robuste avec vérification dates expiration
 
-## Technologies utilisées
+### Gestion de compte
+- Profil utilisateur (nom, prénom, email)
+- Changement mot de passe sécurisé
+- Accès direct au Customer Portal Stripe
+- FAQ et support intégrés
 
-- **React** pour la création de l'interface utilisateur
-- **Vite** pour un build rapide et un démarrage de projet efficace
-- **Tailwind CSS** pour la mise en page et le style réactif
-- **Supabase** pour l'authentification, la gestion des utilisateurs et des conversations
-- **Vercel** pour le déploiement continu
-- **Lucide React Icons** pour les icônes
+## 🏗️ Architecture technique
 
-## Fonctionnement de l'authentification
+### Stack
+- **Frontend** : React 18 + Vite 6 + Tailwind CSS 3
+- **Backend** : Supabase (Auth + PostgreSQL + RLS)
+- **Paiements** : Stripe Live avec webhooks
+- **IA** : Webhooks n8n (hub.cardin.cloud)
+- **Déploiement** : Vercel
+- **Design** : Mobile-first avec thème doré (#dbae61)
 
-1. **Création de compte** : L'utilisateur crée un compte en fournissant son email et un mot de passe. Ce compte est ensuite enregistré dans **Supabase**.
-2. **Connexion** : Après inscription, l'utilisateur peut se connecter en utilisant ses identifiants. La session est gérée via **Supabase** et les utilisateurs connectés ont accès à leur tableau de bord personnalisé.
-3. **Mot de passe oublié** : Si l'utilisateur oublie son mot de passe, il peut demander un email de réinitialisation. Un lien de réinitialisation est envoyé à l'email de l'utilisateur pour qu'il puisse définir un nouveau mot de passe.
-4. **Sécurisation de l'accès** : Si un utilisateur tente d'accéder à une page protégée sans être connecté, il est redirigé vers la page de connexion.
+### Base de données Supabase
 
-## Stockage des données dans Supabase
+**Table `users`**
+- Authentification et profil (email, prenom, nom)
+- Gestion abonnements (subscription_status, stripe_customer_id, dates expiration)
+- RLS policies : lecture libre, écriture limitée aux colonnes non-Stripe
 
-1. **Utilisateurs** : Les utilisateurs sont enregistrés dans la base de données **Supabase** lors de leur inscription. Supabase gère aussi les sessions utilisateur pour maintenir la connexion active.
-2. **Conversations** : Les messages échangés avec l'assistant IA sont stockés dans **Supabase**, permettant ainsi de récupérer et d'afficher l'historique des conversations pour chaque utilisateur connecté.
+**Table `conversations`**
+- Historique conversations par assistant (source, question, answer, conversation_id)
+- Isolation par user_id avec RLS
+- Temps réel via Supabase Channels
 
-## Variables d'environnement
+**Table `fiche_lite`**
+- 24 colonnes JSONB pour sections inspection
+- Auto-save et persistance complète
+- Isolation stricte par user_id
 
-Les variables sensibles telles que l'URL de Supabase et la clé d'API anonyme sont stockées dans le fichier `.env` à la racine du projet. Ce fichier **ne doit pas** être poussé sur GitHub pour des raisons de sécurité (ajouté dans `.gitignore`).
+**Table `stripe_events`**
+- Idempotence webhooks (event.id unique)
+- Events marqués après succès update DB
 
-Exemple de fichier `.env` :
+### Sécurité Stripe (Audit Sept 2025)
 
-VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=xxxxxxxxxxxxxxxxxxxxxxxx
+**Protections implémentées** :
+- Webhook signature validation
+- Product filtering (prod_T4pyi8D8gPloKU uniquement)
+- Idempotence avec table `stripe_events`
+- Vérification expiration dates côté frontend
+- RLS policies empêchant auto-upgrade
+- UNIQUE constraint sur stripe_customer_id
+- Gestion 5 events : checkout.completed, payment_succeeded/failed, subscription.updated/deleted
 
-Ces variables sont utilisées dans le fichier supabaseClient.js pour initialiser la connexion avec Supabase.
+**Architecture webhook** :
+- Events marqués processed APRÈS succès DB (garantit cohérence)
+- Toujours retourne 200 à Stripe (évite retry infinis)
+- Metadata.user_id prioritaire sur client_reference_id
+- Defensive date handling pour edge cases (coupons 100%, etc.)
 
-## Déploiement
+## 🚀 Installation locale
 
-Le projet est déployé sur Vercel, une plateforme de déploiement continu.
+```bash
+# Cloner le repo
+git clone https://github.com/Julinhio/mon-equipe-ia-windsurf-v4.git
+cd mon-equipe-ia-windsurf-v4
 
-Les variables d'environnement nécessaires à la connexion avec Supabase sont également définies dans les paramètres du projet sur Vercel.
+# Installer dépendances
+npm install
 
-Vercel :
-Le fichier .env doit être configuré dans Vercel pour l'environnement de production afin de s'assurer que les clés API sont correctement sécurisées en ligne.
+# Configurer .env (voir section Variables d'environnement)
+cp .env.example .env
 
-Les clés Supabase utilisées sont définies comme variables d'environnement sous "Settings > Environment Variables" dans le tableau de bord Vercel.
+# Lancer dev server
+npm run dev
+```
 
-## À venir
+## 🔐 Variables d'environnement
 
-Version 2 de l’assistant avec historique des conversations.
+Créer `.env` à la racine :
 
+```env
+# Supabase
+VITE_SUPABASE_URL=https://[votre-projet].supabase.co
+VITE_SUPABASE_ANON_KEY=[votre-anon-key]
+SUPABASE_SERVICE_ROLE_KEY=[votre-service-role-key]
 
-### Quelques points clés :
+# Stripe (LIVE)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
 
-1. Le fichier `.env` contient les clés sensibles et n'est pas poussé sur GitHub grâce au `.gitignore`.
-2. Supabase est utilisé pour gérer l'authentification et le stockage des utilisateurs et des conversations.
-3. Le projet est déployé via Vercel, avec des variables d'environnement définies dans le tableau de bord de Vercel.
+# Application
+NEXT_PUBLIC_SUPABASE_URL=https://[votre-projet].supabase.co
+```
 
+**Important** : Sur Vercel, définir ces variables dans Settings > Environment Variables
 
+## 📦 Déploiement Vercel
+
+1. Connecter repo GitHub à Vercel
+2. Configurer variables d'environnement (voir ci-dessus)
+3. Build automatique à chaque push sur `main`
+4. Configurer webhook Stripe vers `https://[votre-domaine].vercel.app/api/webhook`
+
+## 🧪 Tests
+
+### Flow complet testé (Sept 2025)
+- ✅ Création compte + confirmation email
+- ✅ Checkout Stripe avec coupon 100%
+- ✅ Activation trial 30 jours
+- ✅ Webhooks (checkout.completed, payment_succeeded)
+- ✅ Upgrade DB free → trial
+- ✅ Accès features premium (assistants + fiche)
+- ✅ Customer Portal (annulation, changement carte)
+
+### Compte test
+- Email : test@example.com
+- Coupon : TEST-IA100 (100% réduction, usage illimité)
+
+## 📝 Convention de code
+
+- **Imports** : React hooks > lucide-react > composants locaux > utils
+- **Nommage** : camelCase JS, kebab-case fichiers, UPPER_CASE constantes
+- **Composants** : Un composant = un fichier, default export
+- **État** : useState pour local, Supabase pour persistance
+- **Erreurs** : Toujours logger + afficher message user-friendly
+- **Premium checks** : `subscription_status === 'premium' || subscription_status === 'trial'`
+
+## 🐛 Debugging
+
+**Webhook Stripe échoue** :
+- Vérifier logs Vercel Functions
+- Confirmer signature secret correct
+- Vérifier event dans stripe_events table
+
+**User bloqué malgré paiement** :
+- Vérifier subscription_status en DB
+- Vérifier dates expiration (trial_end, current_period_end)
+- Resend webhook depuis Stripe Dashboard
+
+**Assistant IA ne répond pas** :
+- Timeout 120s normal pour requêtes complexes
+- Vérifier logs n8n (hub.cardin.cloud)
+- SessionId doit être stable (format: `user_xxx_assistant`)
+
+## 📚 Documentation
+
+- [Audit Sécurité Stripe](./docs/stripe_security_audit_sept_30_2025.md)
+- [Guide Fiche Logement](./docs/FICHE_LOGEMENT_LITE.md)
+- [Spécifications Techniques](./docs/TECHNICAL_SPEC.md)
+- [Design System](./docs/DESIGN_SYSTEM.md)
+
+## 🎯 Roadmap
+
+### Prêt pour production (Sept 2025)
+- ✅ Stripe sécurisé et validé
+- ✅ 4 assistants IA opérationnels
+- ✅ Fiche Logement Lite complète
+- ✅ Gestion profil utilisateur
+
+### À venir
+- [ ] Help Center / Centre d'aide avancé
+- [ ] Système feedback beta testers (2 phases)
+- [ ] Page Tarifs/Produit marketing
+- [ ] Cron resync Stripe-Supabase (si besoin)
+- [ ] Alertes échecs webhooks (Sentry)
+
+## 👥 Équipe
+
+- **Julien** : Product owner / Developer
+- **Kévin** : n8n agent developer
+
+## 📄 Licence
+
+Propriété Invest Malin - Tous droits réservés
+
+## 🔗 Liens
+
+- **Production** : https://mon-equipe-ia.vercel.app
+- **Repo** : https://github.com/Julinhio/mon-equipe-ia-windsurf-v4
+- **Support** : contact@invest-malin.com
+
+---
+
+**Dernière mise à jour** : Septembre 2025  
+**Version** : 1.0 Production Ready
