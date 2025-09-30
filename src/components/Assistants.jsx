@@ -231,7 +231,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Passer à Premium →
+                      Essai gratuit →
                     </Link>
                   </div>
                 )}
@@ -291,7 +291,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Passer à Premium →
+                      Essai gratuit →
                     </Link>
                   </div>
                 )}
@@ -351,7 +351,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Passer à Premium →
+                      Essai gratuit →
                     </Link>
                   </div>
                 )}

@@ -127,7 +127,7 @@ export default async function handler(req, res) {
         const { error } = await supabase
           .from('users')
           .update(updateData)
-          .eq('id', session.client_reference_id)
+          .eq('id', session.metadata?.user_id || session.client_reference_id)
 
         if (error) {
           console.error('❌ Erreur Supabase:', error)

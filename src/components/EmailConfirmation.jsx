@@ -67,13 +67,13 @@ export default function EmailConfirmation() {
               <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                 <span className="text-purple-600 text-sm">⚖️</span>
               </div>
-              <span className="text-gray-700 font-medium">Fiscaliste IA (premium)</span>
+              <span className="text-gray-700 font-medium">Juridique IA (premium)</span>
             </div>
             <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 text-sm">🏛️</span>
+                <span className="text-green-600 text-sm">🖋️</span>
               </div>
-              <span className="text-gray-700 font-medium">LegalBNB (premium)</span>
+              <span className="text-gray-700 font-medium">Annonce IA (premium)</span>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
               <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
@@ -107,7 +107,7 @@ export default function EmailConfirmation() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
             Besoin d'aide pour commencer ?{' '}
-            <a href="mailto:support@invest-malin.fr" className="text-[#dbae61] hover:underline">
+            <a href="mailto:contact@invest-malin.fr" className="text-[#dbae61] hover:underline">
               Contactez notre support
             </a>
           </p>
