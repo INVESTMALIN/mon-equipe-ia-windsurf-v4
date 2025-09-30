@@ -54,7 +54,7 @@ export default function Dashboard() {
         setUserProfile(profile)
         
         // Charger les fiches si premium
-        if (profile?.subscription_status === 'premium') {
+        if (profile?.subscription_status === 'premium' || profile?.subscription_status === 'trial') {
           await loadUserFiches(user.id)
         }
       }
@@ -106,7 +106,8 @@ export default function Dashboard() {
     )
   }
 
-  const isPremium = userProfile?.subscription_status === 'premium'
+  const isPremium = userProfile?.subscription_status === 'premium' ||
+  userProfile?.subscription_status === 'trial'
 
   if (!isPremium) {
     return (
