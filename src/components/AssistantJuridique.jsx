@@ -159,7 +159,7 @@ export default function AssistantJuridique() {
   
       // AbortController pour timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 80000)
+      const timeoutId = setTimeout(() => controller.abort(), 120000)
   
       const res = await fetch('https://hub.cardin.cloud/webhook/350f827a-6a1e-44ec-ad67-e8c46f84fa70/chat', {
         method: 'POST',

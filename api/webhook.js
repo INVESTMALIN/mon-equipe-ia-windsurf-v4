@@ -1,13 +1,6 @@
-export const config = {
-  api: {
-    bodyParser: false
-  },
-  runtime: "nodejs"
-}
-
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import getRawBody from 'raw-body'
+import { buffer } from 'micro'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -17,64 +10,50 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// 🔥 FILTRES MON ÉQUIPE IA
 const MON_EQUIPE_IA_PRODUCT_ID = 'prod_T4pyi8D8gPloKU'
 const MON_EQUIPE_IA_PRICE_ID = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
 
-/**
- * Vérifie si l'événement concerne Mon Équipe IA
- */
 function isMonEquipeIAEvent(event) {
-  const { type, data } = event
+  const eventType = event.type
   
-  // Pour checkout.session.completed
-  if (type === 'checkout.session.completed') {
-    const session = data.object
-    // Vérifier si la session contient notre product_id dans metadata
-    // (on va l'ajouter dans create-checkout-session.js)
-    return session.metadata?.product === MON_EQUIPE_IA_PRODUCT_ID ||
-           session.metadata?.price === MON_EQUIPE_IA_PRICE_ID
+  if (eventType === 'checkout.session.completed') {
+    const session = event.data.object
+    const metadata = session.metadata || {}
+    return metadata.product === MON_EQUIPE_IA_PRODUCT_ID && metadata.price === MON_EQUIPE_IA_PRICE_ID
   }
   
-  // Pour invoice.payment_succeeded et invoice.payment_failed
-  if (type === 'invoice.payment_succeeded' || type === 'invoice.payment_failed') {
-    const invoice = data.object
-    // Vérifier les lignes de l'invoice
-    if (invoice.lines && invoice.lines.data) {
-      return invoice.lines.data.some(line => 
-        line.price?.id === MON_EQUIPE_IA_PRICE_ID ||
-        line.price?.product === MON_EQUIPE_IA_PRODUCT_ID
-      )
-    }
-    return false
+  if (eventType === 'invoice.payment_succeeded' || eventType === 'invoice.payment_failed') {
+    const invoice = event.data.object
+    const lineItem = invoice.lines?.data?.[0]
+    if (!lineItem) return false
+    
+    const priceId = lineItem.price?.id
+    return priceId === MON_EQUIPE_IA_PRICE_ID
   }
   
-  // Pour customer.subscription.deleted
-  if (type === 'customer.subscription.deleted') {
-    const subscription = data.object
-    // Vérifier les items de la subscription
-    if (subscription.items && subscription.items.data) {
-      return subscription.items.data.some(item =>
-        item.price?.id === MON_EQUIPE_IA_PRICE_ID ||
-        item.price?.product === MON_EQUIPE_IA_PRODUCT_ID
-      )
-    }
-    return false
+  if (eventType === 'customer.subscription.deleted' || eventType === 'customer.subscription.updated') {
+    return true
   }
   
   return false
 }
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).send('Method Not Allowed')
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  const buf = await buffer(req)
   const sig = req.headers['stripe-signature']
-  let event
 
+  let event
   try {
-    const buf = await getRawBody(req)
     event = stripe.webhooks.constructEvent(buf, sig, endpointSecret)
     console.log(`📨 Webhook reçu: ${event.type}`)
   } catch (err) {
@@ -90,40 +69,61 @@ export default async function handler(req, res) {
 
   console.log(`✅ Événement Mon Équipe IA confirmé: ${event.type}`)
 
+  // ✅ IDEMPOTENCE : Vérifier si event déjà traité
+  const { data: existingEvent } = await supabase
+    .from('stripe_events')
+    .select('id')
+    .eq('id', event.id)
+    .single()
+
+  if (existingEvent) {
+    console.log(`⏭️ Event ${event.id} déjà traité, ignoré`)
+    return res.json({ received: true, ignored: true, reason: 'already_processed' })
+  }
+
+  // Helper pour enregistrer l'event comme traité après succès
+  const markEventAsProcessed = async () => {
+    const { error } = await supabase
+      .from('stripe_events')
+      .insert({
+        id: event.id,
+        type: event.type,
+        data: event.data.object
+      })
+    
+    if (error) {
+      console.error('⚠️ Erreur insertion stripe_events (non bloquant):', error)
+    }
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
         console.log('🛒 Checkout session completed:', session.id)
 
-        // Récupérer les détails de la subscription depuis Stripe
         const subscription = await stripe.subscriptions.retrieve(session.subscription)
         console.log('📋 Subscription status:', subscription.status)
         console.log('⏰ Trial end:', subscription.trial_end)
 
-        // Déterminer le statut selon si c'est un trial ou pas
         const isOnTrial = subscription.status === 'trialing'
         const subscriptionStatus = isOnTrial ? 'trial' : 'premium'
 
-        // Préparer les données à mettre à jour
         const updateData = {
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           subscription_status: subscriptionStatus
         }
 
-        // Si trial, ajouter la date de fin
         if (isOnTrial && subscription.trial_end) {
           updateData.subscription_trial_end = new Date(subscription.trial_end * 1000)
           console.log('📅 Trial end date:', updateData.subscription_trial_end)
         }
 
-        // Si premium immédiat, ajouter la date de fin de période
         if (!isOnTrial && subscription.current_period_end) {
           updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
         }
 
-        // Mettre à jour Supabase
         const { error } = await supabase
           .from('users')
           .update(updateData)
@@ -139,6 +139,9 @@ export default async function handler(req, res) {
           status: subscriptionStatus,
           customer_id: session.customer
         })
+
+        // Marquer l'event comme traité APRÈS succès
+        await markEventAsProcessed()
         break
       }
 
@@ -146,7 +149,6 @@ export default async function handler(req, res) {
         const invoice = event.data.object
         console.log('💰 Paiement réussi pour customer:', invoice.customer)
 
-        // Récupérer la subscription pour avoir les dates
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription)
 
         const { error } = await supabase
@@ -154,7 +156,7 @@ export default async function handler(req, res) {
           .update({
             subscription_status: 'premium',
             subscription_current_period_end: new Date(subscription.current_period_end * 1000),
-            subscription_trial_end: null // Clear trial end quand on devient premium
+            subscription_trial_end: null
           })
           .eq('stripe_customer_id', invoice.customer)
 
@@ -164,6 +166,9 @@ export default async function handler(req, res) {
         }
 
         console.log('✅ Utilisateur passé en premium:', invoice.customer)
+
+        // Marquer l'event comme traité APRÈS succès
+        await markEventAsProcessed()
         break
       }
 
@@ -187,6 +192,9 @@ export default async function handler(req, res) {
         }
 
         console.log('✅ Utilisateur passé en expired (sub deleted):', subscription.customer)
+
+        // Marquer l'event comme traité APRÈS succès
+        await markEventAsProcessed()
         break
       }
 
@@ -210,6 +218,51 @@ export default async function handler(req, res) {
         }
 
         console.log('✅ Utilisateur passé en expired (payment failed):', invoice.customer)
+
+        // Marquer l'event comme traité APRÈS succès
+        await markEventAsProcessed()
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object
+        console.log('🔄 Subscription updated:', subscription.customer)
+
+        // Récupérer le nouveau statut
+        const subscriptionStatus = subscription.status === 'trialing' ? 'trial' : 
+                                   subscription.status === 'active' ? 'premium' : 
+                                   'expired'
+
+        const updateData = {
+          subscription_status: subscriptionStatus,
+          stripe_subscription_id: subscription.id
+        }
+
+        if (subscription.status === 'trialing' && subscription.trial_end) {
+          updateData.subscription_trial_end = new Date(subscription.trial_end * 1000)
+          updateData.subscription_current_period_end = null
+        } else if (subscription.status === 'active' && subscription.current_period_end) {
+          updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
+          updateData.subscription_trial_end = null
+        } else {
+          updateData.subscription_current_period_end = null
+          updateData.subscription_trial_end = null
+        }
+
+        const { error } = await supabase
+          .from('users')
+          .update(updateData)
+          .eq('stripe_customer_id', subscription.customer)
+
+        if (error) {
+          console.error('❌ Erreur Supabase subscription updated:', error)
+          throw error
+        }
+
+        console.log('✅ Subscription mise à jour:', subscription.customer, subscriptionStatus)
+
+        // Marquer l'event comme traité APRÈS succès
+        await markEventAsProcessed()
         break
       }
 
@@ -220,6 +273,14 @@ export default async function handler(req, res) {
     res.json({ received: true })
   } catch (err) {
     console.error('❌ Erreur traitement webhook:', err)
-    res.status(500).send('Internal Server Error')
+    console.error('Stack:', err.stack)
+    
+    // Toujours répondre 200 à Stripe pour éviter les retries infinis
+    // L'idempotence empêche les doublons si Stripe retry quand même
+    res.status(200).json({ 
+      received: true, 
+      error: true, 
+      message: err.message 
+    })
   }
 }

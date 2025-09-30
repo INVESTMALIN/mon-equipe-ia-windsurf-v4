@@ -1,5 +1,4 @@
 // src/components/fiche/sections/FicheFinalisation.jsx
-
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SidebarMenu from '../SidebarMenu'
@@ -10,6 +9,7 @@ import { cleanFormData, extractSummary, validateDataConsistency } from '../../..
 import { formatForPdf, prepareForN8nWebhook, generatePdfTitle } from '../../../lib/PdfFormatter'
 import { CheckCircle, FileText, PenTool, MessageSquare, Send, Copy, Sparkles, Bot } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
+import useProgressiveLoading from '../../../hooks/useProgressiveLoading'
 
 export default function FicheFinalisation() {
   const navigate = useNavigate()
@@ -23,6 +23,7 @@ export default function FicheFinalisation() {
   const [copiedAnnonce, setCopiedAnnonce] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
   const [currentInput, setCurrentInput] = useState('')
+  const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(annonceLoading, false)
 
   const quickPrompts = [
     { 
@@ -115,7 +116,7 @@ export default function FicheFinalisation() {
       
       // ✅ AbortController + timeout + error handling complet
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 90000)
+      const timeout = setTimeout(() => controller.abort(), 120000)
       
       const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
@@ -214,7 +215,7 @@ export default function FicheFinalisation() {
       }
       
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 80000)
+      const timeout = setTimeout(() => controller.abort(), 120000)
       
       const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
@@ -331,89 +332,107 @@ export default function FicheFinalisation() {
                 {/* Assistant Annonce */}
                 {showAnnonceAssistant && (
                   <div className="bg-white rounded-xl shadow-sm p-6">
-  <div className="flex items-center gap-3 mb-6">
-    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-      <PenTool className="w-5 h-5 text-white" />
-    </div>
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900">Assistant Annonce</h3>
-      <p className="text-sm text-gray-600">Générez et affinez votre annonce</p>
-    </div>
-  </div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                        <PenTool className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Assistant Annonce</h3>
+                        <p className="text-sm text-gray-600">Générez et affinez votre annonce</p>
+                      </div>
+                    </div>
 
-  {/* Boutons de prompts rapides */}
-  <div className="mb-4">
-    <p className="text-sm text-gray-600 mb-3">Suggestions rapides :</p>
-    <div className="flex flex-wrap gap-2">
-      {quickPrompts.map((prompt, index) => (
-        <button
-          key={index}
-          onClick={() => handleQuickPrompt(prompt.prompt)}
-          disabled={annonceLoading}
-          className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 border"
-        >
-          <span>{prompt.icon}</span>
-          <span>{prompt.label}</span>
-        </button>
-      ))}
-    </div>
-  </div>
+                    {/* Boutons de prompts rapides */}
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 mb-3">Suggestions rapides :</p>
+                      <div className="flex flex-wrap gap-2">
+                        {quickPrompts.map((prompt, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleQuickPrompt(prompt.prompt)}
+                            disabled={annonceLoading}
+                            className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 border"
+                          >
+                            <span>{prompt.icon}</span>
+                            <span>{prompt.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-  {/* Zone de chat */}
-  <div className="space-y-4">
-    {/* Messages */}
-    {chatMessages.length > 0 && (
-      <div className="max-h-80 overflow-y-auto space-y-3 bg-gray-50 rounded-lg p-4">
-        {chatMessages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-3 rounded-lg ${
-              msg.type === 'user' 
-                ? 'bg-purple-600 text-white' 
-                : 'bg-white border shadow-sm text-gray-900'
-            }`}>
-              <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-            </div>
-          </div>
-        ))}
-        
-        {annonceLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white border shadow-sm rounded-lg p-3 max-w-[80%]">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Bot className="w-4 h-4 text-purple-600 animate-pulse" />
-                L'IA génère votre annonce...
-              </div>
-            </div>
-          </div>
-        )}
+                {/* Zone de chat */}
+                <div className="space-y-4">
+                    {/* Messages */}
+                    {chatMessages.length > 0 && (
+                      <div className="max-h-80 overflow-y-auto space-y-3 bg-gray-50 rounded-lg p-4">
+                        {chatMessages.map((msg, index) => (
+                          <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[80%] ${
+                              msg.type === 'user' 
+                                ? 'bg-purple-600 text-white rounded-lg' 
+                                : 'bg-white border shadow-sm text-gray-900 rounded-lg'
+                            }`}>
+                              <div className="p-3 text-sm whitespace-pre-wrap">{msg.content}</div>
+                              
+                              {/* Bouton copier uniquement pour les réponses bot */}
+                              {msg.type === 'bot' && (
+                                <div className="px-3 pb-2 border-t border-gray-100">
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(msg.content)
+                                      setCopiedAnnonce(true)
+                                      setTimeout(() => setCopiedAnnonce(false), 2000)
+                                    }}
+                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors mt-2"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                    {copiedAnnonce ? 'Copié !' : 'Copier'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {annonceLoading && (
+  <div className="flex justify-start">
+    <div className="bg-white border shadow-sm rounded-lg p-3 max-w-[80%]">
+      <div className="flex items-center gap-2 text-sm text-gray-500 animate-pulse">
+        <LoadingIcon className="w-4 h-4 text-purple-600" />
+        <span>{currentMessage}{dots}</span>
       </div>
-    )}
-
-    {/* Zone de saisie */}
-    <div className="flex gap-2">
-      <input
-        type="text"
-        value={currentInput}
-        onChange={(e) => setCurrentInput(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder="Demandez une modification ou posez une question..."
-        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        disabled={annonceLoading}
-      />
-      <button
-        onClick={() => sendMessage(currentInput)}
-        disabled={annonceLoading || !currentInput.trim()}
-        className={`px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-          annonceLoading || !currentInput.trim()
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-            : 'bg-purple-600 hover:bg-purple-700 text-white'
-        }`}
-      >
-        <Send className="w-4 h-4" />
-      </button>
     </div>
   </div>
-</div>
+)}
+
+                      </div>
+                    )}
+
+                    {/* Zone de saisie */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={currentInput}
+                        onChange={(e) => setCurrentInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Demandez une modification ou posez une question..."
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        disabled={annonceLoading}
+                      />
+                      <button
+                        onClick={() => sendMessage(currentInput)}
+                        disabled={annonceLoading || !currentInput.trim()}
+                        className={`px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                          annonceLoading || !currentInput.trim()
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-purple-600 hover:bg-purple-700 text-white'
+                        }`}
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
                 )}
 
               </div>

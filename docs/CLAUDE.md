@@ -155,14 +155,6 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB x24, photos_prises)
 - Mobile-first avec classes `md:`
 - Validation données avec `|| ""` ou `|| {}`
 
-### Pièges Évités (Leçons Apprises)
-- Pas de sous-dossiers dans `src/components/`
-- Pas d'inventions de tables inexistantes
-- Pas de Context API inutile
-- Pas de hardcode URLs/credentials
-- SessionId dynamique = mémoire cassée (RÉSOLU)
-- Process section incomplet = bugs garantis (RÉSOLU)
-
 ## ⚡ Action Immédiate Nouvelle Session
 
 ```
@@ -198,6 +190,120 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB x24, photos_prises)
 - **Database optimized** : RLS + indexation + isolation utilisateurs
 
 ---
+
+### Structure du projet actuelle
+
+```
+mon-equipe-ia-windsurf-v4/
+│
+├── api/
+│   ├── create-checkout-session.js
+│   ├── create-portal-session.js
+│   └── webhook.js
+│
+├── docs/
+│   ├── AJOUT_SECTIONS.md
+│   ├── CLAUDE.md
+│   ├── DESIGN_SYSTEM.md
+│   ├── DEVELOPMENT_NOTES.md
+│   ├── FEATURE_SPEC.md
+│   ├── FICHE_LOGEMENT_LITE.md
+│   ├── PAYWALL_PLAN.md
+│   ├── PROJET_VUE_DENSEMBLE.md
+│   └── TECHNICAL_SPEC.md
+│
+├── public/
+│   ├── 404.html
+│   └── images/
+│       └── ... (plusieurs images)
+│   ├── sparkles-icon.svg
+│   └── vite.svg
+│
+├── src/
+│   ├── App.jsx
+│   ├── assets/
+│   │   └── react.svg
+│   ├── components/
+│   │   ├── AccountCreated.jsx
+│   │   ├── AssistantAnnonce.jsx
+│   │   ├── AssistantFormation.jsx
+│   │   ├── AssistantJuridique.jsx
+│   │   ├── AssistantNegociateur.jsx
+│   │   ├── Assistants.jsx
+│   │   ├── AssistantsBackup.jsx
+│   │   ├── ChangePasswordModal.jsx
+│   │   ├── ComingSoon.jsx
+│   │   ├── ConditionsUtilisation.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── EmailConfirmation.jsx
+│   │   ├── FAQ.jsx
+│   │   ├── fiche/
+│   │   │   ├── FicheWizard.jsx
+│   │   │   ├── MiniDashboard.jsx
+│   │   │   ├── NavigationButtons.jsx
+│   │   │   ├── ProgressBar.jsx
+│   │   │   ├── SidebarMenu.jsx
+│   │   │   └── sections/
+│   │   │       ├── FicheAirbnb.jsx
+│   │   │       ├── FicheAvis.jsx
+│   │   │       ├── FicheBebe.jsx
+│   │   │       ├── FicheBooking.jsx
+│   │   │       ├── FicheChambre.jsx
+│   │   │       ├── FicheClefs.jsx
+│   │   │       ├── FicheCommuns.jsx
+│   │   │       ├── FicheConsommables.jsx
+│   │   │       ├── FicheCuisine1.jsx
+│   │   │       ├── FicheCuisine2.jsx
+│   │   │       ├── FicheEquipements.jsx
+│   │   │       ├── FicheEquipExterieur.jsx
+│   │   │       ├── FicheExigences.jsx
+│   │   │       ├── FicheFinalisation.jsx
+│   │   │       ├── FicheForm.jsx
+│   │   │       ├── FicheGestionLinge.jsx
+│   │   │       ├── FicheGuideAcces.jsx
+│   │   │       ├── FicheLogement.jsx
+│   │   │       ├── FicheReglementation.jsx
+│   │   │       ├── FicheSalleDeBains.jsx
+│   │   │       ├── FicheSalonSam.jsx
+│   │   │       ├── FicheSécurité.jsx
+│   │   │       ├── FicheTeletravail.jsx
+│   │   │       └── FicheVisite.jsx
+│   │   ├── FormContext.jsx
+│   │   ├── Home.jsx
+│   │   ├── Inscription.jsx
+│   │   ├── Login.jsx
+│   │   ├── MentionsLegales.jsx
+│   │   ├── MonCompte.jsx
+│   │   ├── MotDePasseOublie.jsx
+│   │   ├── NotFound.jsx
+│   │   ├── NouveauMotDePasse.jsx
+│   │   ├── PolitiqueConfidentialite.jsx
+│   │   ├── ProtectedRoute.jsx
+│   │   ├── SidebarConversations.jsx
+│   │   ├── TestStripe.jsx
+│   │   └── UpgradeRequired.jsx
+│   ├── hooks/
+│   │   └── useProgressiveLoading.js
+│   ├── index.css
+│   ├── lib/
+│   │   ├── AlerteDetector.js
+│   │   ├── DataProcessor.js
+│   │   ├── PdfBuilder.js
+│   │   ├── PdfFormatter.js
+│   │   └── supabaseHelpers.js
+│   ├── main.jsx
+│   └── supabaseClient.js
+│
+├── .gitignore
+├── eslint.config.js
+├── index.html
+├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── tailwind.config.js
+├── vercel.json
+└── vite.config.js
+```
 
 **🎯 STATUT GLOBAL** : SYSTÈME PRODUCTION-READY  
 **📋 PROCHAINES ÉTAPES** : Finitions + tests Kevin + préparation lancement  

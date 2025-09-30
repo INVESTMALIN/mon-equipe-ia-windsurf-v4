@@ -30,10 +30,10 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
           return
         }
 
-        // 3. Si premium requis, récupérer profil utilisateur
+        // 3. Si premium requis, récupérer profil utilisateur + DATES
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('subscription_status')
+          .select('subscription_status, subscription_trial_end, subscription_current_period_end')
           .eq('id', session.user.id)
           .single()
 
@@ -43,18 +43,52 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
           return
         }
 
-        // 4. Vérifier si statut premium ou trial
-        const isPremiumUser = profile.subscription_status === 'premium' || 
-                             profile.subscription_status === 'trial'
+        const status = profile.subscription_status
+        const now = new Date()
 
-        if (!isPremiumUser) {
-          console.log(`Accès premium refusé. Statut actuel: ${profile.subscription_status}`)
-          navigate('/upgrade', { replace: true })
+        // 4. Vérifier expiration TRIAL
+        if (status === 'trial') {
+          if (!profile.subscription_trial_end) {
+            console.log('Trial sans date de fin, accès refusé')
+            navigate('/upgrade', { replace: true })
+            return
+          }
+
+          const trialEnd = new Date(profile.subscription_trial_end)
+          if (trialEnd < now) {
+            console.log(`Trial expiré (${trialEnd.toISOString()})`)
+            navigate('/upgrade', { replace: true })
+            return
+          }
+
+          // Trial valide
+          setIsAllowed(true)
           return
         }
 
-        // 5. Tout est OK, autoriser l'accès
-        setIsAllowed(true)
+        // 5. Vérifier expiration PREMIUM
+        if (status === 'premium') {
+          if (!profile.subscription_current_period_end) {
+            console.log('Premium sans date de fin, accès refusé')
+            navigate('/upgrade', { replace: true })
+            return
+          }
+
+          const periodEnd = new Date(profile.subscription_current_period_end)
+          if (periodEnd < now) {
+            console.log(`Premium expiré (${periodEnd.toISOString()})`)
+            navigate('/upgrade', { replace: true })
+            return
+          }
+
+          // Premium valide
+          setIsAllowed(true)
+          return
+        }
+
+        // 6. Statut non autorisé (free, expired, autre)
+        console.log(`Accès premium refusé. Statut actuel: ${status}`)
+        navigate('/upgrade', { replace: true })
 
       } catch (error) {
         console.error('Erreur générale checkAccess:', error)
@@ -66,7 +100,7 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
 
     checkAccess()
 
-    // 6. Écouter les changements d'authentification
+    // 7. Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_OUT' || !session) {

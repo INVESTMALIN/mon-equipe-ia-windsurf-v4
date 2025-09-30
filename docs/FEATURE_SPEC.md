@@ -105,27 +105,114 @@ npm run deploy
 ### Structure du projet actuelle
 ```
 mon-equipe-ia-windsurf-v4/
-├── api/                          # API Routes Vercel
-│   └── create-portal-session.js  # Endpoint Stripe Customer Portal ✅ NOUVEAU
+│
+├── api/
+│   ├── create-checkout-session.js
+│   ├── create-portal-session.js
+│   └── webhook.js
+│
+├── docs/
+│   ├── AJOUT_SECTIONS.md
+│   ├── CLAUDE.md
+│   ├── DESIGN_SYSTEM.md
+│   ├── DEVELOPMENT_NOTES.md
+│   ├── FEATURE_SPEC.md
+│   ├── FICHE_LOGEMENT_LITE.md
+│   ├── PAYWALL_PLAN.md
+│   ├── PROJET_VUE_DENSEMBLE.md
+│   └── TECHNICAL_SPEC.md
+│
 ├── public/
-│   ├── images/                   # Assets statiques
+│   ├── 404.html
+│   └── images/
+│       └── ... (plusieurs images)
+│   ├── sparkles-icon.svg
 │   └── vite.svg
+│
 ├── src/
-│   ├── components/               # Composants React uniquement
-│   │   ├── MonCompte.jsx        # Gestion abonnement enrichie ✅ NOUVEAU
-│   │   ├── Assistants.jsx       # Dashboard utilisateur principal
-│   │   ├── AssistantFormation.jsx # Chat opérationnel
-│   │   └── [autres composants...]
-│   ├── App.jsx                  # Configuration des routes
-│   ├── main.jsx                 # Point d'entrée
-│   ├── supabaseClient.js        # Configuration Supabase
-│   ├── App.css
-│   └── index.css
-├── docs/                        # Documentation
+│   ├── App.jsx
+│   ├── assets/
+│   │   └── react.svg
+│   ├── components/
+│   │   ├── AccountCreated.jsx
+│   │   ├── AssistantAnnonce.jsx
+│   │   ├── AssistantFormation.jsx
+│   │   ├── AssistantJuridique.jsx
+│   │   ├── AssistantNegociateur.jsx
+│   │   ├── Assistants.jsx
+│   │   ├── AssistantsBackup.jsx
+│   │   ├── ChangePasswordModal.jsx
+│   │   ├── ComingSoon.jsx
+│   │   ├── ConditionsUtilisation.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── EmailConfirmation.jsx
+│   │   ├── FAQ.jsx
+│   │   ├── fiche/
+│   │   │   ├── FicheWizard.jsx
+│   │   │   ├── MiniDashboard.jsx
+│   │   │   ├── NavigationButtons.jsx
+│   │   │   ├── ProgressBar.jsx
+│   │   │   ├── SidebarMenu.jsx
+│   │   │   └── sections/
+│   │   │       ├── FicheAirbnb.jsx
+│   │   │       ├── FicheAvis.jsx
+│   │   │       ├── FicheBebe.jsx
+│   │   │       ├── FicheBooking.jsx
+│   │   │       ├── FicheChambre.jsx
+│   │   │       ├── FicheClefs.jsx
+│   │   │       ├── FicheCommuns.jsx
+│   │   │       ├── FicheConsommables.jsx
+│   │   │       ├── FicheCuisine1.jsx
+│   │   │       ├── FicheCuisine2.jsx
+│   │   │       ├── FicheEquipements.jsx
+│   │   │       ├── FicheEquipExterieur.jsx
+│   │   │       ├── FicheExigences.jsx
+│   │   │       ├── FicheFinalisation.jsx
+│   │   │       ├── FicheForm.jsx
+│   │   │       ├── FicheGestionLinge.jsx
+│   │   │       ├── FicheGuideAcces.jsx
+│   │   │       ├── FicheLogement.jsx
+│   │   │       ├── FicheReglementation.jsx
+│   │   │       ├── FicheSalleDeBains.jsx
+│   │   │       ├── FicheSalonSam.jsx
+│   │   │       ├── FicheSécurité.jsx
+│   │   │       ├── FicheTeletravail.jsx
+│   │   │       └── FicheVisite.jsx
+│   │   ├── FormContext.jsx
+│   │   ├── Home.jsx
+│   │   ├── Inscription.jsx
+│   │   ├── Login.jsx
+│   │   ├── MentionsLegales.jsx
+│   │   ├── MonCompte.jsx
+│   │   ├── MotDePasseOublie.jsx
+│   │   ├── NotFound.jsx
+│   │   ├── NouveauMotDePasse.jsx
+│   │   ├── PolitiqueConfidentialite.jsx
+│   │   ├── ProtectedRoute.jsx
+│   │   ├── SidebarConversations.jsx
+│   │   ├── TestStripe.jsx
+│   │   └── UpgradeRequired.jsx
+│   ├── hooks/
+│   │   └── useProgressiveLoading.js
+│   ├── index.css
+│   ├── lib/
+│   │   ├── AlerteDetector.js
+│   │   ├── DataProcessor.js
+│   │   ├── PdfBuilder.js
+│   │   ├── PdfFormatter.js
+│   │   └── supabaseHelpers.js
+│   ├── main.jsx
+│   └── supabaseClient.js
+│
+├── .gitignore
+├── eslint.config.js
+├── index.html
 ├── package.json
+├── package-lock.json
+├── postcss.config.js
 ├── tailwind.config.js
-├── vite.config.js
-└── vercel.json                  # Configuration Vercel
+├── vercel.json
+└── vite.config.js
 ```
 
 ## Technologies et dépendances

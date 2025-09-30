@@ -158,7 +158,7 @@ export default function AssistantAnnonce() {
   
       // AbortController pour timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 80000)
+      const timeoutId = setTimeout(() => controller.abort(), 120000)
   
       const res = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
