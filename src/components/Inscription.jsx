@@ -15,30 +15,46 @@ export default function Inscription() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
+  
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: 'https://mon-equipe-ia.vercel.app/email-confirmation'
+        emailRedirectTo: `${window.location.origin}/email-confirmation`
       }
     })
-
+  
     if (error) {
       setError(error.message)
       setLoading(false)
       return
     }
+  
+    const userId = data?.user?.id
+    if (!userId) {
+      // Cas confirmation email obligatoire
+      // Le trigger DB créera la ligne users automatiquement
+      navigate('/compte-cree')
+      return
+    }
+  
+    // Upsert pour gérer à la fois insert et update
+    await new Promise(resolve => setTimeout(resolve, 500))
 
-    // Insérer dans la table 'users'
-    await supabase.from('users').insert([
-      {
-        id: data.user.id,
+    // Update prenom et nom (la ligne existe déjà via trigger)
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
         prenom: firstName,
         nom: lastName
-      }
-    ])
+      })
+      .eq('id', userId)
 
+    if (updateError) {
+      console.error('Erreur update profil:', updateError)
+      // On continue quand même, le compte principal est créé
+    }
+  
     navigate('/compte-cree')
   }
 
