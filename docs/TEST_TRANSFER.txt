@@ -1,1 +1,0 @@
-Test: vérification droits push après transfert
