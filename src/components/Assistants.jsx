@@ -121,13 +121,13 @@ export default function MonCompteV2() {
               </div>
               
               <h2 className="text-xl font-light mb-4 text-gray-300">
-                Votre copilote pendant la formation Invest Malin
+                Votre copilote pendant l'accompagnement Invest Malin
               </h2>
               
               <div className="space-y-3 text-base leading-relaxed text-gray-300 mb-6">
                 <p>
-                  Accédez à tous les supports de la formation Invest Malin : vidéos, modules, documents 
-                  téléchargeables, fiches pratiques, FAQ.
+                  Obtenez des réponses sur tous les supports du programme Invest Malin : vidéos, modules, documents, 
+                  fiches pratiques, FAQ.
                 </p>
                 <p>
                   Posez-lui vos questions techniques, pratiques ou administratives : il est connecté à toute la 
@@ -452,13 +452,24 @@ export default function MonCompteV2() {
           <p className="text-xl opacity-90 max-w-2xl mx-auto mb-8">
             Rejoignez des milliers de concierges qui utilisent déjà nos assistants IA pour optimiser leur conciergerie
           </p>
-          <Link
-            to="/assistant-formation"
-            className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-10 py-4 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            COMMENCER MAINTENANT
-            <span className="ml-2">→</span>
-          </Link>
+          
+          {isPremium ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-10 py-4 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+            >
+              ACCÉDER À MON TABLEAU DE BORD
+              <span className="ml-2">→</span>
+            </Link>
+          ) : (
+            <Link
+              to="/upgrade"
+              className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-10 py-4 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+            >
+              ESSAYER GRATUITEMENT 30 JOURS
+              <span className="ml-2">→</span>
+            </Link>
+          )}
         </div>
       </section>
 
@@ -476,7 +487,7 @@ export default function MonCompteV2() {
                 <span className="text-lg font-bold">MON ÉQUIPE IA</span>
               </div>
               <p className="text-gray-400 text-sm">
-                Révolutionnez votre conciergerie avec l'intelligence artificielle
+                Révolutionnez votre conciergerie et automatisez vos tâches grâce à l'intelligence artificielle.
               </p>
             </div>
             <div>
@@ -537,14 +548,14 @@ export default function MonCompteV2() {
                       to="/annonce" 
                       className="hover:text-white transition-colors"
                     >
-                      Assistant Annonce IA
+                      Assistant Annonce
                     </Link>
                   ) : (
                     <Link 
                       to="/upgrade" 
                       className="flex items-center gap-2 hover:text-white transition-colors group"
                     >
-                      <span>Assistant Annonce IA</span>
+                      <span>Assistant Annonce</span>
                       <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
                     </Link>
                   )}
@@ -572,7 +583,7 @@ export default function MonCompteV2() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="mailto:support@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="mailto:contact@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                 <li><Link to="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
                 <li><Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link></li>

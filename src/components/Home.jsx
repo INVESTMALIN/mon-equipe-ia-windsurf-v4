@@ -160,7 +160,7 @@ export default function Home() {
               <h3 className="font-bold text-lg mb-4 text-black">ACCOMPAGNEMENT PÉDAGOGIQUE</h3>
               <p className="text-gray-700">
                 Répondre à toutes les questions liées à la 
-                formation Invest Malin 7j/7, 
+                l'accompagnement Invest Malin 7j/7, 
                 24h/24.
               </p>
             </div>
@@ -169,7 +169,7 @@ export default function Home() {
               <h3 className="font-bold text-lg mb-4 text-black">ANALYSE D'APPELS CLIENTS</h3>
               <p className="text-gray-700">
                 Analyse la personnalité 
-                de vos clients, propose 
+                de vos clients, résume vos appels, propose 
                 une stratégie de 
                 négociation adaptée.
               </p>
@@ -217,7 +217,7 @@ export default function Home() {
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   Coach Malin répond à toutes les 
-                  questions liées à la formation Invest 
+                  questions liées à l'accompagnement Invest 
                   Malin, 24h/24. Le meilleur expert en 
                   conciergerie dans votre poche.
                 </p>
@@ -231,36 +231,34 @@ export default function Home() {
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   Analyse automatique des appels 
-                  commerciaux : détection des objections, 
-                  des besoins, et des signaux d'achat.
+                  commerciaux : détection des objections, de la personnalité,
+                  des besoins et des signaux d'achat.
                 </p>
               </div>
 
-              {/* Assistant Fiscaliste */}
+              {/* Assistant Juridique */}
               <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Scale className="text-[#dbae61] w-8 h-8" />
-                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">FISCALISTE</span></h3>
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">JURIDIQUE</span></h3>
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  Assistant expert en fiscalité, la 
+                  Assistant expert en démarches fiscales & légales, la 
                   copropriété, la sous-location, la TVA, et 
                   toutes problématiques juridiques de 
                   terrain.
                 </p>
               </div>
 
-              {/* Assistant LegalBNB */}
+              {/* Assistant Annonce */}
               <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Users className="text-[#dbae61] w-8 h-8" />
-                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">LEGALBNB</span></h3>
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">ANNONCE</span></h3>
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  Assistant spécialisé dans l'analyse de 
-                  règlements (copro, mairie, etc). Lit vos 
-                  documents (PDF, copier-coller) et sort 
-                  les points clés.
+                  Assistant spécialisé dans la création d'annonces
+                  optimisées. Il rédige des descriptions adaptées, optimise votre annonce, etc.
                 </p>
               </div>
             </div>
