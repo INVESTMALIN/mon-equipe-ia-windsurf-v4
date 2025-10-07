@@ -96,7 +96,7 @@ export default function MentionsLegales() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Droit applicable</h2>
               <p className="text-gray-700 leading-relaxed">
-                Le présent site est régi par le droit français. En cas de litige, les tribunaux compétents de Paris seront seuls compétents.
+              La connexion et la navigation sur le site internet mon-equipe-ia.com par l’utilisateur implique l’acceptation intégrale et sans réserve des présentes mentions légales. Le présent site est régi par le droit français. En cas de litige, les tribunaux compétents de Paris seront seuls compétents.
               </p>
             </section>
 
@@ -120,8 +120,22 @@ export default function MentionsLegales() {
               Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
             </p>
           </div>
+          
         </div>
+        
       </main>
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-8 px-6 md:px-20 text-sm text-gray-500">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p>© 2025 Mon Équipe IA. Tous droits réservés.</p>
+          <div className="flex gap-4">
+            <Link to="/" className="hover:text-gray-700">Accueil</Link>
+            <Link to="/mentions-legales" className="hover:text-gray-700">Mentions légales</Link>
+            <Link to="/politique-confidentialite" className="hover:text-gray-700">Confidentialité</Link>
+            <Link to="/conditions-utilisation" className="hover:text-gray-700">Conditions d'utilisation</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

@@ -145,7 +145,19 @@ export default function AssistantFormationWithHistoryV3() {
     localStorage.setItem('conversation_id', newId)
     conversationIdRef.current = newId
     setMessages([{ sender: 'bot', text: welcome }])
-
+    
+    if (userId) {
+      await supabase.from('conversations').insert({
+        user_id: userId,
+        source: 'assistant-formation',
+        conversation_id: newId,
+        title: 'Nouvelle conversation',
+        question: '',
+        answer: ''
+      })
+      
+      window.dispatchEvent(new Event('refreshSidebar'))
+    }
   }
 
   return (
@@ -218,6 +230,8 @@ export default function AssistantFormationWithHistoryV3() {
           activeId={conversationIdRef.current}
           onSelect={loadConversation}
           userId={userId}
+          source="assistant-formation"
+          onNewConversation={createNewConversation}
         />
 
         {/* Zone de chat principale */}

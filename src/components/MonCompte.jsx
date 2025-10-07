@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare } from 'lucide-react'
+import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ChangePasswordModal from './ChangePasswordModal'
 import EditProfileModal from './EditProfileModal'
+import DeleteConversationsModal from './DeleteConversationsModal'
 
 export default function MonCompte() {
   const navigate = useNavigate()
@@ -12,6 +13,7 @@ export default function MonCompte() {
   const [loading, setLoading] = useState(true)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -79,6 +81,30 @@ export default function MonCompte() {
     }
   }
 
+  const handleDeleteAllConversations = async () => {
+    setLoading(true)
+    
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id)
+      
+      if (error) throw error
+      
+      alert('✅ Toutes vos conversations ont été supprimées avec succès.')
+      setShowDeleteModal(false)
+      
+      // Rafraîchir la sidebar de tous les assistants
+      window.dispatchEvent(new Event('refreshSidebar'))
+    } catch (error) {
+      console.error('Erreur suppression conversations:', error)
+      alert('❌ Erreur lors de la suppression. Veuillez réessayer ou contacter le support.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/connexion')
@@ -137,7 +163,7 @@ export default function MonCompte() {
           return (
             <div>
               <p className="text-gray-600 mb-4">
-                Vous utilisez actuellement la version gratuite avec accès à l'Assistant Formation.
+                Vous utilisez actuellement la version gratuite avec accès à l'Assistant Invest Malin.
               </p>
               <Link 
                 to="/upgrade" 
@@ -285,43 +311,42 @@ export default function MonCompte() {
         <div className="grid md:grid-cols-2 gap-8">
           
         {/* Informations personnelles */}
-        {/* Informations personnelles */}
-<div className="bg-white rounded-xl shadow-lg p-8">
-  <div className="flex items-center gap-3 mb-6">
-    <User className="w-6 h-6 text-[#dbae61]" />
-    <h2 className="text-xl font-bold text-black">Informations</h2>
-  </div>
-  
-  <div className="space-y-4">
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Prénom</label>
-        <p className="text-gray-900 font-medium">{userProfile?.prenom || 'Non renseigné'}</p>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nom</label>
-        <p className="text-gray-900 font-medium">{userProfile?.nom || 'Non renseigné'}</p>
-      </div>
-    </div>
-    
-    <div>
-      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
-      <p className="text-gray-900 font-medium">{user?.email || 'Chargement...'}</p>
-    </div>
-    
-    <div>
-      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Mot de passe</label>
-      <p className="text-gray-400 font-mono text-sm">••••••••••••</p>
-    </div>
-    
-    <button 
-      onClick={() => setShowEditModal(true)}
-      className="w-full mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg transition-colors font-medium"
-    >
-      Modifier les informations
-    </button>
-  </div>
-</div>
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <User className="w-6 h-6 text-[#dbae61]" />
+            <h2 className="text-xl font-bold text-black">Informations</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Prénom</label>
+                <p className="text-gray-900 font-medium">{userProfile?.prenom || 'Non renseigné'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nom</label>
+                <p className="text-gray-900 font-medium">{userProfile?.nom || 'Non renseigné'}</p>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+              <p className="text-gray-900 font-medium">{user?.email || 'Chargement...'}</p>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Mot de passe</label>
+              <p className="text-gray-400 font-mono text-sm">••••••••••••</p>
+            </div>
+            
+            <button 
+              onClick={() => setShowEditModal(true)}
+              className="w-full mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg transition-colors font-medium"
+            >
+              Modifier les informations
+            </button>
+          </div>
+        </div>
 
         {/* Modal changement mot de passe */}
         <ChangePasswordModal 
@@ -353,7 +378,7 @@ export default function MonCompte() {
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Assistant Formation - Gratuit */}
+            {/* Assistant Invest Malin - Gratuit */}
             <Link 
               to="/assistant-formation" 
               className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all duration-300 group"
@@ -362,8 +387,8 @@ export default function MonCompte() {
                 <MessageSquare className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Assistant Formation</h3>
-                <p className="text-sm text-gray-600">Questions sur la formation Invest Malin</p>
+                <h3 className="font-semibold text-gray-900 mb-1">Assistant Invest Malin</h3>
+                <p className="text-sm text-gray-600">Questions sur l'accompagnement Invest Malin</p>
                 <p className="text-xs text-blue-600 font-medium mt-1">Gratuit • Disponible</p>
               </div>
             </Link>
@@ -479,28 +504,81 @@ export default function MonCompte() {
           </div>
         </div>
 
-{/* Section FAQ - À ajouter en bas de la page, après les deux cards principales */}
-<div className="mt-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-sm p-8 border border-gray-200">
-  <div className="max-w-2xl mx-auto text-center">
-    <div className="mb-4">
-      <HelpCircle className="w-12 h-12 text-[#dbae61] mx-auto" />
-    </div>
-    <h3 className="text-xl font-bold text-gray-900 mb-2">
-      Une question ?
-    </h3>
-    <p className="text-gray-600 mb-6">
-      Consultez notre foire aux questions pour trouver rapidement des réponses sur votre compte, les assistants IA, et bien plus encore.
-    </p>
-    <Link
-      to="/faq"
-      className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 font-semibold px-6 py-3 rounded-lg border-2 border-gray-200 transition-colors"
-    >
-      Accéder à la FAQ
-      <ArrowRight className="w-4 h-4" />
-    </Link>
-  </div>
-</div>
-        
+        {/* Section RGPD & Données */}
+        <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <Shield className="w-6 h-6 text-[#dbae61]" />
+            <h2 className="text-xl font-bold text-black">Vos données et vie privée</h2>
+          </div>
+
+          <div className="space-y-4 text-gray-700">
+            <p className="leading-relaxed">
+              Conformément au <strong>RGPD</strong> (Règlement Général sur la Protection des Données),
+              vous disposez d’un droit d’accès, de rectification et de suppression de vos données personnelles.
+            </p>
+
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <h3 className="font-semibold text-blue-900 mb-2">Conservation de vos conversations</h3>
+              <ul className="space-y-2 text-sm text-blue-800">
+                <li>• Vos conversations sont conservées pour améliorer nos services</li>
+                <li>• Après 12 mois, elles sont anonymisées (suppression de votre identité)</li>
+                <li>• Vous pouvez supprimer tout votre historique à tout moment ci-dessous</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                {loading ? 'Suppression en cours...' : 'Supprimer tout mon historique'}
+              </button>
+
+              <a
+                href="https://www.cnil.fr/fr/reglement-europeen-protection-donnees"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+              >
+                En savoir plus sur le RGPD →
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+        {/* Section FAQ */}
+        <div className="mt-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-sm p-8 border border-gray-200">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="mb-4">
+              <HelpCircle className="w-12 h-12 text-[#dbae61] mx-auto" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Une question ?
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Consultez notre foire aux questions pour trouver rapidement des réponses sur votre compte, les assistants IA, et bien plus encore.
+            </p>
+            <Link
+              to="/faq"
+              className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 font-semibold px-6 py-3 rounded-lg border-2 border-gray-200 transition-colors"
+            >
+              Accéder à la FAQ
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Modal suppression conversations */}
+        <DeleteConversationsModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAllConversations}
+          loading={loading}
+        />
+                
       </div>
     </div>
   )

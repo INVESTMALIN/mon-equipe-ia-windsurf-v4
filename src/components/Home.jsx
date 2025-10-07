@@ -8,8 +8,9 @@ import {
   User,
   GraduationCap,
   Phone,
+  X,
   Menu,
-  X
+  ArrowRight
 } from 'lucide-react'
 
 export default function Home() {
@@ -34,8 +35,8 @@ export default function Home() {
           <nav className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#cas-usage" className="hover:text-[#dbae61] transition-colors">À PROPOS</a>
             <a href="#assistants" className="hover:text-[#dbae61] transition-colors">NOS ASSISTANTS</a>
-            <a href="#temoignages" className="hover:text-[#dbae61] transition-colors">TÉMOIGNAGES</a>
-          </nav>
+            <a href="/tarifs" className="hover:text-[#dbae61] transition-colors">TARIFS</a>
+            <a href="/connexion" className="hover:text-[#dbae61] transition-colors">SE CONNECTER</a>          </nav>
 
           {/* Bouton hamburger mobile */}
           <button 
@@ -69,11 +70,18 @@ export default function Home() {
                 NOS ASSISTANTS
               </a>
               <a 
-                href="#temoignages" 
+                href="/tarifs" 
                 className="hover:text-[#dbae61] transition-colors text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                TÉMOIGNAGES
+                TARIFS
+              </a>
+              <a 
+                href="/connextion" 
+                className="hover:text-[#dbae61] transition-colors text-sm font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                CONNEXION
               </a>
             </div>
           </nav>
@@ -92,17 +100,18 @@ export default function Home() {
             pour vous accompagner à chaque étape.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="#assistants"
-              className="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold px-8 py-3 rounded-md text-center transition-colors"
-            >
-              Découvrir les assistants
-            </a>
             <Link
-              to="/connexion"
-              className="bg-white text-black border-2 border-[#dbae61] hover:bg-gray-50 font-semibold px-8 py-3 rounded-md text-center transition-colors"
+              to="/inscription"
+              className="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold px-8 py-3 rounded-md transition-colors"
             >
-              Accéder à mon compte
+              Créer mon compte →
+            </Link>
+            
+            <Link
+              to="/tarifs"
+              className="bg-white hover:bg-gray-100 text-gray-900 font-semibold px-8 py-3 rounded-md border-2 border-gray-200 transition-colors"
+            >
+              Voir les tarifs
             </Link>
           </div>
         </div>
@@ -266,7 +275,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pourquoi Mon Équipe IA ? - Ratio 60/40 inversé */}
+
+      {/* Pourquoi Mon Équipe IA ?*/}
       <section className="bg-[#f8f8f8]">
         <div className="flex flex-col-reverse md:grid md:grid-cols-[60%_40%] md:h-[400px]">
           <div className="px-6 md:px-20 lg:px-32 xl:px-48 py-8 flex flex-col justify-center">
@@ -301,6 +311,84 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+{/* Section Fiche Logement Lite */}
+<section className="bg-gradient-to-br from-[#dbae61] to-[#c49a4f]">
+  <div className="flex flex-col md:grid md:grid-cols-[50%_50%]">
+    
+    {/* Contenu gauche */}
+    <div className="px-8 md:px-32 py-12 flex flex-col justify-center text-white">
+      <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-4 w-fit">
+        <span className="text-sm font-bold">✨ EXCLUSIVITÉ PREMIUM</span>
+      </div>
+      
+      <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
+        Fiche Logement Lite
+      </h2>
+      
+      <p className="text-lg mb-6 leading-relaxed text-white/90">
+        Votre outil d'inspection professionnelle intégré. Structurez vos visites, générez des PDFs instantanément, et créez des annonces optimisées.
+      </p>
+
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-[#dbae61] font-bold text-sm">✓</span>
+          </div>
+          <span className="font-semibold">Dashboard de gestion centralisé</span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-[#dbae61] font-bold text-sm">✓</span>
+          </div>
+          <span className="font-semibold">Formulaire complet 24 sections</span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-[#dbae61] font-bold text-sm">✓</span>
+          </div>
+          <span className="font-semibold">Génération PDF instantanée</span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-[#dbae61] font-bold text-sm">✓</span>
+          </div>
+          <span className="font-semibold">Assistant Annonce intégré</span>
+        </div>
+      </div>
+
+      <Link
+        to="/tarifs"
+        className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-[#dbae61] font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 shadow-2xl w-fit"
+      >
+        Voir tous les avantages
+        <ArrowRight className="w-5 h-5" />
+      </Link>
+    </div>
+
+    {/* Image/mockup droite */}
+    <div className="relative overflow-hidden min-h-[400px] md:min-h-[500px]">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+      <div className="absolute inset-0 flex items-center justify-center p-8">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md transform rotate-2 hover:rotate-0 transition-transform">
+          <div className="bg-gray-100 rounded-lg p-6 space-y-3">
+            <div className="h-8 bg-[#dbae61] rounded w-3/4"></div>
+            <div className="h-4 bg-gray-300 rounded w-full"></div>
+            <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="h-20 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+            <div className="h-10 bg-[#dbae61] rounded mt-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Témoignages */}
       <section id="temoignages" className="bg-white px-6 md:px-20 py-16">
@@ -396,7 +484,7 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="mailto:support@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="mailto:contact@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                 <li><Link to="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
                 <li><Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link></li>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, MessageCircle, Users, FileText, Bot } from 'lucide-react'
+import { ChevronDown, ChevronUp, MessageCircle, Users, FileText, Bot, Shield, AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function FAQ() {
@@ -14,44 +14,70 @@ export default function FAQ() {
 
   const faqCategories = [
     {
-      title: "Général",
-      icon: <MessageCircle className="w-5 h-5" style={{ color: '#dbae61' }} />,
+      title: "Avertissement légal",
+      icon: <FileText className="w-5 h-5" style={{ color: '#dbae61' }} />,
       items: [
         {
-          id: "general-1",
-          question: "Qu'est-ce que Mon Équipe IA ?",
-          answer: "Mon Équipe IA est une plateforme qui met à votre disposition des assistants IA spécialisés pour vous accompagner dans votre activité de conciergerie. Chaque assistant est conçu pour répondre à des besoins spécifiques : formation, fiscalité, juridique, etc."
+          id: "disclaimer-1",
+          question: "Limites de responsabilité de l’IA",
+          answer: "Nos assistants IA utilisent des modèles avancés d’intelligence artificielle, mais peuvent commettre des erreurs ou fournir des réponses approximatives. Les informations proposées doivent toujours être vérifiées avant toute décision importante."
         },
         {
-          id: "general-2",
-          question: "Comment fonctionne l'assistant IA ?",
-          answer: "Nos assistants IA utilisent des technologies avancées de traitement du langage naturel. Ils sont entraînés sur des données spécifiques à votre domaine d'activité pour vous fournir des réponses précises et pertinentes 24h/24."
-        },
-        {
-          id: "general-3",
-          question: "Mes données sont-elles sécurisées ?",
-          answer: "Absolument. Toutes vos données sont hébergées en Europe et chiffrées. Nous respectons le RGPD et ne partageons jamais vos informations avec des tiers."
+          id: "disclaimer-2",
+          question: "Conseils juridiques, fiscaux ou professionnels",
+          answer: "Les réponses fournies par les assistants IA ne constituent pas des conseils juridiques, fiscaux ou comptables. Elles sont données à titre informatif et général. Pour toute décision engageant votre responsabilité, veuillez consulter un professionnel qualifié."
         }
       ]
     },
     {
-      title: "Assistants IA",
-      icon: <Bot className="w-5 h-5" style={{ color: '#dbae61' }} />,
+      title: "Confidentialité & RGPD",
+      icon: <Shield className="w-5 h-5" style={{ color: '#dbae61' }} />,
       items: [
         {
-          id: "assistants-1",
-          question: "Quels assistants sont disponibles ?",
-          answer: "Nous proposons plusieurs assistants spécialisés : Assistant Formation (pour la formation Invest Malin), Fiscaliste IA (questions fiscales), LegalBNB (questions juridiques), et Négociateur IA (aide à la négociation)."
+          id: "rgpd-1",
+          question: "Comment mes données sont-elles protégées ?",
+          answer: "Toutes les données sont hébergées dans l’Union Européenne et chiffrées. Nous appliquons les recommandations de la CNIL et respectons le Règlement Général sur la Protection des Données (RGPD)."
         },
         {
-          id: "assistants-2",
-          question: "L'Assistant Formation est-il gratuit ?",
-          answer: "Oui, l'Assistant Formation est accessible gratuitement à tous les clients de la formation Invest Malin. Il vous accompagne pendant et après votre formation."
+          id: "rgpd-2",
+          question: "Combien de temps mes conversations sont-elles conservées ?",
+          answer: "Vos conversations sont conservées pendant 6 mois pour votre confort d’usage. Après 12 mois, elles sont automatiquement anonymisées et ne permettent plus de vous identifier."
         },
         {
-          id: "assistants-3",
-          question: "Comment accéder aux assistants spécialisés ?",
-          answer: "Les assistants spécialisés (Fiscaliste IA, LegalBNB, Négociateur IA) sont disponibles avec l'abonnement Pro. Après connexion, vous pouvez y accéder directement depuis votre tableau de bord."
+          id: "rgpd-3",
+          question: "Puis-je supprimer mon historique ?",
+          answer: "Oui, vous pouvez supprimer tout votre historique depuis la section 'Mon Compte'. Cette action est immédiate et irréversible."
+        },
+        {
+          id: "rgpd-4",
+          question: "Quels sont mes droits RGPD ?",
+          answer: "Vous disposez d’un droit d’accès, de rectification, de portabilité et de suppression de vos données. Pour toute demande, vous pouvez contacter notre délégué à la protection des données (DPO) à l’adresse : contact@mon-equipe-ia.com."
+        }
+      ]
+    },
+    {
+      title: "Mentions légales & Réglementation",
+      icon: <FileText className="w-5 h-5" style={{ color: '#dbae61' }} />,
+      items: [
+        {
+          id: "legal-1",
+          question: "Où consulter les CGU/CGV ?",
+          answer: "Les Conditions Générales d’Utilisation et de Vente sont accessibles à tout moment depuis le pied de page du site ou via la page 'Mentions légales'."
+        },
+        {
+          id: "legal-2",
+          question: "Quelle est votre politique de confidentialité ?",
+          answer: "Notre politique détaille la collecte, l’usage et la durée de conservation de vos données. Vous pouvez la consulter sur la page 'Politique de confidentialité'."
+        },
+        {
+          id: "legal-3",
+          question: "Êtes-vous conforme au RGPD ?",
+          answer: "Oui. Mon Équipe IA applique strictement les obligations légales du RGPD et suit les recommandations de la CNIL. Nous nous engageons à la transparence et à la sécurité de vos données."
+        },
+        {
+          id: "legal-4",
+          question: "Comment contacter le DPO ?",
+          answer: "Pour toute question relative à vos données personnelles, vous pouvez écrire à notre DPO à l’adresse : dpo@mon-equipe-ia.com."
         }
       ]
     },
@@ -61,39 +87,60 @@ export default function FAQ() {
       items: [
         {
           id: "compte-1",
-          question: "Comment créer mon compte ?",
-          answer: "Cliquez sur 'Créer mon espace' depuis la page d'accueil, puis renseignez vos informations. Vous recevrez un email de confirmation pour activer votre compte."
+          question: "Comment fonctionne la période d’essai (trial) ?",
+          answer: "La période d’essai de 30 jours vous permet d’accéder à tous les assistants premium gratuitement. À l’issue du trial, vous pouvez souscrire à l’abonnement mensuel pour conserver vos accès."
         },
         {
           id: "compte-2",
-          question: "J'ai oublié mon mot de passe, que faire ?",
-          answer: "Sur la page de connexion, cliquez sur 'Mot de passe oublié' et saisissez votre email. Vous recevrez un lien pour créer un nouveau mot de passe."
+          question: "Que se passe-t-il si je ne renouvelle pas mon abonnement ?",
+          answer: "Vos accès aux assistants premium seront suspendus, mais vos conversations resteront consultables pendant 6 mois avant anonymisation."
         },
         {
           id: "compte-3",
-          question: "Puis-je modifier mes informations personnelles ?",
-          answer: "Oui, une fois connecté, rendez-vous dans votre espace 'Mon Compte' pour modifier vos informations personnelles et paramètres de compte."
+          question: "Puis-je changer de formule ?",
+          answer: "Nous ne proposons qu'ne seule formule, l'abonnement mensuel auquel vous pouvez souscrire après un période d'essai gratuite. Si vous êtes satisfait de votre période d'essai, vous n'avez rien à faire, l'abonnement sera automatiquement débité sur votre carte chaque mois. Les changements sont gérés automatiquement via Stripe."
+        }
+      ]
+    },
+    {
+      title: "Assistants IA",
+      icon: <Bot className="w-5 h-5" style={{ color: '#dbae61' }} />,
+      items: [
+        {
+          id: "assistants-1",
+          question: "Quelles sont les limites des assistants IA ?",
+          answer: "Les assistants ne remplacent pas un professionnel. Ils s’appuient sur des données fiables mais ne peuvent pas garantir une exactitude totale. Leur rôle est d’assister, pas de trancher."
+        },
+        {
+          id: "assistants-2",
+          question: "Que fait l’Assistant Invest Malin ?",
+          answer: "L’Assistant Formation répond à vos questions sur l'accompagnement Invest Malin, les modules, et les bonnes pratiques de gestion locative. Il est accessible gratuitement."
+        },
+        {
+          id: "assistants-3",
+          question: "Comment l’IA apprend-elle ?",
+          answer: "Nos assistants n’apprennent pas directement de vos conversations. Ils s’appuient sur des modèles pré-entraînés et des bases de connaissances internes validées."
         }
       ]
     },
     {
       title: "Support Technique",
-      icon: <FileText className="w-5 h-5" style={{ color: '#dbae61' }} />,
+      icon: <MessageCircle className="w-5 h-5" style={{ color: '#dbae61' }} />,
       items: [
         {
           id: "support-1",
-          question: "L'assistant ne répond pas, que faire ?",
-          answer: "Vérifiez votre connexion internet et actualisez la page. Si le problème persiste, contactez notre support technique via la page contact."
+          question: "Comment signaler un bug ou un dysfonctionnement ?",
+          answer: "Vous pouvez le faire directement via le formulaire de contact. Décrivez le contexte, l’assistant concerné et le message d’erreur si possible."
         },
         {
           id: "support-2",
-          question: "Comment signaler un bug ?",
-          answer: "Vous pouvez nous signaler tout problème technique via notre page de contact en décrivant précisément le problème rencontré."
+          question: "Qu’est-ce que la Fiche Logement ?",
+          answer: "La Fiche Logement permet aux conciergeries de centraliser toutes les informations clés d’un logement (check-in, équipements, photos, état). Elle est automatiquement reliée à votre compte et à vos réservations."
         },
         {
           id: "support-3",
-          question: "L'historique de mes conversations est-il sauvegardé ?",
-          answer: "Oui, toutes vos conversations avec les assistants IA sont automatiquement sauvegardées dans votre compte et accessibles depuis la barre latérale."
+          question: "L’application est-elle compatible mobile ?",
+          answer: "Oui, l’application fonctionne parfaitement sur mobile et tablette. Une version PWA (installable sur votre téléphone) sera prochainement disponible."
         }
       ]
     }
@@ -102,36 +149,28 @@ export default function FAQ() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#f8f8f8' }}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 md:px-20 py-6">
+      <header className="bg-white shadow-sm px-6 md:px-20 py-6">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold" style={{ color: '#dbae61' }}>
-            <Bot size={24} style={{ color: '#dbae61' }} />
-            Mon Équipe IA
+          <Link to="/" className="flex items-center gap-3">
+            <img 
+              src="/images/invest-malin-logo.png" 
+              alt="Invest Malin Logo" 
+              className="h-8"
+            />
+            <span className="text-xl font-bold text-black">MON ÉQUIPE IA</span>
           </Link>
-          <nav className="flex gap-4 text-base font-medium">
-            <Link
-              to="/"
-              className="px-4 py-2 border rounded-md transition hover:bg-gray-100"
-              style={{ borderColor: '#dbae61', color: '#000' }}
-            >
-              Accueil
-            </Link>
-            <Link
-              to="/connexion"
-              className="text-white px-4 py-2 rounded-md transition hover:opacity-90"
-              style={{ backgroundColor: '#dbae61' }}
-            >
-              Se connecter
-            </Link>
-          </nav>
+          <Link 
+            to="/" 
+            className="text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            ← Retour à l'accueil
+          </Link>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="px-6 md:px-20 py-16 text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          Questions Fréquentes
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">Questions Fréquentes</h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Trouvez rapidement les réponses à vos questions sur Mon Équipe IA, nos assistants et notre plateforme.
         </p>
@@ -140,8 +179,8 @@ export default function FAQ() {
       {/* FAQ Content */}
       <section className="px-6 md:px-20 pb-20">
         <div className="max-w-4xl mx-auto space-y-8">
-          {faqCategories.map((category, categoryIndex) => (
-            <div key={categoryIndex} className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {faqCategories.map((category, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-100" style={{ backgroundColor: '#fefaf4' }}>
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                   {category.icon}
@@ -157,9 +196,7 @@ export default function FAQ() {
                       className="flex justify-between items-center w-full text-left p-4 rounded-lg transition hover:bg-[#fef2e4]"
                       style={{ backgroundColor: 'white' }}
                     >
-                      <h3 className="text-lg font-semibold text-gray-800 pr-4">
-                        {item.question}
-                      </h3>
+                      <h3 className="text-lg font-semibold text-gray-800 pr-4">{item.question}</h3>
                       {openItems[item.id] ? (
                         <ChevronUp className="w-5 h-5 flex-shrink-0" style={{ color: '#dbae61' }} />
                       ) : (
@@ -168,9 +205,7 @@ export default function FAQ() {
                     </button>
 
                     {openItems[item.id] && (
-                      <div className="mt-4 text-gray-600 leading-relaxed">
-                        {item.answer}
-                      </div>
+                      <div className="mt-4 text-gray-600 leading-relaxed">{item.answer}</div>
                     )}
                   </div>
                 ))}
@@ -180,7 +215,7 @@ export default function FAQ() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="px-6 md:px-20 py-16 bg-white text-center">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
           Vous ne trouvez pas la réponse à votre question ?
@@ -206,11 +241,23 @@ export default function FAQ() {
         </div>
       </section>
 
+      {/* Disclaimer Section */}
+      <section className="bg-[#fff7e6] border-b border-yellow-300 text-yellow-900 text-center px-6 md:px-20 py-6">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-3 justify-center">
+          <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+          <p className="text-sm sm:text-base font-medium leading-relaxed">
+            <strong>Important :</strong> les assistants IA peuvent contenir des erreurs ou approximations.
+            Les réponses fournies ne constituent pas des conseils juridiques, fiscaux ou professionnels.
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 py-8 px-6 md:px-20 text-sm text-gray-500">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© 2025 Mon Équipe IA. Tous droits réservés.</p>
           <div className="flex gap-4">
+            <Link to="/" className="hover:text-gray-700">Accueil</Link>
             <Link to="/mentions-legales" className="hover:text-gray-700">Mentions légales</Link>
             <Link to="/politique-confidentialite" className="hover:text-gray-700">Confidentialité</Link>
             <Link to="/conditions-utilisation" className="hover:text-gray-700">Conditions d'utilisation</Link>

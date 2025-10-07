@@ -30,13 +30,20 @@ import ConditionsUtilisation from './components/ConditionsUtilisation'
 import UpgradeRequired from './components/UpgradeRequired'
 import ComingSoon from './components/ComingSoon'
 
+import ScrollToTop from './components/ScrollToTop'
+
+import Tarifs from './components/Tarifs'
+
 function AppWrapper() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <main className="flex-1">
+
+      <ScrollToTop />
         <Routes>
           {/* Routes publiques */}
           <Route path="/" element={<Home />} />
+          <Route path="/tarifs" element={<Tarifs />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/compte-cree" element={<AccountCreated />} />
           <Route path="/inscription" element={<Inscription />} />
