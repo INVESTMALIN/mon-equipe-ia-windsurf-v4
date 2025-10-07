@@ -124,8 +124,8 @@ export default function UpgradeRequired() {
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-gray-900">Assistant Fiscal</h4>
-                    <p className="text-sm text-gray-600">Optimisation fiscale et déclarations</p>
+                    <h4 className="font-semibold text-gray-900">Assistant Annonce</h4>
+                    <p className="text-sm text-gray-600">Facilite la création d'annonces</p>
                   </div>
                 </div>
                 

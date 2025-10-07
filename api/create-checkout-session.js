@@ -92,8 +92,8 @@ export default async function handler(req, res) {
       },
 
       // URLs de redirection
-      success_url: `${req.headers.origin || 'https://mon-equipe-ia.vercel.app'}/mon-compte?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.origin || 'https://mon-equipe-ia.vercel.app'}/upgrade`,
+      success_url: `${req.headers.origin || 'https://www.mon-equipe-ia.com'}/mon-compte?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin || 'https://www.mon-equipe-ia.com'}/upgrade`,
 
       // Paramètres pour un meilleur UX
       allow_promotion_codes: true,

@@ -209,11 +209,11 @@ export default function Home() {
           
           <div className="relative max-w-6xl mx-auto px-6 md:px-20 py-12">
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Assistant Formation */}
+              {/* Assistant Invest Malin */}
               <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <MessageCircle className="text-[#dbae61] w-8 h-8" />
-                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">FORMATION</span></h3>
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">INVEST MALIN</span></h3>
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   Coach Malin répond à toutes les 
@@ -379,7 +379,7 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Invest Malin</Link></li>
                 <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
                 <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Fiscaliste</Link></li>
                 <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>

@@ -101,7 +101,7 @@ export default function MonCompteV2() {
         )}
       </header>
 
-      {/* Hero Section - Assistant Formation */}
+      {/* Hero Section - Assistant Invest Malin */}
       <section className="relative overflow-hidden">
         {/* Background avec gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800"></div>
@@ -116,7 +116,7 @@ export default function MonCompteV2() {
                   <GraduationCap className="w-8 h-8 text-black" />
                 </div>
                 <h1 className="text-3xl lg:text-4xl font-bold">
-                  ASSISTANT<br />FORMATION
+                  ASSISTANT<br />INVEST MALIN
                 </h1>
               </div>
               
@@ -493,13 +493,13 @@ export default function MonCompteV2() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                {/* Assistant Formation - Toujours accessible */}
+                {/* Assistant Invest Malin - Toujours accessible */}
                 <li>
                   <Link 
                     to="/assistant-formation" 
                     className="hover:text-white transition-colors"
                   >
-                    Assistant Formation
+                    Assistant Invest Malin
                   </Link>
                 </li>
                 

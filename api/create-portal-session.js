@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     // Créer la session du Customer Portal
     const session = await stripe.billingPortal.sessions.create({
       customer: actualCustomerId,
-      return_url: req.body.return_url || 'https://mon-equipe-ia.vercel.app/mon-compte'
+      return_url: req.body.return_url || 'https://www.mon-equipe-ia.com/mon-compte'
     })
 
     return res.status(200).json({ url: session.url })

@@ -29,7 +29,7 @@ export default function AssistantFormationWithHistoryV3() {
     conversationIdRef.current = id
   }, [])
 
-  const welcome = "Salut ! Moi c'est Coach Malin 🧠. Pose-moi ta question sur la formation, je suis là pour t'aider."
+  const welcome = "Salut ! Moi c'est Coach Malin 🧠. Pose-moi ta question sur l'accompagnement Invest Malin, je suis là pour t'aider."
 
   useEffect(() => {
     let i = 0
@@ -223,8 +223,8 @@ export default function AssistantFormationWithHistoryV3() {
         {/* Zone de chat principale */}
         <div className="flex-1 px-6 py-6 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-[#dbae61] mb-1">Assistant Formation</h1>
-            <p className="text-gray-700 mb-6">Posez vos questions sur la formation Invest Malin. Réponses instantanées assurées.</p>
+            <h1 className="text-3xl font-bold text-[#dbae61] mb-1">Assistant Invest Malin</h1>
+            <p className="text-gray-700 mb-6">Posez vos questions à Coach Malin sur l'accompagnement Invest Malin.</p>
 
             <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 flex flex-col overflow-hidden relative h-[calc(100vh-220px)]">
             <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
