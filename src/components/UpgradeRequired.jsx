@@ -5,17 +5,31 @@ import { supabase } from '../supabaseClient'
 
 export default function UpgradeRequired() {
   const [loading, setLoading] = useState(false)
+  const [hasUsedTrial, setHasUsedTrial] = useState(false) // 🔥 NOUVEAU
 
-  // Scroll vers le haut au chargement de la page
+  // 🔥 NOUVEAU : Récupérer has_used_trial au chargement
   useEffect(() => {
     window.scrollTo(0, 0)
+    
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('has_used_trial')
+          .eq('id', user.id)
+          .single()
+        
+        setHasUsedTrial(profile?.has_used_trial || false)
+      }
+    }
+    fetchUserProfile()
   }, [])
 
   const handleStartTrial = async () => {
     setLoading(true)
 
     try {
-      // Récupérer le token d'authentification
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
         alert('Erreur: Session expirée, veuillez vous reconnecter')
@@ -23,7 +37,6 @@ export default function UpgradeRequired() {
         return
       }
 
-      // Appeler l'API de création de checkout session
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 
@@ -35,7 +48,6 @@ export default function UpgradeRequired() {
       const data = await response.json()
       
       if (response.ok) {
-        // Rediriger vers Stripe Checkout
         window.location.href = data.url
       } else {
         alert('Erreur: ' + data.error)
@@ -50,7 +62,6 @@ export default function UpgradeRequired() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8] flex flex-col">
-      {/* Header simple */}
       <header className="bg-black text-white px-6 md:px-20 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -72,18 +83,17 @@ export default function UpgradeRequired() {
         </div>
       </header>
 
-      {/* Contenu principal */}
       <main className="flex-1 px-6 md:px-20 py-16">
         <div className="max-w-4xl mx-auto">
           
-          {/* Hero section */}
           <div className="text-center mb-12">
             <div className="w-20 h-20 bg-[#dbae61] rounded-full flex items-center justify-center mx-auto mb-6">
               <Lock className="w-10 h-10 text-black" />
             </div>
             
+            {/* 🔥 MODIFIÉ : Titre conditionnel */}
             <h1 className="text-3xl md:text-4xl font-bold text-black mb-6">
-              Essai Gratuit de 30 Jours
+              {hasUsedTrial ? 'Abonnement Premium' : 'Essai Gratuit de 30 Jours'}
             </h1>
             
             <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed mb-8">
@@ -91,34 +101,61 @@ export default function UpgradeRequired() {
               la gestion de votre conciergerie avec nos experts virtuels.
             </p>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8 max-w-lg mx-auto">
-              <p className="text-green-800 font-semibold">
-                🎉 Essai gratuit pendant 30 jours !
-              </p>
-              <p className="text-green-600 text-sm mt-1">
-                Puis 19,99€/mois - Résiliable à tout moment
-              </p>
-            </div>
+            {/* 🔥 MODIFIÉ : Badge conditionnel */}
+            {!hasUsedTrial ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8 max-w-lg mx-auto">
+                <p className="text-green-800 font-semibold">
+                  🎉 Essai gratuit pendant 30 jours !
+                </p>
+                <p className="text-green-600 text-sm mt-1">
+                  Puis 19,99€/mois - Résiliable à tout moment
+                </p>
+              </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 max-w-lg mx-auto">
+                <p className="text-blue-800 font-semibold">
+                  💎 Abonnement Premium
+                </p>
+                <p className="text-blue-600 text-sm mt-1">
+                  19,99€/mois - Résiliable à tout moment
+                </p>
+                <div className="flex items-center justify-center gap-2 mt-3 text-blue-700 text-sm bg-blue-100 rounded-md px-3 py-2">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                  </svg>
+                  <span>Vous avez déjà bénéficié de l'essai gratuit</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Plan Premium */}
           <div className="bg-white rounded-2xl shadow-xl border-4 border-[#dbae61] p-8 mb-12 relative overflow-hidden">
-            {/* Badge Premium */}
             <div className="absolute -top-3 -right-3 bg-[#dbae61] text-black px-6 py-2 rounded-bl-lg font-bold text-sm transform rotate-3">
               PREMIUM
             </div>
             
-            {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-black mb-2">Plan Premium</h2>
-              <div className="text-4xl font-bold text-[#dbae61] mb-2">
-                <span className="line-through text-2xl text-gray-400 mr-2">19,99€</span>
-                GRATUIT
-              </div>
-              <p className="text-gray-600">30 premiers jours, puis 19,99€/mois</p>
+              
+              {/* 🔥 MODIFIÉ : Prix conditionnel */}
+              {!hasUsedTrial ? (
+                <>
+                  <div className="text-4xl font-bold text-[#dbae61] mb-2">
+                    <span className="line-through text-2xl text-gray-400 mr-2">19,99€</span>
+                    GRATUIT
+                  </div>
+                  <p className="text-gray-600">30 premiers jours, puis 19,99€/mois</p>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-bold text-[#dbae61] mb-2">
+                    19,99€
+                  </div>
+                  <p className="text-gray-600">par mois - Résiliable à tout moment</p>
+                </>
+              )}
             </div>
 
-            {/* Fonctionnalités */}
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -173,7 +210,7 @@ export default function UpgradeRequired() {
               </div>
             </div>
 
-            {/* CTA Button fonctionnel */}
+            {/* 🔥 MODIFIÉ : Texte bouton conditionnel */}
             <button
               onClick={handleStartTrial}
               disabled={loading}
@@ -185,17 +222,15 @@ export default function UpgradeRequired() {
                   Redirection vers Stripe...
                 </span>
               ) : (
-                "Démarrer mon essai gratuit de 30 jours"
+                hasUsedTrial ? "S'abonner maintenant" : "Démarrer mon essai gratuit de 30 jours"
               )}
             </button>
             
-            {/* Small print */}
             <p className="text-center text-gray-500 text-sm mt-4">
               Aucun engagement • Résiliation possible à tout moment • Sécurisé par Stripe
             </p>
           </div>
 
-          {/* FAQ rapide */}
           <div className="text-center text-gray-600">
             <p className="mb-2">
               <strong>Des questions ?</strong> Contactez notre support ou consultez notre 
