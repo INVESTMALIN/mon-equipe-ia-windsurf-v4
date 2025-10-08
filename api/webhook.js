@@ -13,6 +13,11 @@ const supabase = createClient(
 const MON_EQUIPE_IA_PRODUCT_ID = 'prod_T4pyi8D8gPloKU'
 const MON_EQUIPE_IA_PRICE_ID = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
 
+// Helper pour vérifier si une subscription contient notre price
+function subscriptionHasOurPrice(subscription) {
+  return subscription?.items?.data?.some(item => item?.price?.id === MON_EQUIPE_IA_PRICE_ID)
+}
+
 function isMonEquipeIAEvent(event) {
   const eventType = event.type
   
@@ -139,6 +144,12 @@ export default async function handler(req, res) {
           updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
           console.log('📅 Period end date:', updateData.subscription_current_period_end)
         }
+
+        // 🔥 NOUVEAU : Marquer que l'utilisateur a consommé son trial
+        if (isOnTrial) {
+          updateData.has_used_trial = true
+          console.log('✨ Utilisateur a maintenant consommé son trial')
+        }
       
         console.log('💾 Update data:', JSON.stringify(updateData, null, 2))
       
@@ -208,6 +219,14 @@ export default async function handler(req, res) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object
+        
+        // 🔥 NOUVEAU : Filtrer par price pour éviter d'écraser d'autres abonnements Invest Malin
+        if (!subscriptionHasOurPrice(subscription)) {
+          console.log('⏭️ Subscription deleted ignorée (pas Mon Équipe IA)')
+          await markEventAsProcessed()
+          break
+        }
+        
         console.log('❌ Subscription cancelled:', subscription.customer)
 
         const { error } = await supabase
@@ -216,7 +235,8 @@ export default async function handler(req, res) {
             subscription_status: 'expired',
             stripe_subscription_id: null,
             subscription_current_period_end: null,
-            subscription_trial_end: null
+            subscription_trial_end: null,
+            subscription_cancel_at_period_end: false  // 🔥 NOUVEAU : Reset flag annulation
           })
           .eq('stripe_customer_id', subscription.customer)
 
@@ -260,6 +280,14 @@ export default async function handler(req, res) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object
+        
+        // 🔥 NOUVEAU : Filtrer par price pour éviter d'écraser d'autres abonnements Invest Malin
+        if (!subscriptionHasOurPrice(subscription)) {
+          console.log('⏭️ Subscription updated ignorée (pas Mon Équipe IA)')
+          await markEventAsProcessed()
+          break
+        }
+        
         console.log('🔄 Subscription updated:', subscription.customer)
 
         // Récupérer le nouveau statut
@@ -282,6 +310,10 @@ export default async function handler(req, res) {
           updateData.subscription_current_period_end = null
           updateData.subscription_trial_end = null
         }
+
+        // 🔥 NOUVEAU : Capturer le flag d'annulation programmée
+        updateData.subscription_cancel_at_period_end = !!subscription.cancel_at_period_end
+        console.log('🚫 Cancel at period end:', updateData.subscription_cancel_at_period_end)
 
         const { error } = await supabase
           .from('users')

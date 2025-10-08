@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     // Vérifier si l'utilisateur a déjà un customer Stripe ou une subscription
     const { data: existingUser } = await supabase
       .from('users')
-      .select('stripe_customer_id, stripe_subscription_id, subscription_status')
+      .select('stripe_customer_id, stripe_subscription_id, subscription_status, has_used_trial')
       .eq('id', user.id)
       .single()
 
@@ -66,21 +66,28 @@ export default async function handler(req, res) {
       console.log('👤 Nouveau customer Stripe créé:', customerId)
     }
 
-    // Créer la Checkout Session avec trial de 30 jours
+    // 🔥 NOUVEAU : Conditionner le trial selon has_used_trial
+    const subscription_data = {}
+    if (!existingUser?.has_used_trial) {
+      subscription_data.trial_period_days = 30
+      console.log('✨ Trial de 30 jours appliqué (premier abonnement)')
+    } else {
+      console.log('⚠️ Pas de trial (utilisateur a déjà consommé son trial)')
+    }
+
+    // Créer la Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       payment_method_types: ['card'],
       
       line_items: [{
-        price: MON_EQUIPE_IA_PRICE_ID, // Prix 19,99€/mois
+        price: MON_EQUIPE_IA_PRICE_ID, // 19,99€/mois
         quantity: 1,
       }],
 
-      // CRITIQUE: Configuration trial avec capture de carte
-      subscription_data: {
-        trial_period_days: 30,
-      },
+      // 🔥 MODIFIÉ : Trial conditionnel
+      subscription_data: subscription_data,
 
       // 🔥 Métadonnées pour le webhook (AVEC product/price IDs)
       client_reference_id: user.id, // Pour identifier l'user dans le webhook

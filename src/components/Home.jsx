@@ -102,7 +102,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/inscription"
-              className="bg-[#dbae61] hover:bg-[#c49a4f] text-black font-bold px-8 py-3 rounded-md transition-colors"
+              className="bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-8 py-3 rounded-md transition-colors"
             >
               Créer mon compte →
             </Link>
@@ -312,7 +312,7 @@ export default function Home() {
         </div>
       </section>
 
-{/* Section Fiche Logement Lite */}
+{/* Section Fiche Logement */}
 <section className="bg-gradient-to-br from-[#dbae61] to-[#c49a4f]">
   <div className="flex flex-col md:grid md:grid-cols-[50%_50%]">
     
@@ -323,7 +323,7 @@ export default function Home() {
       </div>
       
       <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
-        Fiche Logement Lite
+        Fiche Logement
       </h2>
       
       <p className="text-lg mb-6 leading-relaxed text-white/90">
