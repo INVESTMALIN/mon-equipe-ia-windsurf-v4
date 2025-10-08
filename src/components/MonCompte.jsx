@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2 } from 'lucide-react'
+import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2, AlertCircle } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ChangePasswordModal from './ChangePasswordModal'
 import EditProfileModal from './EditProfileModal'
@@ -31,7 +31,7 @@ export default function MonCompte() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('subscription_status, stripe_customer_id, subscription_current_period_end, subscription_trial_end, prenom, nom')
+        .select('subscription_status, stripe_customer_id, subscription_current_period_end, subscription_trial_end, subscription_cancel_at_period_end, has_used_trial, prenom, nom')
         .eq('id', userId)
         .single()
   
@@ -138,6 +138,36 @@ export default function MonCompte() {
     }
 
     const renderStatusBadge = () => {
+      const isCancelled = userProfile?.subscription_cancel_at_period_end
+      
+      // Si annulation programmée, afficher badge + alerte
+      if (isCancelled && (subscriptionStatus === 'trial' || subscriptionStatus === 'premium')) {
+        const endDate = subscriptionStatus === 'trial' ? trialEnd : periodEnd
+        const dateStr = endDate ? new Date(endDate).toLocaleDateString('fr-FR') : 'bientôt'
+        
+        return (
+          <div className="space-y-2">
+            {/* Badge normal selon le statut */}
+            {subscriptionStatus === 'trial' ? (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                ✨ Essai gratuit ({getDaysLeft(trialEnd)} jour{getDaysLeft(trialEnd) > 1 ? 's' : ''} restant{getDaysLeft(trialEnd) > 1 ? 's' : ''})
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#dbae61] bg-opacity-20 text-[#8b7355]">Premium Actif</span>
+            )}
+            
+            {/* Alerte annulation */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-200">
+              <AlertCircle className="w-4 h-4 text-orange-600 flex-shrink-0" />
+              <span className="text-sm text-orange-800">
+                Annulation programmée - Accès jusqu'au {dateStr}
+              </span>
+            </div>
+          </div>
+        )
+      }
+      
+      // Sinon, affichage normal
       switch (subscriptionStatus) {
         case 'free':
           return <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">Gratuit</span>
@@ -160,49 +190,52 @@ export default function MonCompte() {
     const renderStatusDetails = () => {
       switch (subscriptionStatus) {
         case 'free':
-          return (
-            <div>
-              <p className="text-gray-600 mb-4">
-                Vous utilisez actuellement la version gratuite avec accès à l'Assistant Invest Malin.
-              </p>
-              <Link 
-                to="/upgrade" 
-                className="inline-block bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
-              >
-                Démarrer l'essai gratuit 30 jours
-              </Link>
-            </div>
-          )
+  const hasUsedTrial = userProfile?.has_used_trial
+  return (
+    <div>
+      <p className="text-gray-600 mb-4">
+        Vous utilisez actuellement la version gratuite avec accès à l'Assistant Invest Malin.
+      </p>
+      <Link 
+        to="/upgrade" 
+        className="inline-block bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
+      >
+        {hasUsedTrial ? 'Commerncer l\'abonnement' : 'Démarrer l\'essai gratuit 30 jours'}
+      </Link>
+    </div>
+  )
 
-        case 'trial':
-          const daysLeft = getDaysLeft(trialEnd)
-          const trialEndDate = trialEnd ? new Date(trialEnd).toLocaleDateString('fr-FR') : 'Non définie'
-          
-          return (
-            <div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <h4 className="font-semibold text-green-800 mb-1">🎉 Essai gratuit actif !</h4>
-                <p className="text-green-700 text-sm">
-                  Profitez de tous les assistants premium jusqu'au <strong>{trialEndDate}</strong>
-                </p>
-                {daysLeft <= 5 && (
-                  <p className="text-green-600 text-xs mt-1">
-                    💡 Votre abonnement sera automatiquement activé à 19,99€/mois
+          case 'trial':
+            const daysLeft = getDaysLeft(trialEnd)
+            const trialEndDate = trialEnd ? new Date(trialEnd).toLocaleDateString('fr-FR') : 'Non définie'
+            const isCancelled = userProfile?.subscription_cancel_at_period_end
+            
+            return (
+              <div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold text-green-800 mb-1">🎉 Essai gratuit actif !</h4>
+                  <p className="text-green-700 text-sm">
+                    Profitez de tous les assistants premium jusqu'au <strong>{trialEndDate}</strong>
                   </p>
-                )}
+                  {!isCancelled && daysLeft <= 5 && (
+                    <p className="text-green-600 text-xs mt-1">
+                      💡 Votre abonnement sera automatiquement activé à 19,99€/mois
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2 text-sm text-gray-600 mb-4">
+                  <p><strong>Fin de l'essai :</strong> {trialEndDate}</p>
+                  {!isCancelled && <p><strong>Puis :</strong> 19,99€/mois</p>}
+                  {isCancelled && <p><strong>Puis :</strong> Pas de renouvellement (annulation programmée)</p>}
+                </div>
+                <button
+                  onClick={handleManageSubscription}
+                  className="bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
+                >
+                  {isCancelled ? 'Réactiver mon abonnement' : 'Gérer mon abonnement'}
+                </button>
               </div>
-              <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <p><strong>Fin de l'essai :</strong> {trialEndDate}</p>
-                <p><strong>Puis :</strong> 19,99€/mois</p>
-              </div>
-              <button
-                onClick={handleManageSubscription}
-                className="bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
-              >
-                Gérer mon abonnement
-              </button>
-            </div>
-          )
+            )
 
         case 'premium':
           const premiumEndDate = periodEnd ? new Date(periodEnd).toLocaleDateString('fr-FR') : 'Non définie'
@@ -218,7 +251,7 @@ export default function MonCompte() {
                 onClick={handleManageSubscription}
                 className="bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
               >
-                Gérer mon abonnement
+                {userProfile?.subscription_cancel_at_period_end ? 'Réactiver mon abonnement' : 'Gérer mon abonnement'}
               </button>
             </div>
           )

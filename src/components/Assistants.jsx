@@ -13,7 +13,7 @@ export default function MonCompteV2() {
       if (user) {
         const { data: profile } = await supabase
           .from('users')
-          .select('subscription_status')
+          .select('subscription_status, has_used_trial')
           .eq('id', user.id)
           .single()
         setUserProfile(profile)
@@ -25,6 +25,9 @@ export default function MonCompteV2() {
   const isPremium = userProfile?.subscription_status === 'premium' || 
                     userProfile?.subscription_status === 'trial'
   
+  const ctaText = userProfile?.has_used_trial ? 'Souscrire →' : 'Essai gratuit →'
+
+
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -231,7 +234,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Essai gratuit →
+                      {ctaText}
                     </Link>
                   </div>
                 )}
@@ -291,7 +294,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Essai gratuit →
+                      {ctaText}
                     </Link>
                   </div>
                 )}
@@ -351,7 +354,7 @@ export default function MonCompteV2() {
                       to="/upgrade" 
                       className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
-                      Essai gratuit →
+                      {ctaText}
                     </Link>
                   </div>
                 )}
@@ -417,7 +420,7 @@ export default function MonCompteV2() {
                       to="/upgrade"
                       className="inline-flex items-center bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-lg"
                     >
-                      Essai gratuit →
+                      {ctaText}
                     </Link>
                   </div>
                 )}
@@ -466,7 +469,7 @@ export default function MonCompteV2() {
               to="/upgrade"
               className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-10 py-4 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
             >
-              ESSAYER GRATUITEMENT 30 JOURS
+              {userProfile?.has_used_trial ? 'SOUSCRIRE' : 'ESSAYER GRATUITEMENT 30 JOURS'}
               <span className="ml-2">→</span>
             </Link>
           )}
