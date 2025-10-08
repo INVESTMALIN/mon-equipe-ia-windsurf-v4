@@ -178,6 +178,14 @@ export default async function handler(req, res) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object
+        
+        // 🔥 NOUVEAU : Ignorer les invoices de trial (montant = 0€)
+        if (invoice.billing_reason === 'subscription_create' && invoice.amount_paid === 0) {
+          console.log('⏭️ Invoice ignorée (trial à 0€)')
+          await markEventAsProcessed()
+          break
+        }
+        
         console.log('💰 Paiement réussi pour customer:', invoice.customer)
       
         // Récupérer la subscription pour avoir les dates
@@ -216,6 +224,7 @@ export default async function handler(req, res) {
         await markEventAsProcessed()
         break
       }
+
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object
