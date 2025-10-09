@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../supabaseClient'
 import { Link } from 'react-router-dom'
 import {
   MessageCircle,
@@ -15,6 +16,15 @@ import {
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user || null)
+    }
+    checkUser()
+  }, [])
 
   return (
     <div className="bg-white text-gray-800">
@@ -33,10 +43,14 @@ export default function Home() {
           
           {/* Menu desktop */}
           <nav className="hidden md:flex gap-8 text-sm font-medium">
-            <a href="#cas-usage" className="hover:text-[#dbae61] transition-colors">À PROPOS</a>
-            <a href="#assistants" className="hover:text-[#dbae61] transition-colors">NOS ASSISTANTS</a>
-            <a href="/tarifs" className="hover:text-[#dbae61] transition-colors">TARIFS</a>
-            <a href="/connexion" className="hover:text-[#dbae61] transition-colors">SE CONNECTER</a>          </nav>
+            <a href="#cas-usage" className="hover:text-[#dbae61] transition-colors">À propos</a>
+            {user ? (
+              <Link to="/assistants" className="hover:text-[#dbae61] transition-colors">Nos assistants</Link>
+            ) : (
+              <a href="#assistants" className="hover:text-[#dbae61] transition-colors">Nos assistants</a>
+            )}
+            <a href="/tarifs" className="hover:text-[#dbae61] transition-colors">Tarifs</a>
+            <a href="/connexion" className="hover:text-[#dbae61] transition-colors">Se connecter</a>          </nav>
 
           {/* Bouton hamburger mobile */}
           <button 
@@ -60,28 +74,38 @@ export default function Home() {
                 className="hover:text-[#dbae61] transition-colors text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                À PROPOS
+                À propos
               </a>
-              <a 
-                href="#assistants" 
-                className="hover:text-[#dbae61] transition-colors text-sm font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                NOS ASSISTANTS
-              </a>
+              {user ? (
+                <Link 
+                  to="/assistants" 
+                  className="hover:text-[#dbae61] transition-colors text-sm font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Nos assistants
+                </Link>
+              ) : (
+                <a 
+                  href="#assistants" 
+                  className="hover:text-[#dbae61] transition-colors text-sm font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Nos assistants
+                </a>
+              )}
               <a 
                 href="/tarifs" 
                 className="hover:text-[#dbae61] transition-colors text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                TARIFS
+                Tarifs
               </a>
               <a 
                 href="/connextion" 
                 className="hover:text-[#dbae61] transition-colors text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                CONNEXION
+                Connexion
               </a>
             </div>
           </nav>
@@ -467,16 +491,30 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Invest Malin</Link></li>
-                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
-                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Fiscaliste</Link></li>
-                <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>
+                {user ? (
+                  <>
+                    <li><Link to="/assistant-formation" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                    <li><Link to="/negociateur" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
+                    <li><Link to="/juridique" className="hover:text-white transition-colors">Assistant Juridique</Link></li>
+                    <li><Link to="/annonce" className="hover:text-white transition-colors">Assistant Annonce</Link></li>
+                    <li><Link to="/dashboard" className="hover:text-white transition-colors">Fiche Logement</Link></li>
+                  </>
+                ) : (
+                  <>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Juridique</Link></li>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Annonce</Link></li>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Fiche Logement</Link></li>
+                  </>
+                )}
               </ul>
             </div>
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">COMPTE</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li><Link to="/connexion" className="hover:text-white transition-colors">Se connecter</Link></li>
+                <li><Link to="/mon-compte" className="hover:text-white transition-colors">Mon compte</Link></li>
                 <li><Link to="/inscription" className="hover:text-white transition-colors">Créer un compte</Link></li>
                 <li><Link to="/mot-de-passe-oublie" className="hover:text-white transition-colors">Mot de passe oublié</Link></li>
               </ul>

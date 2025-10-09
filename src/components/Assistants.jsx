@@ -52,8 +52,11 @@ export default function MonCompteV2() {
           
           {/* Menu desktop */}
           <div className="hidden md:flex items-center gap-6">
+          <Link to="/" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
+            Accueil
+          </Link>
           <Link to="/mon-compte" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
-            Compte
+            Mon compte
           </Link>
           <Link to="/support" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
             Support
@@ -83,6 +86,9 @@ export default function MonCompteV2() {
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pb-4 border-t border-gray-700">
             <div className="flex flex-col space-y-4 pt-4">
+              <Link to="/" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
+                Accueil
+              </Link>
               <Link to="/mon-compte" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
                 Compte
               </Link>
