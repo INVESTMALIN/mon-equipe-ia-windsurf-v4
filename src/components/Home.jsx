@@ -11,7 +11,8 @@ import {
   Phone,
   X,
   Menu,
-  ArrowRight
+  ArrowRight,
+  PenTool
 } from 'lucide-react'
 
 export default function Home() {
@@ -198,13 +199,10 @@ export default function Home() {
               </p>
             </div>
             <div className="bg-[#f5f1e8] p-8 rounded-2xl shadow-md text-center">
-              <Phone className="text-[#dbae61] w-12 h-12 mx-auto mb-6" />
-              <h3 className="font-bold text-lg mb-4 text-black">ANALYSE D'APPELS CLIENTS</h3>
+              <PenTool className="text-[#dbae61] w-12 h-12 mx-auto mb-6" />
+              <h3 className="font-bold text-lg mb-4 text-black">CRÉATION D'ANNONCES</h3>
               <p className="text-gray-700">
-                Analyse la personnalité 
-                de vos clients, résume vos appels, propose 
-                une stratégie de 
-                négociation adaptée.
+                Génère des annonces attractives et optimisées pour vos logements en quelques secondes. Propose un guide d'arrivée personnalisé.
               </p>
             </div>
             <div className="bg-[#f5f1e8] p-8 rounded-2xl shadow-md text-center">
