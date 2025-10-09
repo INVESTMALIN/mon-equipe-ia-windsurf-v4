@@ -190,20 +190,20 @@ export default function MonCompte() {
     const renderStatusDetails = () => {
       switch (subscriptionStatus) {
         case 'free':
-  const hasUsedTrial = userProfile?.has_used_trial
-  return (
-    <div>
-      <p className="text-gray-600 mb-4">
-        Vous utilisez actuellement la version gratuite avec accès à l'Assistant Invest Malin.
-      </p>
-      <Link 
-        to="/upgrade" 
-        className="inline-block bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
-      >
-        {hasUsedTrial ? 'Commerncer l\'abonnement' : 'Démarrer l\'essai gratuit 30 jours'}
-      </Link>
-    </div>
-  )
+          const hasUsedTrial = userProfile?.has_used_trial
+          return (
+            <div>
+              <p className="text-gray-600 mb-4">
+                Vous utilisez actuellement la version gratuite avec accès à l'Assistant Invest Malin.
+              </p>
+              <Link 
+                to="/upgrade" 
+                className="inline-block bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
+              >
+                {hasUsedTrial ? 'Commerncer l\'abonnement' : 'Démarrer l\'essai gratuit 30 jours'}
+              </Link>
+            </div>
+          )
 
           case 'trial':
             const daysLeft = getDaysLeft(trialEnd)
