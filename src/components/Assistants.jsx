@@ -55,7 +55,9 @@ export default function MonCompteV2() {
           <Link to="/mon-compte" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
             Compte
           </Link>
-            <span className="text-sm font-medium cursor-pointer hover:text-[#dbae61] transition-colors">Contact</span>
+          <Link to="/support" className="text-sm font-medium hover:text-[#dbae61] transition-colors">
+            Support
+          </Link>
             <button
               onClick={handleLogout}
               className="bg-white text-black px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
@@ -586,7 +588,7 @@ export default function MonCompteV2() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="mailto:contact@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
+                <li><Link to="/support" className="hover:text-white transition-colors">Support</Link></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                 <li><Link to="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
                 <li><Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link></li>

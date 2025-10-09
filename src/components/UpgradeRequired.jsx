@@ -210,7 +210,7 @@ export default function UpgradeRequired() {
               </div>
             </div>
 
-            {/* 🔥 MODIFIÉ : Texte bouton conditionnel */}
+            {/* Texte bouton conditionnel */}
             <button
               onClick={handleStartTrial}
               disabled={loading}

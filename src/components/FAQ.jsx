@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, MessageCircle, Users, FileText, Bot, Shield, AlertTriangle } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function FAQ() {
+  const navigate = useNavigate()
   const [openItems, setOpenItems] = useState({})
 
   const toggleItem = (id) => {
@@ -159,12 +160,12 @@ export default function FAQ() {
             />
             <span className="text-xl font-bold text-black">MON ÉQUIPE IA</span>
           </Link>
-          <Link 
-            to="/" 
+          <button
+            onClick={() => navigate(-1)}
             className="text-gray-600 hover:text-gray-800 transition-colors"
           >
-            ← Retour à l'accueil
-          </Link>
+            ← Retour
+          </button>
         </div>
       </header>
 

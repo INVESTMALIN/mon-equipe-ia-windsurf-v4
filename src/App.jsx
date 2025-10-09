@@ -34,6 +34,9 @@ import ScrollToTop from './components/ScrollToTop'
 
 import Tarifs from './components/Tarifs'
 
+import Support from './components/Support'
+
+
 function AppWrapper() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -50,6 +53,8 @@ function AppWrapper() {
           <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
           <Route path="/nouveau-mot-de-passe" element={<NouveauMotDePasse />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
+          <Route path="/support" element={<Support />} />
+
           
           {/* Pages légales - publiques */}
           <Route path="/faq" element={<FAQ />} />

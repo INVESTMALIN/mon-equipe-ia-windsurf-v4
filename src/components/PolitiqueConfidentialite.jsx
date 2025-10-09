@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function PolitiqueConfidentialite() {
+  const navigate = useNavigate() 
+
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
       {/* Header */}
@@ -14,12 +16,12 @@ export default function PolitiqueConfidentialite() {
             />
             <span className="text-xl font-bold text-black">MON ÉQUIPE IA</span>
           </Link>
-          <Link 
-            to="/" 
+          <button
+            onClick={() => navigate(-1)}
             className="text-gray-600 hover:text-gray-800 transition-colors"
           >
-            ← Retour à l'accueil
-          </Link>
+            ← Retour
+          </button>
         </div>
       </header>
 
