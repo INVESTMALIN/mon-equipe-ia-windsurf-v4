@@ -201,7 +201,7 @@ export default function MonCompteV2() {
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex items-center gap-3 mb-4">
                   <Scale className="w-8 h-8 text-[#dbae61]" />
-                  <h3 className="text-2xl font-bold text-black">JURIDIQUE IA</h3>
+                  <h3 className="text-2xl font-bold text-black">LEBALBNB IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
                 L'IA qui simplifie vos démarches fiscales & légales
@@ -209,11 +209,7 @@ export default function MonCompteV2() {
                 <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    L'IA qui simplifie vos démarches fiscales & légales
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#dbae61] font-bold">•</span>
-                    Propose des solutions sur mesure pour votre situation
+                    Outil d’aide à la compréhension du droit et de la fiscalité
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
@@ -222,6 +218,10 @@ export default function MonCompteV2() {
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
                     Vous éclaire, sans jargon
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Support d’aide à la décision – informations à titre indicatif, sans valeur de conseil juridique.
                   </li>
                 </ul>
                 {isPremium ? (

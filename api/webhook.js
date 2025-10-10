@@ -179,7 +179,7 @@ export default async function handler(req, res) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object
         
-        // 🔥 NOUVEAU : Ignorer les invoices de trial (montant = 0€)
+        // Ignorer les invoices de trial (montant = 0€)
         if (invoice.billing_reason === 'subscription_create' && invoice.amount_paid === 0) {
           console.log('⏭️ Invoice ignorée (trial à 0€)')
           await markEventAsProcessed()
@@ -188,22 +188,36 @@ export default async function handler(req, res) {
         
         console.log('💰 Paiement réussi pour customer:', invoice.customer)
       
-        // Récupérer la subscription pour avoir les dates
-        const subscription = await stripe.subscriptions.retrieve(invoice.subscription)
-        console.log('📋 Subscription current_period_end:', subscription.current_period_end)
+        // 🎯 NOUVEAU : Utiliser les dates de l'invoice directement (source de vérité)
+        const line = invoice.lines?.data?.[0]
+        const periodEnd = line?.period?.end
+        const periodStart = line?.period?.start
+      
+        console.log('📋 Invoice period:', {
+          start: periodStart ? new Date(periodStart * 1000).toISOString() : 'N/A',
+          end: periodEnd ? new Date(periodEnd * 1000).toISOString() : 'N/A'
+        })
       
         const updateData = {
           subscription_status: 'premium',
           subscription_trial_end: null
         }
       
-        // Sécuriser la date - ne l'ajouter que si elle existe
-        if (subscription.current_period_end) {
-          updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
-          console.log('📅 Period end date:', updateData.subscription_current_period_end)
+        // Utiliser la date de l'invoice (toujours présente)
+        if (periodEnd) {
+          updateData.subscription_current_period_end = new Date(periodEnd * 1000)
+          console.log('✅ Period end récupérée depuis invoice:', updateData.subscription_current_period_end)
         } else {
-          console.warn('⚠️ Pas de current_period_end dans la subscription')
-          updateData.subscription_current_period_end = null
+          // Fallback : récupérer depuis subscription (ne devrait jamais arriver)
+          console.warn('⚠️ Pas de period.end dans invoice, fallback sur subscription')
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription)
+          if (subscription.current_period_end) {
+            updateData.subscription_current_period_end = new Date(subscription.current_period_end * 1000)
+            console.log('✅ Period end récupérée depuis subscription (fallback)')
+          } else {
+            console.error('❌ Aucune date de cycle disponible!')
+            updateData.subscription_current_period_end = null
+          }
         }
       
         console.log('💾 Update data:', JSON.stringify(updateData, null, 2))
@@ -214,7 +228,7 @@ export default async function handler(req, res) {
           .eq('stripe_customer_id', invoice.customer)
       
         if (error) {
-          console.error('❌ Erreur Supabase payment succeeded:', error)
+          console.error('❌ Erreur Supabase invoice payment:', error)
           throw error
         }
       
@@ -224,6 +238,7 @@ export default async function handler(req, res) {
         await markEventAsProcessed()
         break
       }
+
 
 
       case 'customer.subscription.deleted': {

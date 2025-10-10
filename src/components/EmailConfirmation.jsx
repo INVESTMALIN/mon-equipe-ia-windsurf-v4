@@ -30,7 +30,7 @@ export default function EmailConfirmation() {
 
         {/* Titre principal */}
         <h1 className="text-3xl font-bold text-black mb-4">
-          Email confirmé ! 🎊
+          E-mail confirmé ! 🎊
         </h1>
 
         {/* Sous-titre */}
@@ -61,13 +61,13 @@ export default function EmailConfirmation() {
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-blue-600 text-sm">📚</span>
               </div>
-              <span className="text-gray-700 font-medium">Assistant Formation (gratuit)</span>
+              <span className="text-gray-700 font-medium">Assistant Invest Malin (gratuit)</span>
             </div>
             <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
               <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                 <span className="text-purple-600 text-sm">⚖️</span>
               </div>
-              <span className="text-gray-700 font-medium">Juridique IA (premium)</span>
+              <span className="text-gray-700 font-medium">LegalBNB IA (premium)</span>
             </div>
             <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
