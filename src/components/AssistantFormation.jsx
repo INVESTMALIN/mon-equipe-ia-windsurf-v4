@@ -4,6 +4,7 @@ import { Bot, User, ArrowLeft, Plus } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
+import AccessCodeModal from './AccessCodeModal'
 
 export default function AssistantFormationWithHistoryV3() {
   const [messages, setMessages] = useState([])
@@ -12,9 +13,17 @@ export default function AssistantFormationWithHistoryV3() {
   const [dots, setDots] = useState('.')
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [userId, setUserId] = useState(null)
+  const [hasAccess, setHasAccess] = useState(false)
+  const [checkingAccess, setCheckingAccess] = useState(true)
   const chatRef = useRef(null)
   const conversationIdRef = useRef(null)
 
+
+  useEffect(() => {
+    const accessGranted = localStorage.getItem('investmalin_access_granted')
+    setHasAccess(accessGranted === 'true')
+    setCheckingAccess(false)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -159,6 +168,16 @@ export default function AssistantFormationWithHistoryV3() {
       window.dispatchEvent(new Event('refreshSidebar'))
     }
   }
+
+  // Si on vérifie encore l'accès, afficher un loader
+if (checkingAccess) {
+  return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
+}
+
+// Si pas d'accès, afficher le modal
+if (!hasAccess) {
+  return <AccessCodeModal onSuccess={() => setHasAccess(true)} />
+}
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">

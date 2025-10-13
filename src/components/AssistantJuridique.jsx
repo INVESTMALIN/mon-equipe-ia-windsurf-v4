@@ -31,7 +31,7 @@ export default function AssistantJuridique() {
     conversationIdRef.current = id
   }, [])
 
-  const welcome = "Salut ! Je suis votre Assistant Juridique IA. ⚖️"
+  const welcome = "Salut ! Je suis votre Assistant LegalBNB IA. ⚖️"
 
   useEffect(() => {
     let i = 0
@@ -368,7 +368,7 @@ export default function AssistantJuridique() {
         
         <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
           {/* Titre avec même style qu'Assistant Formation */}
-          <h1 className="text-3xl font-bold text-[#dbae61] mb-1">Assistant Juridique IA</h1>
+          <h1 className="text-3xl font-bold text-[#dbae61] mb-1">Assistant LegalBNB IA</h1>
           <p className="text-gray-700 mb-6">Simplifiez vos démarches fiscales & légales. Réponses instantanées avec des des solutions sur mesure pour votre situation.</p>
 
           <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[600px] flex flex-col overflow-hidden relative">

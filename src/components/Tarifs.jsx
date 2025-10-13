@@ -84,7 +84,7 @@ export default function Tarifs() {
                 <span className="text-5xl font-bold text-gray-900">0€</span>
                 <span className="text-gray-500">/mois</span>
               </div>
-              <p className="text-gray-600">Pour découvrir la formation</p>
+              <p className="text-gray-600">Pour découvrir l'accompagnement Invest Malin</p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -94,11 +94,19 @@ export default function Tarifs() {
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-700">Accès à tous les contenus de formation</span>
+                <span className="text-gray-700">Réponses instantanées 24/7</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-700">Support 24/7 sur la formation</span>
+                <span className="text-gray-700">Ton coach perso dans ta poche</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700">Toujours dispo, même le dimanche</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700">Accès à tous les contenus du programme</span>
               </li>
               <li className="flex items-start gap-3">
                 <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
@@ -144,7 +152,7 @@ export default function Tarifs() {
               </li>
               <li className="flex items-start gap-3">
                 <Shield className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <span className="text-white"><strong>Assistant Juridique IA</strong> - Conseils fiscaux & légaux</span>
+                <span className="text-white"><strong>Assistant LegalBNB IA</strong> - Conseils fiscaux & légaux</span>
               </li>
               <li className="flex items-start gap-3">
                 <Zap className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />

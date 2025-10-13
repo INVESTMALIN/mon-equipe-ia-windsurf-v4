@@ -147,7 +147,7 @@ export default function MonCompteV2() {
               </div>
               
               <Link
-                to="/assistant-formation"
+                to="/assistant-invest-malin"
                 className="inline-flex items-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-8 py-3 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
               >
                 Accéder à l'assistant
@@ -189,12 +189,12 @@ export default function MonCompteV2() {
 
           {/* Grille des assistants */}
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Juridique IA */}
+            {/* LegalBNB IA */}
             <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
               <div className="aspect-[4/3] overflow-hidden">
                 <img 
                   src="/images/fiscaliste-ia.png" 
-                  alt="Juridique IA" 
+                  alt="LegalBNB IA" 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
@@ -221,12 +221,12 @@ export default function MonCompteV2() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#dbae61] font-bold">•</span>
-                    Support d’aide à la décision – informations à titre indicatif, sans valeur de conseil juridique.
+                    Support d’aide à la décision, sans valeur de conseil juridique.
                   </li>
                 </ul>
                 {isPremium ? (
                   <Link 
-                    to="/juridique" 
+                    to="/legalbnb" 
                     className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors" 
                     style={{ backgroundColor: '#dbae61' }}
                   >
@@ -507,7 +507,7 @@ export default function MonCompteV2() {
                 {/* Assistant Invest Malin - Toujours accessible */}
                 <li>
                   <Link 
-                    to="/assistant-formation" 
+                    to="/assistant-invest-malin" 
                     className="hover:text-white transition-colors"
                   >
                     Assistant Invest Malin
@@ -537,17 +537,17 @@ export default function MonCompteV2() {
                 <li>
                   {isPremium ? (
                     <Link 
-                      to="/juridique" 
+                      to="/legalbnb" 
                       className="hover:text-white transition-colors"
                     >
-                      Assistant Juridique
+                      Assistant LegalBNB
                     </Link>
                   ) : (
                     <Link 
                       to="/upgrade" 
                       className="flex items-center gap-2 hover:text-white transition-colors group"
                     >
-                      <span>Assistant Juridique</span>
+                      <span>Assistant LegalBNB</span>
                       <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
                     </Link>
                   )}

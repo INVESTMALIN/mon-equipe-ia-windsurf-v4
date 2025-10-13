@@ -67,7 +67,7 @@ function AppWrapper() {
 
           {/* Routes protégées gratuites - nécessitent une authentification */}
           <Route 
-            path="/assistant-formation" 
+            path="/assistant-invest-malin" 
             element={
               <ProtectedRoute>
                 <AssistantFormation />
@@ -130,7 +130,7 @@ function AppWrapper() {
           />  
 
           <Route
-            path="/juridique"
+            path="/legalbnb"
             element={
               <ProtectedRoute requirePremium={true}>
                 <AssistantJuridique />

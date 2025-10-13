@@ -267,11 +267,11 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Assistant Juridique */}
+              {/* Assistant LegalBNB */}
               <div className="bg-white/95 p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <Scale className="text-[#dbae61] w-8 h-8" />
-                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">JURIDIQUE</span></h3>
+                  <h3 className="text-lg font-bold text-black">ASSISTANT <span className="font-bold">LEGALBNB</span></h3>
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   Assistant expert en démarches fiscales & légales, la 
@@ -412,7 +412,7 @@ export default function Home() {
   </div>
 </section>
 
-      {/* Témoignages */}
+      {/* Témoignages 
       <section id="temoignages" className="bg-white px-6 md:px-20 py-16">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-black mb-12">
@@ -443,7 +443,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Call to action final */}
       <section className="relative bg-gray-900 px-6 md:px-20 py-20 text-center text-white">
@@ -491,17 +491,17 @@ export default function Home() {
               <ul className="space-y-2 text-gray-400 text-sm">
                 {user ? (
                   <>
-                    <li><Link to="/assistant-formation" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                    <li><Link to="/assistant-invest-malin" className="hover:text-white transition-colors">Assistant Invest Malin</Link></li>
                     <li><Link to="/negociateur" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
-                    <li><Link to="/juridique" className="hover:text-white transition-colors">Assistant Juridique</Link></li>
+                    <li><Link to="/legalbnb" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>
                     <li><Link to="/annonce" className="hover:text-white transition-colors">Assistant Annonce</Link></li>
                     <li><Link to="/dashboard" className="hover:text-white transition-colors">Fiche Logement</Link></li>
                   </>
                 ) : (
                   <>
-                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Formation</Link></li>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Invest Malin</Link></li>
                     <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Négociateur</Link></li>
-                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Juridique</Link></li>
+                    <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant LegalBNB</Link></li>
                     <li><Link to="/connexion" className="hover:text-white transition-colors">Assistant Annonce</Link></li>
                     <li><Link to="/connexion" className="hover:text-white transition-colors">Fiche Logement</Link></li>
                   </>
