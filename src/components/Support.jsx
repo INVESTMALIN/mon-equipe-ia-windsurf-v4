@@ -401,7 +401,7 @@ Merci !`)
                   >
                     <option value="">Sélectionner...</option>
                     <option value="Mon Compte">Mon Compte</option>
-                    <option value="Assistant Formation">Assistant Formation</option>
+                    <option value="Assistant Invest Malin">Assistant Invest Malin</option>
                     <option value="Assistant Juridique">Assistant Juridique</option>
                     <option value="Assistant Négociateur">Assistant Négociateur</option>
                     <option value="Assistant Annonce">Assistant Annonce</option>

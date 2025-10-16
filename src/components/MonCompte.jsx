@@ -413,7 +413,7 @@ export default function MonCompte() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Assistant Invest Malin - Gratuit */}
             <Link 
-              to="/assistant-formation" 
+              to="/assistant-invest-malin" 
               className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all duration-300 group"
             >
               <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">

@@ -237,7 +237,7 @@ export default function UpgradeRequired() {
               <Link to="/faq" className="text-[#dbae61] hover:underline ml-1">FAQ</Link>
             </p>
             <p className="text-sm">
-              Vous conservez l'accès à l'Assistant Formation gratuitement, même sans abonnement.
+              Vous conservez l'accès à l'Assistant Invest Malin gratuitement, même sans abonnement.
             </p>
           </div>
 
