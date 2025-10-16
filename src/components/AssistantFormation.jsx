@@ -170,14 +170,14 @@ export default function AssistantFormationWithHistoryV3() {
   }
 
   // Si on vérifie encore l'accès, afficher un loader
-if (checkingAccess) {
-  return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
-}
+  if (checkingAccess) {
+    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
+  }
 
-// Si pas d'accès, afficher le modal
-if (!hasAccess) {
-  return <AccessCodeModal onSuccess={() => setHasAccess(true)} />
-}
+  // Si pas d'accès, afficher le modal
+  if (!hasAccess) {
+    return <AccessCodeModal onSuccess={() => setHasAccess(true)} />
+  }
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">

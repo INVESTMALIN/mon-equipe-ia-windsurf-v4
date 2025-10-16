@@ -84,7 +84,7 @@ export default function Tarifs() {
                 <span className="text-5xl font-bold text-gray-900">0€</span>
                 <span className="text-gray-500">/mois</span>
               </div>
-              <p className="text-gray-600">Pour découvrir l'accompagnement Invest Malin</p>
+              <p className="text-gray-600">Pour accéder à l'assistant Invest Malin</p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -94,7 +94,7 @@ export default function Tarifs() {
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-700">Réponses instantanées 24/7</span>
+                <span className="text-gray-700">Réponses instantanées 24h/24</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
