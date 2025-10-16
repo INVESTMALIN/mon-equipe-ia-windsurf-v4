@@ -43,7 +43,7 @@ export default function AccessCodeModal({ onSuccess }) {
           Accès sécurisé
         </h2>
         <p className="text-gray-600 text-center mb-6">
-          Entrez le code d'accès communiqué lors de votre formation Invest Malin
+          Entrez le code d'accès communiqué lors du programme Invest Malin
         </p>
 
         {/* Formulaire */}
