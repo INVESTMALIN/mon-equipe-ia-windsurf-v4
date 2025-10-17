@@ -1325,6 +1325,28 @@ export function FormProvider({ children }) {
     setSaveStatus({ saving: false, saved: false, error: null })
   }, [])
 
+  const finaliserFiche = useCallback(async () => {
+    setSaveStatus({ saving: true, saved: false, error: null })
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const updatedFormData = { ...formData, statut: 'Complété' }
+      const result = await saveFiche(updatedFormData, user.id)
+      
+      if (result.success) {
+        setFormData(result.data)
+        setSaveStatus({ saving: false, saved: true, error: null })
+        return { success: true }
+      } else {
+        setSaveStatus({ saving: false, saved: false, error: result.message })
+        return { success: false, error: result.message }
+      }
+    } catch (error) {
+      setSaveStatus({ saving: false, saved: false, error: error.message })
+      return { success: false, error: error.message }
+    }
+  }, [formData])
+
   return (
     <FormContext.Provider value={{ 
       // Données
@@ -1336,9 +1358,10 @@ export function FormProvider({ children }) {
       // Persistance
       handleSave,
       handleLoad,
-      loadFicheData: handleLoad, // Alias pour FicheForm
+      loadFicheData: handleLoad,
       saveStatus,
       resetForm,
+      finaliserFiche,
       
       // Navigation
       currentStep,

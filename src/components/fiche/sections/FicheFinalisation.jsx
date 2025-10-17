@@ -58,7 +58,8 @@ export default function FicheFinalisation() {
     handleSave,
     saveStatus,
     back,
-    updateField
+    updateField,
+    finaliserFiche
   } = useForm()
 
   const handleGeneratePDF = async () => {
@@ -181,9 +182,12 @@ export default function FicheFinalisation() {
 
   // Finaliser la fiche
   const handleFinaliser = async () => {
-    await handleSave()
-    updateField('statut', 'Complété')
-    setShowFinalModal(true)
+    const result = await finaliserFiche()
+    if (result.success) {
+      setShowFinalModal(true)
+    } else {
+      alert('Erreur lors de la finalisation : ' + (result.error || 'inconnue'))
+    }
   }
 
   const handleQuickPrompt = async (prompt) => {
