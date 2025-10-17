@@ -1,6 +1,5 @@
-// src/App.jsx - MISE À JOUR pour FicheWizard + Auth Redirect Handler
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+// src/App.jsx - MISE À JOUR pour FicheWizard
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from './components/Home'
 import Login from './components/Login'
 import AccountCreated from './components/AccountCreated'
@@ -37,33 +36,6 @@ import Tarifs from './components/Tarifs'
 
 import Support from './components/Support'
 
-// Composant pour gérer les redirections après actions Supabase (recovery, invite, signup)
-function AuthRedirectHandler() {
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  useEffect(() => {
-    // Vérifier les paramètres dans l'URL après redirection Supabase
-    const params = new URLSearchParams(location.search)
-    const hashParams = new URLSearchParams(location.hash.substring(1))
-    
-    // Supabase peut mettre les params dans ?query ou #hash
-    const type = params.get('type') || hashParams.get('type')
-
-    if (type === 'recovery') {
-      // Mot de passe oublié -> page de nouveau mot de passe
-      navigate('/nouveau-mot-de-passe', { replace: true })
-    } else if (type === 'signup') {
-      // Confirmation email -> page de connexion avec message
-      navigate('/connexion', { replace: true })
-    } else if (type === 'invite') {
-      // Invitation utilisateur -> page de connexion
-      navigate('/connexion', { replace: true })
-    }
-  }, [location, navigate])
-
-  return null
-}
 
 function AppWrapper() {
   return (
@@ -71,7 +43,6 @@ function AppWrapper() {
       <main className="flex-1">
 
       <ScrollToTop />
-      <AuthRedirectHandler />
         <Routes>
           {/* Routes publiques */}
           <Route path="/" element={<Home />} />
