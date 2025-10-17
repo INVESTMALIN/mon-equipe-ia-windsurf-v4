@@ -84,7 +84,7 @@ export default function Tarifs() {
                 <span className="text-5xl font-bold text-gray-900">0€</span>
                 <span className="text-gray-500">/mois</span>
               </div>
-              <p className="text-gray-600">Pour accéder à l'assistant Invest Malin</p>
+              <p className="text-gray-600">Pour les membres du programme Invest Malin</p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -152,7 +152,7 @@ export default function Tarifs() {
               </li>
               <li className="flex items-start gap-3">
                 <Shield className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <span className="text-white"><strong>Assistant LegalBNB IA</strong> - Conseils fiscaux & légaux</span>
+                <span className="text-white"><strong>Assistant LegalBNB IA</strong> - Informations juridiques/fiscales</span>
               </li>
               <li className="flex items-start gap-3">
                 <Zap className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />

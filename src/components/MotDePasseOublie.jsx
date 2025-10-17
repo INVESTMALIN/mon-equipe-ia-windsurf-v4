@@ -15,7 +15,7 @@ export default function MotDePasseOublie() {
     setMessage('')
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://mon-equipe-ia.vercel.app/nouveau-mot-de-passe'
+      redirectTo: 'https://mon-equipe-ia.com/nouveau-mot-de-passe'
     })
 
     if (error) {
