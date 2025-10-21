@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Brain, Sparkles, Upload, FileText, X } from 'lucide-react'
+import { Bot, User, ArrowLeft, Brain, PenTool, Upload, FileText, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
@@ -11,6 +11,7 @@ export default function AssistantAnnonce() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
   const conversationIdRef = useRef(null)
@@ -44,6 +45,12 @@ export default function AssistantAnnonce() {
 
   const scrollToBottom = () => {
     endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+  }
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const handleFileSelect = (e) => {
@@ -296,65 +303,6 @@ export default function AssistantAnnonce() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
 
-       {/* Header noir responsive */}
-       <div className="bg-black text-white py-4 z-50">
-        {/* Header mobile */}
-        <div className="px-4 flex md:hidden items-center justify-between">
-          <div></div> {/* Espace vide pour centrer le logo */}
-          
-            <Link
-              to="/assistants"
-              className="flex items-center gap-2 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
-              title="Aller à Assistants"
-            >
-              <img 
-                src="/images/invest-malin-logo.png" 
-                alt="Invest Malin Logo" 
-                className="h-6 hover:scale-105 transition-transform duration-200"
-              />
-              <span className="text-sm font-bold">MON ÉQUIPE IA</span>
-            </Link>
-          
-          <div className="flex items-center gap-1">
-            <Link
-              to="/assistants"
-              className="p-2 text-white hover:text-[#dbae61] transition-colors border border-white/80 hover:border-[#dbae61] rounded-md"
-              title="Retour"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-
-          </div>
-        </div>
-
-        {/* Header desktop - comme avant */}
-        <div className="hidden md:flex px-6 md:px-20 items-center justify-between">
-          <Link
-            to="/assistants"
-            className="flex items-center gap-3 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
-            title="Aller à Assistants"
-          >
-            <img 
-              src="/images/invest-malin-logo.png" 
-              alt="Invest Malin Logo" 
-              className="h-8 hover:scale-105 transition-transform duration-200"
-            />
-            <span className="text-lg font-bold">MON ÉQUIPE IA</span>
-          </Link>
-
-          
-          <div className="flex items-center gap-4">
-            <Link
-              to="/assistants"
-              className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors border-2 border-white/80 hover:border-[#dbae61] px-3 py-2 rounded-md"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">Retour</span>
-            </Link>
-
-          </div>
-        </div>
-      </div>
 
       <div className="flex-1 flex overflow-hidden">
         <SidebarConversations
@@ -365,99 +313,153 @@ export default function AssistantAnnonce() {
             onNewConversation={createNewConversation}
         />
         
-        <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
-          {/* Titre avec même style qu'Assistant Formation */}
-          <h1 className="text-3xl font-bold text-[#dbae61] mb-1">Assistant Annonce IA</h1>
-          <p className="text-gray-700 mb-6">Créez des annonces optimisées qui maximisent vos réservations. Réponses instantanées assurées.</p>
+        <div className="flex-1 flex flex-col">
 
-          <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[600px] flex flex-col overflow-hidden relative">
-            <div ref={listRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
-                  {msg.sender === 'bot' && <Bot className="w-4 h-4 text-[#dbae61] mt-1" />}
-                  {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
-                  <div
-                    className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                      msg.sender === 'user'
-                        ? 'bg-orange-100 text-right ml-auto'
-                        : 'bg-gray-100 text-left'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {loading && (
-  <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
-    <LoadingIcon className="w-4 h-4 text-[#dbae61]" />
-    <span>{currentMessage}{dots}</span>
-  </div>
-)}
-              <div ref={endRef} />
+        {/* Header moderne unifié */}
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/assistants" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center">
+                <PenTool className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">Assistant Annonce</h1>
+                <p className="text-xs text-gray-500">Créez des annonces optimisées</p>
+              </div>
             </div>
-
-            {showScrollButton && (
-              <button
-                onClick={scrollToBottom}
-                className="absolute bottom-20 right-4 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-100"
-                title="Aller en bas"
-              >
-                ↓
-              </button>
-            )}
-
-            {/* Upload PDF */}
-            {selectedFile && (
-              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-700">{selectedFile.name}</span>
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div ref={listRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`flex gap-3 items-start ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
+                {msg.sender === 'bot' && (
+                  <div className="w-8 h-8 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                {msg.sender === 'user' && (
+                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-gray-600" />
+                  </div>
+                )}
+                  <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                    msg.sender === 'user' ? 'bg-[#dbae61] bg-opacity-10 text-right ml-auto' : 'bg-gray-100 text-left'
+                  }`}>
+                  {msg.text}
+                  {msg.sender === 'bot' && idx > 0 && (
+                    <button
+                      onClick={() => handleCopy(msg.text)}
+                      className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors inline-flex items-center gap-1"
+                      title="Copier"
+                    >
+                      {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3 text-gray-500" />}
+                    </button>
+                  )}
                 </div>
-                <button onClick={removeFile} className="text-green-600 hover:text-green-800">
+              </div>
+            ))}
+            
+            {loading && (
+              <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
+                <LoadingIcon className="w-4 h-4 text-[#dbae61]" />
+                <span>{currentMessage}{dots}</span>
+              </div>
+            )}
+            <div ref={endRef} />
+          </div>
+
+          {showScrollButton && (
+            <button
+              onClick={scrollToBottom}
+              className="absolute bottom-24 right-8 bg-white border border-gray-300 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
+              title="Aller en bas"
+            >
+              ↓
+            </button>
+          )}
+
+          <div className="border-t border-gray-200 bg-white p-4">
+            {selectedFile && (
+              <div className="mb-3 p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#dbae61]" />
+                  <span className="text-sm text-gray-700">{selectedFile.name}</span>
+                  <span className="text-xs text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
+                </div>
+                <button onClick={removeFile} className="text-[#dbae61] hover:text-[#c49a4f]">
                   <X className="w-4 h-4" />
                 </button>
               </div>
             )}
 
-            <form onSubmit={sendMessage} className="mt-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  id="pdf-upload"
-                />
-                <label
-                  htmlFor="pdf-upload"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer text-sm transition-colors"
-                >
-                  <Upload className="w-4 h-4" />
-                  Pièce jointe
-                </label>
-                <span className="text-xs text-gray-500">Fiche logement, règlements...</span>
-              </div>
-              
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Posez votre question..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#dbae61]"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !input.trim()}
-                  className="bg-[#dbae61] hover:bg-[#c49a4f] text-white text-sm font-semibold px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Envoyer
-                </button>
-              </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button
+                onClick={() => setInput("Crée une annonce attractive pour Airbnb")}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
+              >
+                Crée une annonce attractive pour Airbnb
+              </button>
+              <button
+                onClick={() => setInput("Optimise cette annonce pour plus de réservations")}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
+              >
+                Optimise cette annonce
+              </button>
+              <button
+                onClick={() => setInput("Génère un titre accrocheur")}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
+              >
+                Génère un titre accrocheur
+              </button>
+            </div>
+
+            <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-xs text-gray-600">
+                <strong>Formats acceptés :</strong> PDF, DocX • <strong>Taille max :</strong> 10 MB
+              </p>
+            </div>
+
+            <form onSubmit={sendMessage} className="flex items-center gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="pdf-upload"
+              />
+              <label
+                htmlFor="pdf-upload"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Fichier
+              </label>
+
+              <input
+                type="text"
+                placeholder="Décrivez ce que vous souhaitez..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] disabled:bg-gray-100"
+              />
+
+              <button
+                type="submit"
+                disabled={loading || (!input.trim() && !selectedFile)}
+                className="px-6 py-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Envoi...' : 'Envoyer'}
+              </button>
             </form>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

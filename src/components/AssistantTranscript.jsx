@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Video, Upload, X, Copy, Check } from 'lucide-react'
+import { Bot, User, ArrowLeft, FileAudio, Upload, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
 
-export default function AssistantGuideAcces() {
+export default function AssistantTranscript() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,15 +21,15 @@ export default function AssistantGuideAcces() {
       if (data?.user) setUserId(data.user.id)
     })
 
-    let id = localStorage.getItem('conversation_id_guide_acces')
+    let id = localStorage.getItem('conversation_id_transcript')
     if (!id) {
       id = uuidv4()
-      localStorage.setItem('conversation_id_guide_acces', id)
+      localStorage.setItem('conversation_id_transcript', id)
     }
     conversationIdRef.current = id
   }, [])
 
-  const welcome = "Bonjour ! Je suis votre Assistant Guide d'Accès. Envoyez-moi une vidéo de votre logement et je générerai un guide d'accès détaillé pour vos voyageurs."
+  const welcome = "Bonjour ! Je suis votre Assistant Transcription. Envoyez-moi un fichier audio ou vidéo et je le transcrirai automatiquement pour vous."
 
   useEffect(() => {
     let i = 0
@@ -50,21 +50,26 @@ export default function AssistantGuideAcces() {
     
     if (!file) return
     
-    // Validation du type de fichier (vidéos uniquement)
+    // Validation du type de fichier (audio ET vidéo)
     const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4')
-    const isWebm = file.type === 'video/webm' || file.name.toLowerCase().endsWith('.webm')
-    const isMov = file.type === 'video/quicktime' || file.name.toLowerCase().endsWith('.mov')
+    const isMp3 = file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3')
+    const isWebm = file.type === 'video/webm' || file.type === 'audio/webm' || file.name.toLowerCase().endsWith('.webm')
+    const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || file.name.toLowerCase().endsWith('.wav')
+    const isM4a = file.type === 'audio/mp4' || file.type === 'audio/x-m4a' || file.name.toLowerCase().endsWith('.m4a')
     
-    if (!isMp4 && !isWebm && !isMov) {
-      alert('Veuillez sélectionner une vidéo (MP4, WebM ou MOV) uniquement.')
+    if (!isMp4 && !isMp3 && !isWebm && !isWav && !isM4a) {
+      alert('Veuillez sélectionner un fichier audio (MP3, WAV, M4A, WebM) ou vidéo (MP4, WebM) uniquement.')
       e.target.value = ''
       return
     }
     
-    // Validation de la taille (350MB max)
-    const maxSize = 350 * 1024 * 1024 // 350MB
+    // Détection si c'est un fichier audio ou vidéo
+    const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
+    const maxSize = isAudio ? 10 * 1024 * 1024 : 350 * 1024 * 1024 // 10MB audio, 350MB vidéo
+    
     if (file.size > maxSize) {
-      alert('Le fichier est trop volumineux. Taille maximum autorisée : 350MB.')
+      const limitText = isAudio ? '10MB' : '350MB'
+      alert(`Le fichier est trop volumineux. Taille maximum autorisée : ${limitText}.`)
       e.target.value = ''
       return
     }
@@ -114,7 +119,7 @@ export default function AssistantGuideAcces() {
     e.preventDefault()
     if ((!input.trim() && !selectedFile) || loading) return
 
-    const userMessage = input.trim() || (selectedFile ? `[Vidéo envoyée : ${selectedFile.name}]` : '')
+    const userMessage = input.trim() || (selectedFile ? `[Fichier envoyé : ${selectedFile.name}]` : '')
     setMessages(prev => [...prev, { sender: 'user', text: userMessage }])
     setInput('')
     setLoading(true)
@@ -139,14 +144,14 @@ export default function AssistantGuideAcces() {
         }
       }
 
-      const sessionId = `guide_acces_${conversationIdRef.current}`
+      const sessionId = `transcript_${conversationIdRef.current}`
       const payload = {
         sessionId,
-        chatInput: userMessage,
+        ...(input.trim() && { chatInput: userMessage }),
         ...(fileData && { files: [fileData] })
       }
 
-      const res = await fetch('https://hub.cardin.cloud/webhook/5ebcffdd-fee8-4525-85f1-33f57ce4d28d/chat', {
+      const res = await fetch('https://hub.cardin.cloud/webhook/396c1d02-5034-466e-865a-774764ccdaae', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -167,7 +172,7 @@ export default function AssistantGuideAcces() {
       if (userId) {
         await supabase.from('conversations').insert({
           user_id: userId,
-          source: 'assistant-guide-acces',
+          source: 'assistant-transcript',
           question: userMessage,
           answer: botResponse,
           conversation_id: conversationIdRef.current
@@ -180,7 +185,7 @@ export default function AssistantGuideAcces() {
       let errorMessage = 'Une erreur est survenue. Veuillez réessayer.'
       
       if (error.name === 'AbortError') {
-        errorMessage = 'La génération du guide a pris trop de temps (timeout 2 min). Essayez avec une vidéo plus courte.'
+        errorMessage = 'La transcription a pris trop de temps (timeout 2 min). Essayez avec un fichier plus court.'
       } else if (error.message.includes('Failed to fetch')) {
         errorMessage = 'Impossible de contacter le serveur. Vérifiez votre connexion internet.'
       }
@@ -193,7 +198,7 @@ export default function AssistantGuideAcces() {
 
   const handleNewConversation = () => {
     const newId = uuidv4()
-    localStorage.setItem('conversation_id_guide_acces', newId)
+    localStorage.setItem('conversation_id_transcript', newId)
     conversationIdRef.current = newId
     setMessages([{ sender: 'bot', text: welcome }])
     setInput('')
@@ -209,7 +214,7 @@ export default function AssistantGuideAcces() {
         .select('question, answer, created_at')
         .eq('conversation_id', conversationId)
         .eq('user_id', userId)
-        .eq('source', 'assistant-guide-acces')
+        .eq('source', 'assistant-transcript')
         .order('created_at', { ascending: true })
 
       if (error) throw error
@@ -222,7 +227,7 @@ export default function AssistantGuideAcces() {
 
       setMessages(loadedMessages)
       conversationIdRef.current = conversationId
-      localStorage.setItem('conversation_id_guide_acces', conversationId)
+      localStorage.setItem('conversation_id_transcript', conversationId)
     } catch (error) {
       console.error('Erreur chargement conversation:', error)
     }
@@ -235,9 +240,9 @@ export default function AssistantGuideAcces() {
   }
 
   const quickPrompts = [
-    "Génère un guide d'accès détaillé",
-    "Crée un guide étape par étape",
-    "Guide d'accès avec points de repère"
+    "Transcris ce fichier",
+    "Transcription avec timestamps",
+    "Résumé + transcription complète"
   ]
 
   return (
@@ -246,7 +251,7 @@ export default function AssistantGuideAcces() {
         activeId={conversationIdRef.current}
         onSelect={loadConversation}
         userId={userId}
-        source="assistant-guide-acces"
+        source="assistant-transcript"
         onNewConversation={handleNewConversation}
       />
 
@@ -258,11 +263,11 @@ export default function AssistantGuideAcces() {
             </Link>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center">
-                <Video className="w-5 h-5 text-white" />
+                <FileAudio className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Assistant Guide d'Accès</h1>
-                <p className="text-xs text-gray-500">Générez un guide depuis votre vidéo</p>
+                <h1 className="text-lg font-semibold text-gray-900">Assistant Transcription</h1>
+                <p className="text-xs text-gray-500">Transcrivez vos fichiers audio et vidéo</p>
               </div>
             </div>
           </div>
@@ -301,8 +306,8 @@ export default function AssistantGuideAcces() {
             
             {loading && (
               <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
-                <Video className="w-4 h-4 text-[#dbae61]" />
-                <span>Génération du guide en cours...</span>
+                <FileAudio className="w-4 h-4 text-[#dbae61]" />
+                <span>Transcription en cours...</span>
               </div>
             )}
             <div ref={endRef} />
@@ -322,7 +327,7 @@ export default function AssistantGuideAcces() {
             {selectedFile && (
               <div className="mb-3 p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Video className="w-4 h-4 text-[#dbae61]" />
+                  <FileAudio className="w-4 h-4 text-[#dbae61]" />
                   <span className="text-sm text-gray-700">{selectedFile.name}</span>
                   <span className="text-xs text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
                 </div>
@@ -346,7 +351,7 @@ export default function AssistantGuideAcces() {
 
             <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
               <p className="text-xs text-gray-600">
-                <strong>Formats acceptés :</strong> MP4, WebM, MOV • <strong>Taille max :</strong> 350 MB
+                <strong>Audio :</strong> MP3, WAV, M4A, WebM (10 MB max) • <strong>Vidéo :</strong> MP4, WebM (350 MB max)
               </p>
             </div>
 
@@ -354,22 +359,22 @@ export default function AssistantGuideAcces() {
               <input
                 type="file"
                 ref={fileInputRef}
-                accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime"
+                accept=".mp4,.mp3,.webm,.wav,.m4a,video/mp4,video/webm,audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/webm"
                 onChange={handleFileSelect}
                 className="hidden"
-                id="video-upload"
+                id="media-upload"
               />
               <label
-                htmlFor="video-upload"
+                htmlFor="media-upload"
                 className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                Vidéo
+                Fichier
               </label>
 
               <input
                 type="text"
-                placeholder="Décrivez ce que vous souhaitez..."
+                placeholder="Ajoutez des instructions (optionnel)..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={loading}

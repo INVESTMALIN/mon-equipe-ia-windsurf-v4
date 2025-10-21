@@ -16,6 +16,8 @@ import AssistantAnnonce from './components/AssistantAnnonce'
 import AssistantJuridique from './components/AssistantJuridique'
 import AssistantNegociateur from './components/AssistantNegociateur'
 import AssistantGuideAcces from './components/AssistantGuideAcces'
+import AssistantTranscript from './components/AssistantTranscript'
+
 import TestStripe from './components/TestStripe'
 
 import FicheWizard from './components/fiche/FicheWizard'
@@ -153,6 +155,15 @@ function AppWrapper() {
             element={
               <ProtectedRoute requirePremium={true}>
                 <AssistantGuideAcces />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assistant-transcript"
+            element={
+              <ProtectedRoute requirePremium={true}>
+                <AssistantTranscript />
               </ProtectedRoute>
             }
           />

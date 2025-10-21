@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Plus, Upload, FileText, X } from 'lucide-react'
+import { Bot, User, ArrowLeft, Scale, Upload, FileText, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
@@ -14,6 +14,7 @@ export default function AssistantJuridique() {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [copied, setCopied] = useState(false)
   const conversationIdRef = useRef(null)
   const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(loading, selectedFile !== null)
 
@@ -83,6 +84,12 @@ export default function AssistantJuridique() {
   const removeFile = () => {
     setSelectedFile(null)
     document.querySelector('input[type="file"]').value = ''
+  }
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   // ✅ FIX AUTO-SCROLL : Refs pour scroll intelligent
@@ -212,43 +219,39 @@ export default function AssistantJuridique() {
       fileInputRef.current && (fileInputRef.current.value = '')
   
     } catch (err) {
-      console.error('Erreur webhook:', err)
-      
-      let errorMessage = "Une erreur est survenue, merci de réessayer dans quelques instants."
+      console.error('Erreur sendMessage:', err)
+      let errorText = 'Une erreur est survenue. Veuillez réessayer.'
       
       if (err.name === 'AbortError') {
-        errorMessage = "La requête a expiré (30s). Merci de réessayer."
-      } else if (err.message?.includes('HTTP 504')) {
-        errorMessage = "L'assistant prend plus de temps que prévu à analyser votre demande. Merci de réessayer dans quelques instants.\n\nSi le problème persiste, contactez le support : contact@invest-malin.com"
-      } else if (err.message?.includes('HTTP 500') || err.message?.includes('HTTP 502') || err.message?.includes('HTTP 503')) {
-        errorMessage = "Une erreur technique s'est produite côté serveur. Notre équipe technique a été notifiée automatiquement.\n\nMerci de réessayer dans quelques instants."
-      } else if (err.message?.includes('HTTP 413')) {
-        errorMessage = "Le fichier est trop volumineux. Merci d'utiliser un fichier de moins de 10MB."
+        errorText = 'Délai d\'attente dépassé (2 minutes). Réessayez ou contactez le support.'
       } else if (err.message?.includes('HTTP 400')) {
-        errorMessage = "Problème avec votre demande. Vérifiez le fichier sélectionné et réessayez."
-      } else if (err.message?.includes('HTTP 401') || err.message?.includes('HTTP 403')) {
-        errorMessage = "Problème d'autorisation. Merci de vous reconnecter ou de contacter le support."
-      } else if (err.message?.includes('JSON malformé')) {
-        errorMessage = "Erreur de communication avec le serveur. Merci de réessayer."
+        errorText = 'Fichier vide ou invalide. Veuillez sélectionner un fichier valide.'
+      } else if (err.message?.includes('HTTP 413')) {
+        errorText = 'Fichier trop volumineux (max 10MB). Réduisez la taille et réessayez.'
+      } else if (err.message?.includes('HTTP 429')) {
+        errorText = 'Trop de requêtes. Attendez quelques instants avant de réessayer.'
       } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        errorMessage = "Problème de connexion réseau. Vérifiez votre connexion internet et réessayez."
+        errorText = 'Problème de connexion réseau. Vérifiez votre connexion internet.'
+      } else if (err.message?.includes('HTTP 5')) {
+        errorText = 'Le serveur rencontre un problème temporaire. Réessayez dans quelques minutes.'
+      } else if (err.message?.includes('JSON')) {
+        errorText = 'Réponse serveur invalide. Contactez le support si le problème persiste.'
       }
-      
-      setMessages((prev) => [...prev, { 
-        sender: 'bot', 
-        text: errorMessage 
-      }])
+  
+      setMessages((prev) => [...prev, { sender: 'bot', text: errorText }])
     } finally {
       setLoading(false)
     }
   }
 
-
   const loadConversation = async (conversationId) => {
+    if (!userId) return
+  
     const { data, error } = await supabase
       .from('conversations')
       .select('question, answer, created_at')
       .eq('conversation_id', conversationId)
+      .eq('user_id', userId)
       .eq('source', 'assistant-juridique')
       .order('created_at', { ascending: true })
   
@@ -295,172 +298,163 @@ export default function AssistantJuridique() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
+    <div className="flex h-screen bg-gray-50">
+      <SidebarConversations
+        activeId={conversationIdRef.current}
+        onSelect={loadConversation}
+        userId={userId}
+        source="assistant-juridique"
+        onNewConversation={createNewConversation}
+      />
 
-       {/* Header noir responsive */}
-       <div className="bg-black text-white py-4 z-50">
-        {/* Header mobile */}
-        <div className="px-4 flex md:hidden items-center justify-between">
-          <div></div> {/* Espace vide pour centrer le logo */}
-          
-            <Link
-              to="/assistants"
-              className="flex items-center gap-2 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
-              title="Aller à Assistants"
-            >
-              <img 
-                src="/images/invest-malin-logo.png" 
-                alt="Invest Malin Logo" 
-                className="h-6 hover:scale-105 transition-transform duration-200"
-              />
-              <span className="text-sm font-bold">MON ÉQUIPE IA</span>
+      <div className="flex-1 flex flex-col">
+        {/* Header moderne unifié */}
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/assistants" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Link>
-          
-          <div className="flex items-center gap-1">
-            <Link
-              to="/assistants"
-              className="p-2 text-white hover:text-[#dbae61] transition-colors border border-white/80 hover:border-[#dbae61] rounded-md"
-              title="Retour"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-
-          </div>
-        </div>
-
-        {/* Header desktop - comme avant */}
-        <div className="hidden md:flex px-6 md:px-20 items-center justify-between">
-          <Link
-            to="/assistants"
-            className="flex items-center gap-3 hover:text-[#dbae61] transition-colors duration-200 cursor-pointer"
-            title="Aller à Assistants"
-          >
-            <img 
-              src="/images/invest-malin-logo.png" 
-              alt="Invest Malin Logo" 
-              className="h-8 hover:scale-105 transition-transform duration-200"
-            />
-            <span className="text-lg font-bold">MON ÉQUIPE IA</span>
-          </Link>
-
-          
-          <div className="flex items-center gap-4">
-            <Link
-              to="/assistants"
-              className="flex items-center gap-2 text-white hover:text-[#dbae61] transition-colors border-2 border-white/80 hover:border-[#dbae61] px-3 py-2 rounded-md"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">Retour</span>
-            </Link>
-
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        <SidebarConversations
-            activeId={conversationIdRef.current}
-            onSelect={loadConversation}
-            userId={userId}
-            source="assistant-juridique"
-            onNewConversation={createNewConversation}
-        />
-        
-        <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
-          {/* Titre avec même style qu'Assistant Invest Malin */}
-          <h1 className="text-3xl font-bold text-[#dbae61] mb-1">Assistant LegalBNB IA</h1>
-          <p className="text-gray-700 mb-6">Simplifiez vos démarches fiscales & légales. Réponses instantanées avec des des solutions sur mesure pour votre situation.</p>
-
-          <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 h-[600px] flex flex-col overflow-hidden relative">
-            <div ref={listRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
-                  {msg.sender === 'bot' && <Bot className="w-4 h-4 text-[#dbae61] mt-1" />}
-                  {msg.sender === 'user' && <User className="w-4 h-4 text-gray-400 mt-1" />}
-                  <div
-                    className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                      msg.sender === 'user'
-                        ? 'bg-orange-100 text-right ml-auto'
-                        : 'bg-gray-100 text-left'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
-                  <LoadingIcon className="w-4 h-4 text-[#dbae61]" />
-                  <span>{currentMessage}{dots}</span>
-                </div>
-              )}
-              <div ref={endRef} />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center">
+                <Scale className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">Assistant LegalBNB</h1>
+                <p className="text-xs text-gray-500">Expert juridique location courte durée</p>
+              </div>
             </div>
+          </div>
+        </div>
 
-            {showScrollButton && (
-              <button
-                onClick={scrollToBottom}
-                className="absolute bottom-20 right-4 bg-white border border-gray-300 rounded-full p-2 shadow-md hover:bg-gray-100"
-                title="Aller en bas"
-              >
-                ↓
-              </button>
-            )}
-
-            {/* Upload PDF */}
-            {selectedFile && (
-              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-700">{selectedFile.name}</span>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div ref={listRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`flex gap-3 items-start ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
+                {msg.sender === 'bot' && (
+                  <div className="w-8 h-8 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                {msg.sender === 'user' && (
+                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-gray-600" />
+                  </div>
+                )}
+                <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                  msg.sender === 'user' ? 'bg-[#dbae61] bg-opacity-10 text-right ml-auto' : 'bg-gray-100 text-left'
+                }`}>
+                  {msg.text}
+                  {msg.sender === 'bot' && idx > 0 && (
+                    <button
+                      onClick={() => handleCopy(msg.text)}
+                      className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors inline-flex items-center gap-1"
+                      title="Copier"
+                    >
+                      {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3 text-gray-500" />}
+                    </button>
+                  )}
                 </div>
-                <button onClick={removeFile} className="text-green-600 hover:text-green-800">
+              </div>
+            ))}
+            
+            {loading && (
+              <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
+                <LoadingIcon className="w-4 h-4 text-[#dbae61]" />
+                <span>{currentMessage}{dots}</span>
+              </div>
+            )}
+            <div ref={endRef} />
+          </div>
+
+          {showScrollButton && (
+            <button
+              onClick={scrollToBottom}
+              className="absolute bottom-24 right-8 bg-white border border-gray-300 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
+              title="Aller en bas"
+            >
+              ↓
+            </button>
+          )}
+
+          <div className="border-t border-gray-200 bg-white p-4">
+            {selectedFile && (
+              <div className="mb-3 p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#dbae61]" />
+                  <span className="text-sm text-gray-700">{selectedFile.name}</span>
+                  <span className="text-xs text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
+                </div>
+                <button onClick={removeFile} className="text-[#dbae61] hover:text-[#c49a4f]">
                   <X className="w-4 h-4" />
                 </button>
               </div>
             )}
 
-            <form onSubmit={sendMessage} className="mt-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  id="pdf-upload"
-                />
-                <label
-                  htmlFor="pdf-upload"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer text-sm transition-colors"
-                >
-                  <Upload className="w-4 h-4" />
-                  Pièce jointe
-                </label>
-                <span className="text-xs text-gray-500">Fiche logement, règlements...</span>
-              </div>
-              
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Posez votre question..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#dbae61]"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !input.trim()}
-                  className="bg-[#dbae61] hover:bg-[#c49a4f] text-white text-sm font-semibold px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Envoyer
-                </button>
-              </div>
-                   {/* Disclaimer */}
-                   <p className="text-xs text-gray-500 mt-2 text-center">
-                Réponses générées par IA, à vérifier. Ce service ne remplace pas un conseil juridique.
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button
+                onClick={() => setInput("Puis-je sous-louer mon appartement ?")}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
+              >
+                Puis-je sous-louer mon appartement ?
+              </button>
+              <button
+                onClick={() => setInput("Quelles sont mes obligations fiscales ?")}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
+              >
+                Quelles sont mes obligations fiscales ?
+              </button>
+              <button
+                onClick={() => setInput("Règlement de copropriété et location courte durée")}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
+              >
+                Règlement de copropriété
+              </button>
+            </div>
+
+            <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-xs text-gray-600">
+                <strong>Formats acceptés :</strong> PDF, DocX • <strong>Taille max :</strong> 10 MB
               </p>
+            </div>
+
+            <form onSubmit={sendMessage} className="flex items-center gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="pdf-upload"
+              />
+              <label
+                htmlFor="pdf-upload"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Fichier
+              </label>
+
+              <input
+                type="text"
+                placeholder="Posez votre question..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] disabled:bg-gray-100"
+              />
+
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className="px-6 py-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Envoi...' : 'Envoyer'}
+              </button>
             </form>
+
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Réponses générées par IA, à vérifier. Ce service ne remplace pas un conseil juridique.
+            </p>
           </div>
         </div>
       </div>
