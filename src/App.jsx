@@ -15,6 +15,7 @@ import Dashboard from './components/Dashboard'
 import AssistantAnnonce from './components/AssistantAnnonce'
 import AssistantJuridique from './components/AssistantJuridique'
 import AssistantNegociateur from './components/AssistantNegociateur'
+import AssistantGuideAcces from './components/AssistantGuideAcces'
 import TestStripe from './components/TestStripe'
 
 import FicheWizard from './components/fiche/FicheWizard'
@@ -146,6 +147,15 @@ function AppWrapper() {
               </ProtectedRoute>
             }
           />  
+
+          <Route
+            path="/assistant-guide-acces"
+            element={
+              <ProtectedRoute requirePremium={true}>
+                <AssistantGuideAcces />
+              </ProtectedRoute>
+            }
+          />
 
           <Route 
             path="/fiche" 
