@@ -140,9 +140,13 @@ export default function AssistantTranscript() {
         fileData = {
           data: base64,
           fileName: selectedFile.name,
-          mimeType: selectedFile.type
+          mimeType: selectedFile.type,
+          fileSize: selectedFile.size
         }
       }
+      
+      console.log('📦 Payload envoyée:', payload) // <-- Ajoute ça
+
 
       const sessionId = `transcript_${conversationIdRef.current}`
       const payload = {
