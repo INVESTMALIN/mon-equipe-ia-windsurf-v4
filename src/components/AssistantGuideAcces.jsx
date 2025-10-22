@@ -50,21 +50,27 @@ export default function AssistantGuideAcces() {
     
     if (!file) return
     
-    // Validation du type de fichier (vidéos uniquement)
+    // Validation du type de fichier (vidéos ET audio)
     const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4')
-    const isWebm = file.type === 'video/webm' || file.name.toLowerCase().endsWith('.webm')
+    const isWebm = file.type === 'video/webm' || file.type === 'audio/webm' || file.name.toLowerCase().endsWith('.webm')
     const isMov = file.type === 'video/quicktime' || file.name.toLowerCase().endsWith('.mov')
+    const isMp3 = file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3')
+    const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || file.name.toLowerCase().endsWith('.wav')
+    const isM4a = file.type === 'audio/mp4' || file.type === 'audio/x-m4a' || file.name.toLowerCase().endsWith('.m4a')
     
-    if (!isMp4 && !isWebm && !isMov) {
-      alert('Veuillez sélectionner une vidéo (MP4, WebM ou MOV) uniquement.')
+    if (!isMp4 && !isWebm && !isMov && !isMp3 && !isWav && !isM4a) {
+      alert('Veuillez sélectionner une vidéo (MP4, WebM, MOV) ou un audio (MP3, WAV, M4A, WebM).')
       e.target.value = ''
       return
     }
     
-    // Validation de la taille (350MB max)
-    const maxSize = 350 * 1024 * 1024 // 350MB
+    // Détection si c'est un fichier audio ou vidéo
+    const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
+    const maxSize = isAudio ? 10 * 1024 * 1024 : 350 * 1024 * 1024 // 10MB audio, 350MB vidéo
+    
     if (file.size > maxSize) {
-      alert('Le fichier est trop volumineux. Taille maximum autorisée : 350MB.')
+      const limitText = isAudio ? '10MB' : '350MB'
+      alert(`Le fichier est trop volumineux. Taille maximum autorisée : ${limitText}.`)
       e.target.value = ''
       return
     }
@@ -114,7 +120,7 @@ export default function AssistantGuideAcces() {
     e.preventDefault()
     if ((!input.trim() && !selectedFile) || loading) return
 
-    const userMessage = input.trim() || (selectedFile ? `[Vidéo envoyée : ${selectedFile.name}]` : '')
+    const userMessage = input.trim() || (selectedFile ? `[Fichier envoyé : ${selectedFile.name}]` : '')
     setMessages(prev => [...prev, { sender: 'user', text: userMessage }])
     setInput('')
     setLoading(true)
@@ -346,15 +352,14 @@ export default function AssistantGuideAcces() {
 
             <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
               <p className="text-xs text-gray-600">
-                <strong>Formats acceptés :</strong> MP4, WebM, MOV • <strong>Taille max :</strong> 350 MB
-              </p>
+              <strong>Formats acceptés :</strong> MP4, WebM, MOV, MP3, WAV, M4A • <strong>Taille max :</strong> 350MB vidéo / 10MB audio              </p>
             </div>
 
             <form onSubmit={sendMessage} className="flex items-center gap-2">
               <input
                 type="file"
                 ref={fileInputRef}
-                accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime"
+                accept=".mp4,.webm,.mov,.mp3,.wav,.m4a,video/*,audio/*"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="video-upload"

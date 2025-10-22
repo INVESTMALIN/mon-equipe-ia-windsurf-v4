@@ -201,7 +201,7 @@ export default function MonCompteV2() {
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex items-center gap-3 mb-4">
                   <Scale className="w-8 h-8 text-[#dbae61]" />
-                  <h3 className="text-2xl font-bold text-black">LEBALBNB IA</h3>
+                  <h3 className="text-2xl font-bold text-black">LEGALBNB IA</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-800 mb-4">
                 L'IA qui simplifie vos démarches fiscales & légales
@@ -368,6 +368,99 @@ export default function MonCompteV2() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+{/* Section Assistants Beta */}
+<section className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-6 md:px-20">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-3 bg-orange-100 px-4 py-2 rounded-full mb-4">
+              <span className="text-orange-600 font-bold text-sm">NOUVEAUX ASSISTANTS</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-black mb-4">
+              À VENIR TRÈS PROCHAINEMENT
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Découvrez nos prochains assistants en avant-première
+            </p>
+          </div>
+
+          {/* Grille 2 colonnes */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Assistant Guide d'Accès - BETA TESTABLE */}
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden hover:shadow-xl transition-shadow">
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-orange-100 rounded-xl">
+                      <FileText className="w-8 h-8 text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-black">Assistant Guide d'Accès</h3>
+                      <span className="text-xs text-orange-600 font-semibold">BETA</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Génère des guides d'accès complets à partir de vos vidéos ou transcriptions de remise de clés, 
+                  pour faciliter l'arrivée de vos voyageurs.
+                </p>
+
+                {isPremium ? (
+                  <Link
+                    to="/assistant-guide-acces"
+                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 w-full justify-center"
+                  >
+                    Tester maintenant
+                    <span className="ml-2">→</span>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/upgrade"
+                    className="inline-flex items-center bg-gray-300 text-gray-600 font-bold px-6 py-3 rounded-xl w-full justify-center cursor-not-allowed"
+                  >
+                    <Lock className="w-5 h-5 mr-2" />
+                    Premium requis
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Assistant Transcript - BIENTÔT DISPONIBLE */}
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden relative">
+              {/* Overlay "bientôt disponible" */}
+              <div className="absolute inset-0 bg-white bg-opacity-20 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                <div className="text-center px-6">
+                  <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full mb-3">
+                    <span className="text-gray-700 font-bold text-sm">BIENTÔT DISPONIBLE</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contenu (en arrière-plan) */}
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gray-100 rounded-xl">
+                      <Phone className="w-8 h-8 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-black">Assistant Transcript</h3>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Analyse vos appels commerciaux, extrait les besoins clés et détecte les signaux émotionnels 
+                  pour mieux comprendre vos prospects.
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
