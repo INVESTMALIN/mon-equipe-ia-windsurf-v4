@@ -8,145 +8,151 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
   const [editingId, setEditingId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
   const [isMobileOpen, setIsMobileOpen] = useState(false)
-  
-  // 🆕 Pagination state
-  const [currentLimit, setCurrentLimit] = useState(5) // 👈 Ici
+  const [currentLimit, setCurrentLimit] = useState(5)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   
-  // ✅ FIX DEBOUNCE : Anti-tempête d'événements
-  const fetchDebounceRef = useRef(null)
+  const debounceRef = useRef(null)
+  const channelRef = useRef(null)
 
-  const triggerFetch = (shouldReset = false) => {
-    clearTimeout(fetchDebounceRef.current)
-    fetchDebounceRef.current = setTimeout(() => fetchConversations(shouldReset), 120)
-  }
-
-  // ✅ FIX REALTIME + DELETE : Gère tous les events (INSERT/UPDATE/DELETE)
-  useEffect(() => {
+  // ==========================================
+  // 1. FETCH CONVERSATIONS (fonction principale)
+  // ==========================================
+  const fetchConversations = async (limit = 5) => {
     if (!userId) return
     
-    fetchConversations(true) // Reset au mount
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('conversation_id, question, created_at, title, source')
+      .eq('source', source)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit + 1) // +1 pour détecter s'il y en a plus
+
+    if (error) {
+      console.error('Erreur fetch conversations:', error)
+      return
+    }
+
+    // Déduplication
+    const seen = new Set()
+    const unique = []
+    for (const row of data) {
+      if (!seen.has(row.conversation_id)) {
+        seen.add(row.conversation_id)
+        unique.push(row)
+      }
+    }
+
+    // Vérifier s'il y a plus de conversations
+    setHasMore(unique.length > limit)
+    setConversations(unique.slice(0, limit))
+    setCurrentLimit(limit)
+  }
+
+  // ==========================================
+  // 2. CHARGEMENT INITIAL (au mount)
+  // ==========================================
+  useEffect(() => {
+    if (!userId) return
+    fetchConversations(5) // Charge les 5 premières
+  }, [userId, source])
+
+  // ==========================================
+  // 3. REALTIME SUPABASE (écoute INSERT/DELETE)
+  // ==========================================
+  useEffect(() => {
+    if (!userId) return
+
+    // Cleanup ancien channel si existe
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current)
+    }
 
     const channel = supabase
-      .channel(`conv_${source}_${userId}`)
+      .channel(`conversations_${source}_${userId}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'conversations',
-        filter: `user_id=eq.${userId}`,
+        filter: `user_id=eq.${userId}`
       }, (payload) => {
-        // ✅ FIX DELETE : payload.new est null sur DELETE, utiliser old aussi
-        const src = payload.new?.source ?? payload.old?.source
-        if (src !== source) return
-        
-        // Reset seulement sur INSERT/DELETE, pas sur UPDATE
-        const shouldReset = payload.eventType === 'INSERT' || payload.eventType === 'DELETE'
-        triggerFetch(shouldReset)
+        const eventSource = payload.new?.source || payload.old?.source
+        if (eventSource !== source) return
+
+        // Debounce le refresh
+        clearTimeout(debounceRef.current)
+        debounceRef.current = setTimeout(() => {
+          // Sur INSERT/DELETE, reset à 5
+          // Sur UPDATE, garde la limite actuelle
+          const newLimit = (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') 
+            ? 5 
+            : currentLimit
+          fetchConversations(newLimit)
+        }, 150)
       })
       .subscribe()
 
-    return () => { 
-      supabase.removeChannel(channel)
-      clearTimeout(fetchDebounceRef.current) // ✅ Cleanup debounce
-    }
-  }, [userId, source])
+    channelRef.current = channel
 
-  // ✅ FIX REFRESH MANUEL : Écouter l'événement custom avec garde userId
+    return () => {
+      clearTimeout(debounceRef.current)
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+      }
+    }
+  }, [userId, source, currentLimit])
+
+  // ==========================================
+  // 4. REFRESH MANUEL (window.refreshSidebar)
+  // ==========================================
   useEffect(() => {
-    const handleRefresh = () => {
-      if (!userId) return // 🔒 Pas d'appel tant que userId n'est pas prêt
-      triggerFetch(true) // Reset sur refresh manuel
+    const handleManualRefresh = () => {
+      if (!userId) {
+        // Retry une seule fois après 300ms si userId pas prêt
+        setTimeout(() => {
+          if (userId) fetchConversations(5)
+        }, 300)
+        return
+      }
+      fetchConversations(5) // Reset à 5 sur refresh manuel
     }
-    window.addEventListener('refreshSidebar', handleRefresh)
-    return () => window.removeEventListener('refreshSidebar', handleRefresh)
+
+    window.addEventListener('refreshSidebar', handleManualRefresh)
+    return () => window.removeEventListener('refreshSidebar', handleManualRefresh)
   }, [userId, source])
 
-  // Fonction utilitaire pour l'aperçu des conversations
-  const previewOf = (conv) => {
-    const preview = conv.title || (conv.question || '').replace(/\s+/g, ' ').trim()
-    return preview.slice(0, 40) || 'Nouvelle conversation'
-  }
-
-  const fetchConversations = async (reset = false) => {
-    // 🔒 GARDE GLOBALE : Empêcher fetch avec userId null
-    if (!userId) return
-    
-    const base = reset ? 5 : currentLimit // 👈 Et ici
-    const OVERFETCH = 3 // Marge pour la déduplication
-    
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('conversation_id, question, created_at, title, source')
-      .eq('source', source)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(base * OVERFETCH + 1) // Overfetch pour gérer la déduplication
-
-    if (error) {
-      console.error(error)
-      return
-    }
-
-    // Déduplication AVANT calcul hasMore
-    const seen = new Set()
-    const uniqueConversations = []
-    for (const row of data) {
-      if (!seen.has(row.conversation_id)) {
-        seen.add(row.conversation_id)
-        uniqueConversations.push(row)
+  // Fermer le dropdown en cliquant ailleurs
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      // Si on clique et que ce n'est ni le bouton ni le menu
+      if (dropdownOpen && !e.target.closest('.dropdown-container')) {
+        setDropdownOpen(null)
       }
     }
-    
-    // Maintenant on peut correctement calculer hasMore
-    setHasMore(uniqueConversations.length > base)
-    setConversations(uniqueConversations.slice(0, base))
-    
-    if (reset) {
-      setCurrentLimit(5) // 👈 Et là
-    }
-  }
 
-  const loadMoreConversations = async () => {
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
+
+  // ==========================================
+  // 5. PAGINATION ("Voir plus")
+  // ==========================================
+  const loadMoreConversations = () => {
     if (loadingMore || !hasMore) return
-    
     setLoadingMore(true)
-    const newLimit = currentLimit + 5 // 👈 Et aussi l'incrément du "Voir plus"
-    const OVERFETCH = 3
     
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('conversation_id, question, created_at, title, source')
-      .eq('source', source)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(newLimit * OVERFETCH + 1) // Overfetch pour gérer la déduplication
-
-    if (error) {
-      console.error(error)
+    const newLimit = currentLimit + 5
+    fetchConversations(newLimit).finally(() => {
       setLoadingMore(false)
-      return
-    }
-
-    // Déduplication AVANT calcul hasMore
-    const seen = new Set()
-    const uniqueConversations = []
-    for (const row of data) {
-      if (!seen.has(row.conversation_id)) {
-        seen.add(row.conversation_id)
-        uniqueConversations.push(row)
-      }
-    }
-    
-    // Maintenant on peut correctement calculer hasMore
-    setHasMore(uniqueConversations.length > newLimit)
-    setConversations(uniqueConversations.slice(0, newLimit))
-    setCurrentLimit(newLimit)
-    setLoadingMore(false)
+    })
   }
 
+  // ==========================================
+  // 6. ACTIONS UTILISATEUR
+  // ==========================================
   const deleteConversation = async (conversationId) => {
-    if (!userId) return // 🔒 Garde anti-null
+    if (!userId) return
     
     const { error } = await supabase
       .from('conversations')
@@ -156,23 +162,17 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
       .eq('source', source)
 
     if (!error) {
-      // Si on supprime la conversation active, sélectionner la première restante
+      // Si conversation active supprimée, sélectionner la suivante
       if (activeId === conversationId) {
-        const remainingConversations = conversations.filter(c => c.conversation_id !== conversationId)
-        if (remainingConversations.length > 0) {
-          onSelect(remainingConversations[0].conversation_id)
-        } else {
-          onSelect(null) // Aucune conversation restante
-        }
+        const remaining = conversations.filter(c => c.conversation_id !== conversationId)
+        onSelect(remaining.length > 0 ? remaining[0].conversation_id : null)
       }
-      
-      setConversations(prev => prev.filter(c => c.conversation_id !== conversationId))
       setDropdownOpen(null)
     }
   }
 
   const updateTitle = async (conversationId, newTitle) => {
-    if (!userId || !newTitle.trim()) return // 🔒 Garde anti-null + titre vide
+    if (!userId || !newTitle.trim()) return
     
     const { error } = await supabase
       .from('conversations')
@@ -184,9 +184,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
     if (!error) {
       setConversations(prev => 
         prev.map(c => 
-          c.conversation_id === conversationId 
-            ? { ...c, title: newTitle }
-            : c
+          c.conversation_id === conversationId ? { ...c, title: newTitle } : c
         )
       )
       setEditingId(null)
@@ -196,7 +194,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
 
   const handleRename = (conv) => {
     setEditingId(conv.conversation_id)
-    setEditTitle(previewOf(conv))
+    setEditTitle(getPreview(conv))
     setDropdownOpen(null)
   }
 
@@ -210,18 +208,29 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
   }
 
   const handleNewConversation = () => {
-    setIsMobileOpen(false) // Fermer sidebar mobile
+    setIsMobileOpen(false)
     onNewConversation()
   }
 
   const handleSelectConversation = (conversationId) => {
-    setIsMobileOpen(false) // Fermer sidebar mobile
+    setIsMobileOpen(false)
     onSelect(conversationId)
   }
 
+  // ==========================================
+  // 7. UTILITAIRES
+  // ==========================================
+  const getPreview = (conv) => {
+    const text = conv.title || (conv.question || '').replace(/\s+/g, ' ').trim()
+    return text.slice(0, 40) || 'Nouvelle conversation'
+  }
+
+  // ==========================================
+  // 8. RENDER
+  // ==========================================
   return (
     <>
-      {/* ✅ BOUTON HAMBURGER MOBILE */}
+      {/* Bouton hamburger mobile */}
       <button
         onClick={() => setIsMobileOpen(true)}
         className="md:hidden fixed top-4 left-4 z-50 p-2 bg-black text-white rounded-lg shadow-lg"
@@ -229,7 +238,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
         <Menu className="w-5 h-5" />
       </button>
 
-      {/* ✅ OVERLAY MOBILE */}
+      {/* Overlay mobile */}
       {isMobileOpen && (
         <div 
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -237,7 +246,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
         />
       )}
 
-      {/* ✅ SIDEBAR RESPONSIVE */}
+      {/* Sidebar */}
       <div className={`
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
         md:translate-x-0 
@@ -246,15 +255,13 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
         flex flex-col h-screen z-50 
         transition-transform duration-300 ease-in-out
       `}>
-        {/* Header avec bouton fermer mobile */}
+        {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
               Conversations
             </h2>
-            
-            {/* ✅ BOUTON FERMER MOBILE */}
             <button
               onClick={() => setIsMobileOpen(false)}
               className="md:hidden p-1 hover:bg-gray-100 rounded"
@@ -272,14 +279,15 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
           </button>
         </div>
 
-        {/* Liste des conversations */}
+        {/* Liste conversations */}
         <div className="flex-1 overflow-y-auto">
           {conversations.map((conv) => (
             <div
               key={conv.conversation_id}
               className={`relative group border-b border-gray-100 hover:bg-gray-50 ${
-                activeId === conv.conversation_id ?
-                  'bg-[#dbae61] bg-opacity-10 border-l-4 border-l-[#dbae61]' : ''
+                activeId === conv.conversation_id
+                  ? 'bg-[#dbae61] bg-opacity-10 border-l-4 border-l-[#dbae61]'
+                  : ''
               }`}
             >
               <div
@@ -302,7 +310,7 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
                 ) : (
                   <>
                     <div className="text-sm font-medium text-gray-900 truncate">
-                      {previewOf(conv)}
+                      {getPreview(conv)}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {new Date(conv.created_at).toLocaleDateString('fr-FR', {
@@ -320,13 +328,13 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
                   e.stopPropagation()
                   setDropdownOpen(dropdownOpen === conv.conversation_id ? null : conv.conversation_id)
                 }}
-                className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-all"
+                className="dropdown-container absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-all"
               >
                 <MoreHorizontal className="w-4 h-4 text-gray-500" />
               </button>
 
               {dropdownOpen === conv.conversation_id && (
-                <div className="absolute right-4 top-12 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1 min-w-[120px]">
+                <div className="dropdown-container absolute right-4 top-12 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1 min-w-[120px]">
                   <button
                     onClick={() => handleRename(conv)}
                     className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
@@ -346,17 +354,17 @@ export default function SidebarConversations({ activeId, onSelect, userId, sourc
             </div>
           ))}
           
-          {/* 🆕 BOUTON "VOIR PLUS" */}
+          {/* Bouton "Voir plus" */}
           {hasMore && (
             <div className="p-4 border-t border-gray-100">
               <button
                 onClick={loadMoreConversations}
                 disabled={loadingMore}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all disabled:opacity-50"
               >
                 {loadingMore ? (
                   <>
-                    <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full"></div>
+                    <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full" />
                     <span>Chargement...</span>
                   </>
                 ) : (

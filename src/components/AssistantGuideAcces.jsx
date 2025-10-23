@@ -17,16 +17,39 @@ export default function AssistantGuideAcces() {
   const abortControllerRef = useRef(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setUserId(data.user.id)
-    })
+    const initConversation = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserId(user.id)
 
-    let id = localStorage.getItem('conversation_id_guide_acces')
-    if (!id) {
-      id = uuidv4()
-      localStorage.setItem('conversation_id_guide_acces', id)
+      let id = localStorage.getItem('conversation_id_annonce')
+      
+      // Vérifier si cet ID a déjà des messages en DB
+      if (id && user) {
+        const { data } = await supabase
+          .from('conversations')
+          .select('conversation_id')
+          .eq('conversation_id', id)
+          .eq('source', 'assistant-annonce')
+          .eq('user_id', user.id)
+          .limit(1)
+        
+        // Si conversation existe déjà, créer un nouvel ID
+        if (data && data.length > 0) {
+          id = uuidv4()
+          localStorage.setItem('conversation_id_annonce', id)
+        }
+      }
+      
+      // Si pas d'ID du tout, en créer un nouveau
+      if (!id) {
+        id = uuidv4()
+        localStorage.setItem('conversation_id_annonce', id)
+      }
+      
+      conversationIdRef.current = id
     }
-    conversationIdRef.current = id
+    
+    initConversation()
   }, [])
 
   const welcome = "Bonjour ! Je suis votre Assistant Guide d'Accès. Envoyez-moi une vidéo de votre logement et je générerai un guide d'accès détaillé pour vos voyageurs."

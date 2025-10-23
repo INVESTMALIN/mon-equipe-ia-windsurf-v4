@@ -18,7 +18,7 @@ export default function AssistantTranscript() {
   const abortControllerRef = useRef(null)
 
   useEffect(() => {
-    const loadUserData = async () => {
+    const initConversation = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
@@ -34,17 +34,38 @@ export default function AssistantTranscript() {
         if (!error && userProfile) {
           setUserEmail(userProfile.email)
         }
+
+        // Gestion conversation_id
+        let id = localStorage.getItem('conversation_id_transcript')
+        
+        // Vérifier si cet ID a déjà des messages en DB
+        if (id) {
+          const { data } = await supabase
+            .from('conversations')
+            .select('conversation_id')
+            .eq('conversation_id', id)
+            .eq('source', 'assistant-transcript')
+            .eq('user_id', user.id)
+            .limit(1)
+          
+          // Si conversation existe déjà, créer un nouvel ID
+          if (data && data.length > 0) {
+            id = uuidv4()
+            localStorage.setItem('conversation_id_transcript', id)
+          }
+        }
+        
+        // Si pas d'ID du tout, en créer un nouveau
+        if (!id) {
+          id = uuidv4()
+          localStorage.setItem('conversation_id_transcript', id)
+        }
+        
+        conversationIdRef.current = id
       }
     }
     
-    loadUserData()
-
-    let id = localStorage.getItem('conversation_id_transcript')
-    if (!id) {
-      id = uuidv4()
-      localStorage.setItem('conversation_id_transcript', id)
-    }
-    conversationIdRef.current = id
+    initConversation()
   }, [])
 
   const welcome = "Bonjour ! Je suis votre Assistant Transcription. Envoyez-moi un fichier audio ou vidéo et je le transcrirai automatiquement pour vous."

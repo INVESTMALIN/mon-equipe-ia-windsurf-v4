@@ -26,16 +26,39 @@ export default function AssistantFormationWithHistoryV3() {
   }, [])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setUserId(data.user.id)
-    })
+    const initConversation = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserId(user.id)
 
-    let id = localStorage.getItem('conversation_id')
-    if (!id) {
-      id = uuidv4()
-      localStorage.setItem('conversation_id', id)
+      let id = localStorage.getItem('conversation_id')  // ✅ Bonne clé
+      
+      // Vérifier si cet ID a déjà des messages en DB
+      if (id && user) {
+        const { data } = await supabase
+          .from('conversations')
+          .select('conversation_id')
+          .eq('conversation_id', id)
+          .eq('source', 'assistant-formation')  // ✅ Bonne source
+          .eq('user_id', user.id)
+          .limit(1)
+        
+        // Si conversation existe déjà, créer un nouvel ID
+        if (data && data.length > 0) {
+          id = uuidv4()
+          localStorage.setItem('conversation_id', id)  // ✅ Bonne clé
+        }
+      }
+      
+      // Si pas d'ID du tout, en créer un nouveau
+      if (!id) {
+        id = uuidv4()
+        localStorage.setItem('conversation_id', id)  // ✅ Bonne clé
+      }
+      
+      conversationIdRef.current = id
     }
-    conversationIdRef.current = id
+    
+    initConversation()
   }, [])
 
   const welcome = "Salut ! Moi c'est Coach Malin 🧠. Pose-moi ta question sur l'accompagnement Invest Malin, je suis là pour t'aider."
