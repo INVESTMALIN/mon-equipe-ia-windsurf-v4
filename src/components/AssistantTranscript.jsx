@@ -11,15 +11,33 @@ export default function AssistantTranscript() {
   const [loading, setLoading] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [userId, setUserId] = useState(null)
+  const [userEmail, setUserEmail] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
   const [copied, setCopied] = useState(false)
   const conversationIdRef = useRef(null)
   const abortControllerRef = useRef(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setUserId(data.user.id)
-    })
+    const loadUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        setUserId(user.id)
+        
+        // Récupération email depuis la table users
+        const { data: userProfile, error } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', user.id)
+          .single()
+        
+        if (!error && userProfile) {
+          setUserEmail(userProfile.email)
+        }
+      }
+    }
+    
+    loadUserData()
 
     let id = localStorage.getItem('conversation_id_transcript')
     if (!id) {
@@ -144,21 +162,21 @@ export default function AssistantTranscript() {
           fileSize: selectedFile.size
         }
       }
-      
-      console.log('📦 Payload envoyée:', payload) // <-- Ajoute ça
-
 
       const sessionId = `transcript_${conversationIdRef.current}`
-      const payload = {
-        sessionId,
-        ...(input.trim() && { chatInput: userMessage }),
-        ...(fileData && { files: [fileData] })
-      }
+
+      // Créer FormData au lieu de JSON
+      const formData = new FormData()
+      formData.append('sessionId', sessionId)
+      if (userEmail) formData.append('userEmail', userEmail)
+      if (input.trim()) formData.append('chatInput', userMessage)
+      if (selectedFile) formData.append('file', selectedFile) // Fichier binaire direct
+
+      console.log('📦 FormData envoyée avec sessionId:', sessionId, 'et email:', userEmail)
 
       const res = await fetch('https://hub.cardin.cloud/webhook/396c1d02-5034-466e-865a-774764ccdaae', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formData, // ⚠️ PAS de Content-Type header, FormData gère ça automatiquement
         signal: abortControllerRef.current.signal
       })
 
