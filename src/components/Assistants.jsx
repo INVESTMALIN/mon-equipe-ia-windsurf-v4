@@ -430,34 +430,44 @@ export default function MonCompteV2() {
               </div>
             </div>
 
-            {/* Assistant Transcript - BIENTÔT DISPONIBLE */}
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 overflow-hidden relative">
-              {/* Overlay "bientôt disponible" */}
-              <div className="absolute inset-0 bg-white bg-opacity-20 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                <div className="text-center px-6">
-                  <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full mb-3">
-                    <span className="text-gray-700 font-bold text-sm">BIENTÔT DISPONIBLE</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Contenu (en arrière-plan) */}
+            {/* Assistant Transcript - BETA TESTABLE */}
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden hover:shadow-xl transition-shadow">
               <div className="p-8">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gray-100 rounded-xl">
-                      <Phone className="w-8 h-8 text-gray-600" />
+                    <div className="p-3 bg-orange-100 rounded-xl">
+                      <FileText className="w-8 h-8 text-orange-600" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-black">Assistant Transcript</h3>
+                      <h3 className="text-xl font-bold text-black">Assistant Transcription</h3>
+                      <span className="text-xs text-orange-600 font-semibold">BETA</span>
                     </div>
                   </div>
                 </div>
                 
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  Analyse vos appels commerciaux, extrait les besoins clés et détecte les signaux émotionnels 
-                  pour mieux comprendre vos prospects.
+                  Transcrivez automatiquement vos fichiers audio et vidéo. 
+                  Recevez la transcription complète par email en quelques minutes.
                 </p>
+
+                {isPremium ? (
+                  <Link
+                    to="/assistant-transcript"
+                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 w-full justify-center"
+                  >
+                    Tester maintenant
+                    <span className="ml-2">→</span>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/upgrade"
+                    className="inline-flex items-center bg-gray-300 text-gray-600 font-bold px-6 py-3 rounded-xl w-full justify-center cursor-not-allowed"
+                  >
+                    <Lock className="w-5 h-5 mr-2" />
+                    Premium requis
+                  </Link>
+                )}
               </div>
             </div>
 
