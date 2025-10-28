@@ -149,7 +149,7 @@ export default function AssistantGuideAcces() {
     setLoading(true)
 
     abortControllerRef.current = new AbortController()
-    const timeoutId = setTimeout(() => abortControllerRef.current.abort(), 120000)
+    const timeoutId = setTimeout(() => abortControllerRef.current.abort(), 240000)
 
     try {
       let fileData = null
