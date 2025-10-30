@@ -161,17 +161,30 @@ export default function AssistantGuideAcces() {
           reader.readAsDataURL(selectedFile)
         })
 
+      // Déterminer le bon mimeType
+        let mimeType = selectedFile.type
+        if (!mimeType || mimeType === '') {
+          // Fallback basé sur l'extension
+          const ext = selectedFile.name.toLowerCase().split('.').pop()
+          if (ext === 'mp3') mimeType = 'audio/mpeg'
+          else if (ext === 'mp4') mimeType = 'video/mp4'
+          else if (ext === 'webm') mimeType = 'video/webm'
+          else if (ext === 'mov') mimeType = 'video/quicktime'
+          else if (ext === 'wav') mimeType = 'audio/wav'
+          else if (ext === 'm4a') mimeType = 'audio/mp4'
+        }
+
         fileData = {
           data: base64,
           fileName: selectedFile.name,
-          mimeType: selectedFile.type
+          mimeType: mimeType
         }
       }
 
       const sessionId = `guide_acces_${conversationIdRef.current}`
       const payload = {
         sessionId,
-        chatInput: userMessage,
+        message: userMessage,
         ...(fileData && { files: [fileData] })
       }
 
@@ -188,8 +201,16 @@ export default function AssistantGuideAcces() {
         throw new Error(`Erreur HTTP: ${res.status}`)
       }
 
-      const data = await res.json()
-      const botResponse = data.output || data.response || 'Aucune réponse reçue.'
+      const responseText = await res.text()
+      console.log('🔍 Réponse Guide Accès (Mon Équipe IA):', responseText)
+      
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Le webhook n\'a renvoyé aucune donnée')
+      }
+      
+      const responseData = JSON.parse(responseText)
+      const data = Array.isArray(responseData) ? responseData[0] : responseData
+      const botResponse = data.data?.output || data.output || data.response || 'Aucune réponse reçue.'
 
       setMessages(prev => [...prev, { sender: 'bot', text: botResponse }])
 
