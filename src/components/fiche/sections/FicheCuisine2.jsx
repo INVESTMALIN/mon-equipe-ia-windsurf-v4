@@ -5,36 +5,8 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Utensils } from 'lucide-react'
 
-export default function FicheCuisine2() {
-  const { 
-    getField,
-    updateField
-  } = useForm()
-
-  // Récupération des données de la section
-  const formData = getField('section_cuisine_2')
-
-  // Handler pour champs simples
-  const handleInputChange = (field, value) => {
-    updateField(field, value)
-  }
-
-  // Handler pour compteurs numériques (+ et -)
-  const handleCounterChange = (field, delta) => {
-    const currentValue = parseInt(formData[field.split('.').pop()]) || 0
-    const newValue = Math.max(0, currentValue + delta) // Pas de valeurs négatives
-    updateField(field, newValue)
-  }
-
-  // Handler pour radio buttons
-  const handleRadioChange = (field, value) => {
-    if (value === 'true') updateField(field, true)
-    else if (value === 'false') updateField(field, false)
-    else updateField(field, value)
-  }
-
   // Composant CounterInput réutilisable
-  const CounterInput = ({ label, fieldPath, value }) => {
+  const CounterInput = ({ label, fieldPath, value, onCounterChange }) => {
     
     // Handler pour empêcher le scroll mobile
     const handleCounterClick = (delta, event) => {
@@ -43,7 +15,7 @@ export default function FicheCuisine2() {
       event.stopPropagation()
       
       // Appeler la fonction de compteur existante
-      handleCounterChange(fieldPath, delta)
+      onCounterChange(fieldPath, delta)
       
       // Forcer la perte de focus pour éviter le keyboard
       event.target.blur()
@@ -76,6 +48,34 @@ export default function FicheCuisine2() {
         </div>
       </div>
     )
+  }
+
+export default function FicheCuisine2() {
+  const { 
+    getField,
+    updateField
+  } = useForm()
+
+  // Récupération des données de la section
+  const formData = getField('section_cuisine_2')
+
+  // Handler pour champs simples
+  const handleInputChange = (field, value) => {
+    updateField(field, value)
+  }
+
+  // Handler pour compteurs numériques (+ et -)
+  const handleCounterChange = (field, delta) => {
+    const currentValue = parseInt(formData[field.split('.').pop()]) || 0
+    const newValue = Math.max(0, currentValue + delta) // Pas de valeurs négatives
+    updateField(field, newValue)
+  }
+
+  // Handler pour radio buttons
+  const handleRadioChange = (field, value) => {
+    if (value === 'true') updateField(field, true)
+    else if (value === 'false') updateField(field, false)
+    else updateField(field, value)
   }
 
   // Listes des ustensiles par catégorie
@@ -187,6 +187,7 @@ export default function FicheCuisine2() {
                         label={label}
                         fieldPath={`section_cuisine_2.${key}`}
                         value={formData[key]}
+                        onCounterChange={handleCounterChange}
                       />
                     ))}
                   </div>
@@ -202,6 +203,7 @@ export default function FicheCuisine2() {
                         label={label}
                         fieldPath={`section_cuisine_2.${key}`}
                         value={formData[key]}
+                        onCounterChange={handleCounterChange}
                       />
                     ))}
                   </div>
@@ -217,6 +219,7 @@ export default function FicheCuisine2() {
                         label={label}
                         fieldPath={`section_cuisine_2.${key}`}
                         value={formData[key]}
+                        onCounterChange={handleCounterChange}
                       />
                     ))}
                   </div>
@@ -232,6 +235,7 @@ export default function FicheCuisine2() {
                         label={label}
                         fieldPath={`section_cuisine_2.${key}`}
                         value={formData[key]}
+                        onCounterChange={handleCounterChange}
                       />
                     ))}
                   </div>

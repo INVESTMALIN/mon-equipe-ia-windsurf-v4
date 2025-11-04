@@ -1,6 +1,6 @@
 import { supabase } from '../supabaseClient'
 import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
-import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 
 const FormContext = createContext()
 
@@ -1235,6 +1235,10 @@ export function FormProvider({ children }) {
   const [currentStep, setCurrentStep] = useState(0)
   const totalSteps = sections.length
 
+  // Flag pour distinguer changements utilisateur vs serveur
+  const isUserChangeRef = useRef(false)
+  const lastSaveRef = useRef(0)
+
   // Récupération utilisateur
   useEffect(() => {
     const getUser = async () => {
@@ -1245,6 +1249,8 @@ export function FormProvider({ children }) {
   }, [])
 
   const updateField = useCallback((fieldPath, value) => {
+    isUserChangeRef.current = true
+
     setFormData(prev => {
       const newData = { ...prev }
       const keys = fieldPath.split('.')
@@ -1269,6 +1275,8 @@ export function FormProvider({ children }) {
   }, [])
 
   const updateSection = useCallback((sectionName, newData) => {
+    isUserChangeRef.current = true
+    
     setFormData(prev => ({
       ...prev,
       [sectionName]: {
@@ -1351,6 +1359,31 @@ export function FormProvider({ children }) {
       return { success: false, error: errorMessage };
     }
   }, [formData, user])
+
+  // Auto-save automatique avec debounce
+  useEffect(() => {
+    // Ne rien faire si pas d'utilisateur
+    if (!user?.id) return
+    
+    // Ne rien faire si c'est une mise à jour interne (pas utilisateur)
+    if (!isUserChangeRef.current) return
+    
+    // Ne rien faire si déjà en train de sauvegarder
+    if (saveStatus.saving) return
+    
+    // Anti-spam : minimum 1.5s entre deux sauvegardes
+    const now = Date.now()
+    if (now - lastSaveRef.current < 1500) return
+    
+    // Debounce de 2 secondes
+    const timeout = setTimeout(async () => {
+      isUserChangeRef.current = false // Reset le flag avant de sauvegarder
+      lastSaveRef.current = Date.now()
+      await handleSave()
+    }, 5000)
+    
+    return () => clearTimeout(timeout)
+  }, [formData, user?.id, saveStatus.saving, handleSave])
 
   const handleLoad = useCallback(async (ficheId) => {
     setSaveStatus({ saving: true, saved: false, error: null });
