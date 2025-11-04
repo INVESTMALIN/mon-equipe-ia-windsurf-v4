@@ -314,6 +314,7 @@ section_gestion_linge: {
   }
 },
 
+
 section_equipements: {
   // Équipements techniques essentiels
   poubelle_emplacement: "",
@@ -355,16 +356,70 @@ section_equipements: {
   parking_payant_type: "", // radio unique
   parking_payant_details: "",
   
-  // Photos rappels (VERSION LITE)
+// === NOUVEAUX CHAMPS CONDITIONNELS ===
+  
+  // TV (conditionnel si tv = true)
+  tv_type: "", // "Écran plat", "Téléviseur", "Projecteur", "Autre"
+  tv_type_autre_details: "", // Si tv_type = "Autre"
+  tv_taille: "", // Texte libre
+  tv_services: [], // Array: "Netflix", "Amazon Prime", etc.
+  tv_consoles: [], // Array: "PlayStation", "Xbox", etc.
+  
+  // Climatisation (conditionnel si climatisation = true)
+  climatisation_type: "", // "Centralisée", "Individuelle par pièce", "Portable"
+  climatisation_instructions: "", // Textarea
+  
+  // Chauffage (conditionnel si chauffage = true)
+  chauffage_type: "", // "Central", "Électrique", "Gaz", "Poêle", "Cheminée"
+  chauffage_instructions: "", // Textarea
+  
+  // Lave-linge (conditionnel si lave_linge = true)
+  lave_linge_prix: "", // "Compris", "Supplément"
+  lave_linge_emplacement: "",
+  lave_linge_instructions: "",
+  
+  // Sèche-linge (conditionnel si seche_linge = true)
+  seche_linge_prix: "", // "Compris", "Supplément"
+  seche_linge_emplacement: "",
+  seche_linge_instructions: "",
+  
+  // Piano (conditionnel si piano = true)
+  piano_marque: "",
+  piano_type: "", // "À queue", "Droit", "Numérique"
+  
+  // PMR (conditionnel si accessible_mobilite_reduite = true)
+  pmr_details: "", // Textarea
+  
+  // Animaux (conditionnel si animaux_acceptes = true)
+  animaux_commentaire: "", // Textarea
+  
+  // WiFi - NOUVEAUX identifiants (conditionnel si wifi_statut = "oui")
+  wifi_nom_reseau: "", // SSID
+  wifi_mot_de_passe: "", // Password
+  
+  // === PHOTOS RAPPELS (VERSION LITE) ===
   photos_rappels: {
+    // Existants
     video_acces_poubelle_taken: false,
     poubelle_taken: false,
     disjoncteur_taken: false,
     vanne_arret_taken: false,
     chauffage_eau_taken: false,
-    video_systeme_chauffage_taken: false
+    video_systeme_chauffage_taken: false,
+    
+    // Nouveaux rappels pour équipements conditionnels
+    tv_video_taken: false,
+    tv_consoles_video_taken: false,
+    climatisation_video_taken: false,
+    chauffage_video_taken: false,
+    lave_linge_video_taken: false,
+    seche_linge_video_taken: false,
+    parking_photos_taken: false,
+    parking_video_taken: false,
+    wifi_routeur_photo_taken: false
   }
 },
+
 
 section_consommables: {
   fournis_par_prestataire: null, // true/false/null

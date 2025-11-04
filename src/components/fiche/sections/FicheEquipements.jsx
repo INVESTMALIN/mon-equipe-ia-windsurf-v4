@@ -4,6 +4,44 @@ import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Settings } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+
+
+// À ajouter dans FicheEquipements.jsx APRÈS les imports, AVANT export default function
+
+// Cartes de schéma - définir quels champs nettoyer par branche
+const BRANCH_SCHEMAS = {
+  tv: [
+    'tv_type', 'tv_taille', 'tv_type_autre_details',
+    'tv_services', 'tv_consoles'
+  ],
+  climatisation: [
+    'climatisation_type', 'climatisation_instructions'
+  ],
+  chauffage: [
+    'chauffage_type', 'chauffage_instructions'
+  ],
+  lave_linge: [
+    'lave_linge_prix', 'lave_linge_emplacement', 
+    'lave_linge_instructions'
+  ],
+  seche_linge: [
+    'seche_linge_prix', 'seche_linge_emplacement', 
+    'seche_linge_instructions'
+  ],
+  parking_equipement: [
+    // Pas de sous-champs car parking a sa propre section
+  ],
+  piano: [
+    'piano_marque', 'piano_type'
+  ],
+  accessible_mobilite_reduite: [
+    'pmr_details'
+  ],
+  animaux_acceptes: [
+    'animaux_commentaire'
+  ]
+}
 
 export default function FicheEquipements() {
   const { 
@@ -14,9 +52,52 @@ export default function FicheEquipements() {
   // Récupération des données de la section
   const formData = getField('section_equipements') || {}
 
-  // Handler pour champs simples
+  // Handler pour champs simples avec nettoyage des branches
   const handleInputChange = (field, value) => {
+    // Détection si c'est une checkbox d'équipement principale qui passe à false
+    const fieldKey = field.split('.').pop()
+    
+    if (BRANCH_SCHEMAS[fieldKey] && value === false) {
+      // C'est une checkbox racine qui est décochée, nettoyer la branche
+      const currentData = getField('section_equipements')
+      const newData = { ...currentData }
+      
+      // Nettoyer tous les champs de la branche
+      BRANCH_SCHEMAS[fieldKey].forEach(key => {
+        if (Array.isArray(newData[key])) {
+          newData[key] = []
+        } else if (typeof newData[key] === 'object' && newData[key] !== null) {
+          newData[key] = {}
+        } else {
+          newData[key] = null
+        }
+      })
+      
+      // Remettre explicitement le flag racine à false
+      newData[fieldKey] = false
+      
+      // Une seule mise à jour atomique
+      updateField('section_equipements', newData)
+    } else {
+      // Comportement normal pour les autres cas
+      updateField(field, value)
+    }
+  }
+
+  // Handler spécialisé pour le statut WiFi avec nettoyage
+  const handleWifiStatutChange = (field, value) => {
     updateField(field, value)
+    
+    // Nettoyer les identifiants si on quitte "oui"
+    if (value !== 'oui') {
+      updateField('section_equipements.wifi_nom_reseau', '')
+      updateField('section_equipements.wifi_mot_de_passe', '')
+    }
+    
+    // Nettoyer les détails si on quitte "en_cours"
+    if (value !== 'en_cours') {
+      updateField('section_equipements.wifi_details', '')
+    }
   }
 
   // Handler pour checkboxes multiples (parking sur place types)
@@ -116,6 +197,25 @@ export default function FicheEquipements() {
                   </div>
                 </div>
               </div>
+
+            {/* Note dev - Mise à jour récente */}
+            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+              <div className="flex items-start gap-3">
+                <div className="text-blue-600 text-xl mt-0.5">ℹ️</div>
+                <div>
+                  <p className="text-sm text-blue-900 font-medium mb-1">
+                    Page récemment mise à jour
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    Cette section a été enrichie avec de nouveaux champs conditionnels pour les équipements. 
+                    Si vous rencontrez un problème, merci de le signaler sur la{' '}
+                    <Link to="/support" className="text-blue-600 hover:text-blue-800 underline font-medium">
+                      page support
+                    </Link>.
+                  </p>
+                </div>
+              </div>
+            </div>              
 
               {/* Contenu du formulaire */}
               <div className="space-y-8">
@@ -316,7 +416,7 @@ export default function FicheEquipements() {
                   </div>
                 </div>
 
-                {/* SECTION 2: Équipements et commodités */}
+                {/* SECTION 2: Équipements et commodités */} 
                 <div>
                   <h3 className="text-lg font-semibold mb-6 text-gray-900">Équipements et commodités</h3>
                   
@@ -334,10 +434,478 @@ export default function FicheEquipements() {
                       </label>
                     ))}
                   </div>
+                    {/* BLOC CONDITIONNEL TV */}
+                    {formData.tv && (
+                      <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl space-y-6">
+                        <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                          📺 Configuration TV
+                        </h3>
+
+                        {/* Type de TV */}
+                        <div>
+                          <label className="block font-medium text-gray-900 mb-3">Type de TV *</label>
+                          <div className="space-y-2">
+                            {['Écran plat', 'Téléviseur', 'Projecteur', 'Autre'].map(option => (
+                              <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white p-3 rounded transition-colors">
+                                <input 
+                                  type="radio" 
+                                  name="tv_type"
+                                  checked={formData.tv_type === option}
+                                  onChange={() => handleInputChange('section_equipements.tv_type', option)}
+                                  className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                                />
+                                <span className="text-sm">{option}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Champ conditionnel "Autre" */}
+                        {formData.tv_type === 'Autre' && (
+                          <div>
+                            <label className="block font-medium text-gray-900 mb-2">Précisez le type *</label>
+                            <input
+                              type="text"
+                              placeholder="Quel type de TV ?"
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                              value={formData.tv_type_autre_details || ""}
+                              onChange={(e) => handleInputChange('section_equipements.tv_type_autre_details', e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {/* Taille TV */}
+                        <div>
+                          <label className="block font-medium text-gray-900 mb-2">Taille de la TV</label>
+                          <input
+                            type="text"
+                            placeholder="Ex: 55 pouces, 140 cm..."
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                            value={formData.tv_taille || ""}
+                            onChange={(e) => handleInputChange('section_equipements.tv_taille', e.target.value)}
+                          />
+                        </div>
+
+                        {/* Services de streaming */}
+                        <div>
+                          <label className="block font-medium text-gray-900 mb-3">Services de streaming disponibles</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {['Netflix', 'Amazon Prime', 'Disney+', 'Canal+', 'OCS', 'Apple TV+', 'YouTube Premium'].map(service => (
+                              <label key={service} className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox"
+                                  checked={(formData.tv_services || []).includes(service)}
+                                  onChange={(e) => {
+                                    const currentServices = formData.tv_services || []
+                                    if (e.target.checked) {
+                                      handleInputChange('section_equipements.tv_services', [...currentServices, service])
+                                    } else {
+                                      handleInputChange('section_equipements.tv_services', currentServices.filter(s => s !== service))
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                                />
+                                <span className="text-sm">{service}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Consoles de jeux */}
+                        <div>
+                          <label className="block font-medium text-gray-900 mb-3">Consoles de jeux disponibles</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {['PlayStation 4', 'PlayStation 5', 'Xbox One', 'Xbox Series', 'Nintendo Switch', 'Autre'].map(console => (
+                              <label key={console} className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox"
+                                  checked={(formData.tv_consoles || []).includes(console)}
+                                  onChange={(e) => {
+                                    const currentConsoles = formData.tv_consoles || []
+                                    if (e.target.checked) {
+                                      handleInputChange('section_equipements.tv_consoles', [...currentConsoles, console])
+                                    } else {
+                                      handleInputChange('section_equipements.tv_consoles', currentConsoles.filter(c => c !== console))
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                                />
+                                <span className="text-sm">{console}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Rappel vidéo TV (VERSION LITE) */}
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="tv_video_taken"
+                              className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                              checked={getField('section_equipements.photos_rappels.tv_video_taken') || false}
+                              onChange={(e) => handleInputChange('section_equipements.photos_rappels.tv_video_taken', e.target.checked)}
+                            />
+                            <label htmlFor="tv_video_taken" className="text-sm text-yellow-800">
+                              📹 Pensez à faire une vidéo expliquant le fonctionnement de la TV
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Rappel vidéo consoles (si consoles cochées) */}
+                        {(formData.tv_consoles || []).length > 0 && (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id="tv_consoles_video_taken"
+                                className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                                checked={getField('section_equipements.photos_rappels.tv_consoles_video_taken') || false}
+                                onChange={(e) => handleInputChange('section_equipements.photos_rappels.tv_consoles_video_taken', e.target.checked)}
+                              />
+                              <label htmlFor="tv_consoles_video_taken" className="text-sm text-yellow-800">
+                                📹 Pensez à faire une vidéo expliquant le fonctionnement des consoles
+                              </label>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {/* BLOC CONDITIONNEL CLIMATISATION */}
+                {formData.climatisation && (
+                  <div className="mt-8 p-6 bg-cyan-50 border-2 border-cyan-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-cyan-900 flex items-center gap-2">
+                      ❄️ Configuration Climatisation
+                    </h3>
+
+                    {/* Type de climatisation */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-3">Type de climatisation *</label>
+                      <div className="space-y-2">
+                        {['Centralisée', 'Individuelle par pièce', 'Portable'].map(option => (
+                          <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white p-3 rounded transition-colors">
+                            <input 
+                              type="radio" 
+                              name="climatisation_type"
+                              checked={formData.climatisation_type === option}
+                              onChange={() => handleInputChange('section_equipements.climatisation_type', option)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                            />
+                            <span className="text-sm">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Instructions utilisation */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Instructions d'utilisation</label>
+                      <textarea
+                        placeholder="Expliquez comment utiliser la climatisation..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows={4}
+                        value={formData.climatisation_instructions || ""}
+                        onChange={(e) => handleInputChange('section_equipements.climatisation_instructions', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Rappel vidéo */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="climatisation_video_taken"
+                          className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          checked={getField('section_equipements.photos_rappels.climatisation_video_taken') || false}
+                          onChange={(e) => handleInputChange('section_equipements.photos_rappels.climatisation_video_taken', e.target.checked)}
+                        />
+                        <label htmlFor="climatisation_video_taken" className="text-sm text-yellow-800">
+                          📹 Pensez à faire une vidéo expliquant le fonctionnement de la climatisation
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BLOC CONDITIONNEL CHAUFFAGE */}
+                {formData.chauffage && (
+                  <div className="mt-8 p-6 bg-orange-50 border-2 border-orange-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-orange-900 flex items-center gap-2">
+                      🔥 Configuration Chauffage
+                    </h3>
+
+                    {/* Type de chauffage */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-3">Type de chauffage *</label>
+                      <div className="space-y-2">
+                        {['Central', 'Électrique', 'Gaz', 'Poêle', 'Cheminée'].map(option => (
+                          <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white p-3 rounded transition-colors">
+                            <input 
+                              type="radio" 
+                              name="chauffage_type"
+                              checked={formData.chauffage_type === option}
+                              onChange={() => handleInputChange('section_equipements.chauffage_type', option)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                            />
+                            <span className="text-sm">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Instructions utilisation */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Instructions d'utilisation</label>
+                      <textarea
+                        placeholder="Expliquez comment utiliser le chauffage..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows={4}
+                        value={formData.chauffage_instructions || ""}
+                        onChange={(e) => handleInputChange('section_equipements.chauffage_instructions', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Rappel vidéo */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="chauffage_video_taken"
+                          className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          checked={getField('section_equipements.photos_rappels.chauffage_video_taken') || false}
+                          onChange={(e) => handleInputChange('section_equipements.photos_rappels.chauffage_video_taken', e.target.checked)}
+                        />
+                        <label htmlFor="chauffage_video_taken" className="text-sm text-yellow-800">
+                          📹 Pensez à faire une vidéo expliquant le fonctionnement du chauffage
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BLOC CONDITIONNEL LAVE-LINGE */}
+                {formData.lave_linge && (
+                  <div className="mt-8 p-6 bg-purple-50 border-2 border-purple-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                      🧺 Configuration Lave-linge
+                    </h3>
+
+                    {/* Prix */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-3">Prix *</label>
+                      <div className="flex gap-6">
+                        {['Compris', 'Supplément'].map(option => (
+                          <label key={option} className="flex items-center gap-3 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="lave_linge_prix"
+                              checked={formData.lave_linge_prix === option}
+                              onChange={() => handleInputChange('section_equipements.lave_linge_prix', option)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                            />
+                            <span className="text-sm">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Emplacement */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Emplacement du lave-linge</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Dans la salle de bain, buanderie..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        value={formData.lave_linge_emplacement || ""}
+                        onChange={(e) => handleInputChange('section_equipements.lave_linge_emplacement', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Instructions */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Instructions d'utilisation</label>
+                      <textarea
+                        placeholder="Expliquez comment utiliser le lave-linge..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows={4}
+                        value={formData.lave_linge_instructions || ""}
+                        onChange={(e) => handleInputChange('section_equipements.lave_linge_instructions', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Rappel vidéo */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="lave_linge_video_taken"
+                          className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          checked={getField('section_equipements.photos_rappels.lave_linge_video_taken') || false}
+                          onChange={(e) => handleInputChange('section_equipements.photos_rappels.lave_linge_video_taken', e.target.checked)}
+                        />
+                        <label htmlFor="lave_linge_video_taken" className="text-sm text-yellow-800">
+                          📹 Pensez à faire une vidéo expliquant le fonctionnement du lave-linge
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BLOC CONDITIONNEL SÈCHE-LINGE */}
+                {formData.seche_linge && (
+                  <div className="mt-8 p-6 bg-pink-50 border-2 border-pink-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-pink-900 flex items-center gap-2">
+                      🌬️ Configuration Sèche-linge
+                    </h3>
+
+                    {/* Prix */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-3">Prix *</label>
+                      <div className="flex gap-6">
+                        {['Compris', 'Supplément'].map(option => (
+                          <label key={option} className="flex items-center gap-3 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="seche_linge_prix"
+                              checked={formData.seche_linge_prix === option}
+                              onChange={() => handleInputChange('section_equipements.seche_linge_prix', option)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                            />
+                            <span className="text-sm">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Emplacement */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Emplacement du sèche-linge</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Dans la salle de bain, buanderie..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        value={formData.seche_linge_emplacement || ""}
+                        onChange={(e) => handleInputChange('section_equipements.seche_linge_emplacement', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Instructions */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Instructions d'utilisation</label>
+                      <textarea
+                        placeholder="Expliquez comment utiliser le sèche-linge..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows={4}
+                        value={formData.seche_linge_instructions || ""}
+                        onChange={(e) => handleInputChange('section_equipements.seche_linge_instructions', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Rappel vidéo */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="seche_linge_video_taken"
+                          className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          checked={getField('section_equipements.photos_rappels.seche_linge_video_taken') || false}
+                          onChange={(e) => handleInputChange('section_equipements.photos_rappels.seche_linge_video_taken', e.target.checked)}
+                        />
+                        <label htmlFor="seche_linge_video_taken" className="text-sm text-yellow-800">
+                          📹 Pensez à faire une vidéo expliquant le fonctionnement du sèche-linge
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BLOC CONDITIONNEL PIANO */}
+                {formData.piano && (
+                  <div className="mt-8 p-6 bg-indigo-50 border-2 border-indigo-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
+                      🎹 Configuration Piano
+                    </h3>
+
+                    {/* Marque */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Marque du piano</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Yamaha, Steinway..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        value={formData.piano_marque || ""}
+                        onChange={(e) => handleInputChange('section_equipements.piano_marque', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Type */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-3">Type de piano *</label>
+                      <div className="space-y-2">
+                        {['À queue', 'Droit', 'Numérique'].map(option => (
+                          <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white p-3 rounded transition-colors">
+                            <input 
+                              type="radio" 
+                              name="piano_type"
+                              checked={formData.piano_type === option}
+                              onChange={() => handleInputChange('section_equipements.piano_type', option)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
+                            />
+                            <span className="text-sm">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BLOC CONDITIONNEL PMR */}
+                {formData.accessible_mobilite_reduite && (
+                  <div className="mt-8 p-6 bg-green-50 border-2 border-green-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-green-900 flex items-center gap-2">
+                      ♿ Détails accessibilité PMR
+                    </h3>
+
+                    {/* Détails accessibilité */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Détails sur l'accessibilité *</label>
+                      <textarea
+                        placeholder="Décrivez les aménagements pour personnes à mobilité réduite : rampe d'accès, largeur des portes, salle de bain adaptée, ascenseur, etc."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows={5}
+                        value={formData.pmr_details || ""}
+                        onChange={(e) => handleInputChange('section_equipements.pmr_details', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* BLOC CONDITIONNEL ANIMAUX */}
+                {formData.animaux_acceptes && (
+                  <div className="mt-8 p-6 bg-amber-50 border-2 border-amber-200 rounded-xl space-y-6">
+                    <h3 className="text-lg font-semibold text-amber-900 flex items-center gap-2">
+                      🐾 Conditions pour les animaux
+                    </h3>
+
+                    {/* Commentaire conditions */}
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Conditions et restrictions *</label>
+                      <textarea
+                        placeholder="Précisez les conditions d'accueil des animaux : taille, nombre, supplément éventuel, zones interdites, règles particulières..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows={4}
+                        value={formData.animaux_commentaire || ""}
+                        onChange={(e) => handleInputChange('section_equipements.animaux_commentaire', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+
 
                   {/* SECTION Configuration Wi-Fi */}
-                  <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4 text-blue-800">📶 Configuration Wi-Fi</h4>
+                  <div className="mt-8 mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-lg font-semibold mb-4 text-blue-800">📶 Configuration Wi-Fi</h4>
                     
                     <div className="mb-4">
                       <label className="block font-medium text-gray-900 mb-3">Statut du WiFi</label>
@@ -392,6 +960,52 @@ export default function FicheEquipements() {
                         />
                       </div>
                     )}
+                    {/* Champs conditionnels pour "Oui" - WiFi disponible */}
+                    {formData.wifi_statut === 'oui' && (
+                      <div className="mt-6 space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div>
+                          <label className="block font-medium text-gray-900 mb-2">
+                            Nom du réseau WiFi (SSID) *
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: MonWiFi, Livebox-A1B2..."
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                            value={formData.wifi_nom_reseau || ""}
+                            onChange={(e) => handleInputChange('section_equipements.wifi_nom_reseau', e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-medium text-gray-900 mb-2">
+                            Mot de passe WiFi *
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Mot de passe du réseau WiFi"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                            value={formData.wifi_mot_de_passe || ""}
+                            onChange={(e) => handleInputChange('section_equipements.wifi_mot_de_passe', e.target.value)}
+                          />
+                        </div>
+
+                        {/* Rappel photo routeur */}
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="wifi_routeur_photo_taken"
+                              className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                              checked={getField('section_equipements.photos_rappels.wifi_routeur_photo_taken') || false}
+                              onChange={(e) => handleInputChange('section_equipements.photos_rappels.wifi_routeur_photo_taken', e.target.checked)}
+                            />
+                            <label htmlFor="wifi_routeur_photo_taken" className="text-sm text-yellow-800">
+                              📸 Pensez à prendre une photo du routeur ou des instructions WiFi
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
 
                   {/* Parking principal */}

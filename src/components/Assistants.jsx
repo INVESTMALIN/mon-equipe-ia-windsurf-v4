@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock, FileText, CheckCircle, PenTool} from 'lucide-react'
+import { GraduationCap, LogOut, MessageSquareText, Menu, X, Scale, Phone, Users, Lock, FileText, CheckCircle, PenTool, TrendingUp, Share2, FileAudio, Video} from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function MonCompteV2() {
@@ -372,8 +372,146 @@ export default function MonCompteV2() {
         </div>
       </section>
 
-{/* Section Assistants Beta */}
-<section className="bg-gray-50 py-16">
+      {/* Section BETA - Nouveautés en exclusivité */}
+      <section className="bg-gradient-to-b from-gray-50 to-white py-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-20">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-[#dbae61] text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
+              <span>⚡</span>
+              <span>BETA - TESTEZ EN EXCLUSIVITÉ</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
+              Soyez parmi les premiers à tester nos dernières innovations
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Accédez en avant-première à nos nouveaux assistants IA et aidez-nous à les perfectionner
+            </p>
+          </div>
+
+          {/* Grille des assistants BETA */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Assistant Transcript */}
+            <div className="bg-white border-2 border-[#dbae61] rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative overflow-hidden">
+              {/* Badge BETA */}
+              <div className="absolute top-4 right-4 bg-[#dbae61] text-white text-xs font-bold px-3 py-1 rounded-full">
+                BETA
+              </div>
+              
+              {/* Icône */}
+              <div className="w-16 h-16 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-2xl flex items-center justify-center mb-6">
+                <FileAudio className="w-8 h-8 text-white" />
+              </div>
+              
+              {/* Contenu */}
+              <h3 className="text-2xl font-bold text-black mb-3">
+                Assistant Transcript
+              </h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Uploadez vos appels commerciaux, vidéos ou fichiers audio, 
+                et obtenez une transcription complète pour analyser, archiver ou réutiliser le contenu.
+              </p>
+              
+              {/* Features */}
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start gap-2 text-sm text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                  <span>Transcription automatique audio et vidéo</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                  <span>Support de tous formats (MP3, MP4, WAV, etc.)</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                  <span>Export du texte pour vos autres assistants</span>
+                </li>
+              </ul>
+              
+              {/* CTA */}
+              {isPremium ? (
+                <Link
+                  to="/assistant-transcript"
+                  className="w-full inline-flex items-center justify-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  Tester maintenant
+                  <span className="ml-2">→</span>
+                </Link>
+              ) : (
+                <Link
+                  to="/upgrade"
+                  className="w-full inline-flex items-center justify-center bg-gray-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  <Lock className="w-5 h-5 mr-2" />
+                  {ctaText}
+                </Link>
+              )}
+            </div>
+
+            {/* Assistant Guide d'Accès */}
+            <div className="bg-white border-2 border-[#dbae61] rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative overflow-hidden">
+              {/* Badge BETA */}
+              <div className="absolute top-4 right-4 bg-[#dbae61] text-white text-xs font-bold px-3 py-1 rounded-full">
+                BETA
+              </div>
+              
+              {/* Icône */}
+              <div className="w-16 h-16 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-2xl flex items-center justify-center mb-6">
+                <Video className="w-8 h-8 text-white" />
+              </div>
+              
+              {/* Contenu */}
+              <h3 className="text-2xl font-bold text-black mb-3">
+                Assistant Guide d'Accès
+              </h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Créez des guides d'accès professionnels en quelques clics. Transformez vos vidéos, audios ou transcriptions 
+                en documents clairs pour propriétaires et voyageurs.
+              </p>
+              
+              {/* Features */}
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start gap-2 text-sm text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                  <span>Génération automatique depuis vidéos/audio</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                  <span>Guides personnalisés propriétaires/voyageurs</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                  <span>Export PDF professionnel prêt à l'envoi</span>
+                </li>
+              </ul>
+              
+              {/* CTA */}
+              {isPremium ? (
+                <Link
+                  to="/assistant-guide-acces"
+                  className="w-full inline-flex items-center justify-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  Tester maintenant
+                  <span className="ml-2">→</span>
+                </Link>
+              ) : (
+                <Link
+                  to="/upgrade"
+                  className="w-full inline-flex items-center justify-center bg-gray-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  <Lock className="w-5 h-5 mr-2" />
+                  {ctaText}
+                </Link>
+              )}
+            </div>
+
+            
+          </div>
+        </div>
+      </section>
+
+      {/* Section Assistants Beta */}
+      <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-6 md:px-20">
           {/* Header */}
           <div className="text-center mb-12">
@@ -388,92 +526,109 @@ export default function MonCompteV2() {
             </p>
           </div>
 
+
           {/* Grille 2 colonnes */}
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Assistant Guide d'Accès - BETA TESTABLE */}
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-orange-100 rounded-xl">
-                      <FileText className="w-8 h-8 text-orange-600" />
+{/* Assistant Communication */}
+<div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8 md:p-10 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-[1.02]">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
+                {/* Left content */}
+                <div className="flex-1 text-white space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#dbae61] rounded-xl">
+                      <Share2 className="w-8 h-8 text-black" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-black">Assistant Guide d'Accès</h3>
-                      <span className="text-xs text-orange-600 font-semibold">BETA</span>
+                    <h3 className="text-2xl md:text-3xl font-bold">
+                      ASSISTANT COMMUNICATION
+                    </h3>
+                  </div>
+                  
+                  <p className="text-gray-300 text-lg leading-relaxed">
+                    Boostez votre présence sur les réseaux sociaux et créez du contenu impactant pour Facebook, Instagram et TikTok. 
+                    Obtenez des conseils personnalisés sur votre charte graphique et analysez votre présence en ligne.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Création de contenu optimisé pour FB, IG, TikTok</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Connexion et gestion de vos réseaux sociaux</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Analyse de présence en ligne et suggestions d'amélioration</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Création de charte graphique personnalisée</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <div className="inline-flex items-center gap-2 text-white/60 text-sm">
+                      <span className="inline-block w-2 h-2 bg-[#dbae61] rounded-full animate-pulse"></span>
+                      <span className="font-semibold">Bientôt disponible</span>
                     </div>
                   </div>
                 </div>
-                
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Génère des guides d'accès complets à partir de vos vidéos ou transcriptions de remise de clés, 
-                  pour faciliter l'arrivée de vos voyageurs.
-                </p>
-
-                {isPremium ? (
-                  <Link
-                    to="/assistant-guide-acces"
-                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 w-full justify-center"
-                  >
-                    Tester maintenant
-                    <span className="ml-2">→</span>
-                  </Link>
-                ) : (
-                  <Link
-                    to="/upgrade"
-                    className="inline-flex items-center bg-gray-300 text-gray-600 font-bold px-6 py-3 rounded-xl w-full justify-center cursor-not-allowed"
-                  >
-                    <Lock className="w-5 h-5 mr-2" />
-                    Premium requis
-                  </Link>
-                )}
               </div>
             </div>
 
-
-            {/* Assistant Transcript - BETA TESTABLE */}
-            <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-orange-100 rounded-xl">
-                      <FileText className="w-8 h-8 text-orange-600" />
+            {/* Assistant SEO */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8 md:p-10 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-[1.02]">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
+                {/* Left content */}
+                <div className="flex-1 text-white space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#dbae61] rounded-xl">
+                      <TrendingUp className="w-8 h-8 text-black" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-black">Assistant Transcription</h3>
-                      <span className="text-xs text-orange-600 font-semibold">BETA</span>
+                    <h3 className="text-2xl md:text-3xl font-bold">
+                      ASSISTANT SEO
+                    </h3>
+                  </div>
+                  
+                  <p className="text-gray-300 text-lg leading-relaxed">
+                    Optimisez votre visibilité en ligne avec des analyses SEO complètes. Connectez votre site web, 
+                    publiez des articles optimisés et améliorez votre référencement naturel pour attirer plus de clients.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Analyse SEO complète de votre site web</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Recherche et analyse de mots-clés stratégiques</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Connexion à votre site pour optimisations automatiques</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">Création et planification d'articles SEO optimisés</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <div className="inline-flex items-center gap-2 text-white/60 text-sm">
+                      <span className="inline-block w-2 h-2 bg-[#dbae61] rounded-full animate-pulse"></span>
+                      <span className="font-semibold">Bientôt disponible</span>
                     </div>
                   </div>
                 </div>
-                
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Transcrivez automatiquement vos fichiers audio et vidéo. 
-                  Recevez la transcription complète par email en quelques minutes.
-                </p>
-
-                {isPremium ? (
-                  <Link
-                    to="/assistant-transcript"
-                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 w-full justify-center"
-                  >
-                    Tester maintenant
-                    <span className="ml-2">→</span>
-                  </Link>
-                ) : (
-                  <Link
-                    to="/upgrade"
-                    className="inline-flex items-center bg-gray-300 text-gray-600 font-bold px-6 py-3 rounded-xl w-full justify-center cursor-not-allowed"
-                  >
-                    <Lock className="w-5 h-5 mr-2" />
-                    Premium requis
-                  </Link>
-                )}
               </div>
             </div>
-
-          </div>
+          </div>        
         </div>
       </section>
+
+
 
       {/* Section Fiche Logement - Bannière Premium */}
       <section className="bg-white py-20">
@@ -604,6 +759,7 @@ export default function MonCompteV2() {
                 Révolutionnez votre conciergerie et automatisez vos tâches grâce à l'intelligence artificielle.
               </p>
             </div>
+
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">ASSISTANTS</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
@@ -674,26 +830,47 @@ export default function MonCompteV2() {
                     </Link>
                   )}
                 </li>
+                
                 <li>
                   {isPremium ? (
                     <Link 
-                      to="/dashboard" 
+                      to="/assistant-transcript" 
                       className="hover:text-white transition-colors"
                     >
-                      Fiche Logement
+                      Assistant Transcript
                     </Link>
                   ) : (
                     <Link 
                       to="/upgrade" 
                       className="flex items-center gap-2 hover:text-white transition-colors group"
                     >
-                      <span>Fiche Logement</span>
+                      <span>Assistant Transcript</span>
+                      <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
+                    </Link>
+                  )}
+                </li>
+                
+                <li>
+                  {isPremium ? (
+                    <Link 
+                      to="/assistant-guide-acces" 
+                      className="hover:text-white transition-colors"
+                    >
+                      Assistant Guide d'Accès
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/upgrade" 
+                      className="flex items-center gap-2 hover:text-white transition-colors group"
+                    >
+                      <span>Assistant Guide d'Accès</span>
                       <Lock className="w-3 h-3 group-hover:text-[#dbae61] transition-colors" />
                     </Link>
                   )}
                 </li>
               </ul>
             </div>
+
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-gray-400 text-sm">

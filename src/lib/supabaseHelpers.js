@@ -48,7 +48,7 @@ export const mapSupabaseToFormData = (supabaseData) => {
     nom: supabaseData.nom,
     statut: supabaseData.statut,
     created_at: supabaseData.created_at,
-    updated_at: supabaseData.updated_at,
+    updated_at: supabaseData.updated_at, 
     
     // Sections JSONB (directement)
     section_proprietaire: supabaseData.section_proprietaire || {},

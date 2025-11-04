@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Video, Upload, X, Copy, Check } from 'lucide-react'
+import { Bot, User, ArrowLeft, Video, Upload, X, Copy, Check, FileText } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
+import ContextMenuButton from './ContextMenuButton'
+import FicheSelector from './FicheSelector'
+import { extractFicheContext } from '../lib/ficheContextHelper'
+
 
 export default function AssistantGuideAcces() {
   const [messages, setMessages] = useState([])
@@ -13,6 +17,8 @@ export default function AssistantGuideAcces() {
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [showFicheSelector, setShowFicheSelector] = useState(false)
+  const [selectedFiche, setSelectedFiche] = useState(null)
   const conversationIdRef = useRef(null)
   const abortControllerRef = useRef(null)
 
@@ -52,7 +58,7 @@ export default function AssistantGuideAcces() {
     initConversation()
   }, [])
 
-  const welcome = "Bonjour ! Je suis votre Assistant Guide d'Accès. Envoyez-moi une vidéo de votre logement et je générerai un guide d'accès détaillé pour vos voyageurs."
+  const welcome = "Bonjour ! Je suis votre Assistant Guide d'Accès.\n\nEnvoyez-moi une vidéo ou un audio où vous filmez et expliquez le chemin d'accès au logement : depuis un point identifiable dans la rue jusqu'à la porte de l'appartement. Parlez clairement et soyez explicite.\n\nVous pouvez aussi ajouter des détails dans le chat : parking, Wi-Fi, emplacement des clés, nombre de clés, étage, numéro d'appartement, etc.\n\nJe générerai ensuite un guide d'accès complet pour vos voyageurs."
 
   useEffect(() => {
     let i = 0
@@ -182,10 +188,13 @@ export default function AssistantGuideAcces() {
       }
 
       const sessionId = `guide_acces_${conversationIdRef.current}`
+      const ficheContext = selectedFiche ? extractFicheContext(selectedFiche) : null
+
       const payload = {
         sessionId,
         message: userMessage,
-        ...(fileData && { files: [fileData] })
+        ...(fileData && { files: [fileData] }),
+        ...(ficheContext && { context: ficheContext })
       }
 
       const res = await fetch('https://hub.cardin.cloud/webhook/5ebcffdd-fee8-4525-85f1-33f57ce4d28d/chat', {
@@ -284,10 +293,15 @@ export default function AssistantGuideAcces() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleFicheSelect = () => {
+    setShowFicheSelector(true)
+  }
+
   const quickPrompts = [
-    "Génère un guide d'accès détaillé",
-    "Crée un guide étape par étape",
-    "Guide d'accès avec points de repère"
+    "Génère un guide d'accès depuis ce fichier",
+    "Crée un guide avec une vidéo d'accès et les données de la fiche",
+    "Enrichis le guide avec mes informations",
+    "Crée un guide détaillé avec tout le contexte"
   ]
 
   return (
@@ -382,6 +396,32 @@ export default function AssistantGuideAcces() {
               </div>
             )}
 
+            {showFicheSelector && (
+              <FicheSelector 
+                userId={userId}
+                onSelect={(fiche) => {
+                  setSelectedFiche(fiche)
+                  setShowFicheSelector(false)
+                }}
+                onClose={() => setShowFicheSelector(false)}
+              />
+            )}
+
+            {selectedFiche && (
+              <div className="mb-3 p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#dbae61]" />
+                  <span className="text-sm text-gray-700">Fiche: {selectedFiche.nom}</span>
+                </div>
+                <button 
+                  onClick={() => setSelectedFiche(null)} 
+                  className="text-[#dbae61] hover:text-[#c49a4f]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2 mb-3">
               {quickPrompts.map((prompt, idx) => (
                 <button
@@ -408,13 +448,11 @@ export default function AssistantGuideAcces() {
                 className="hidden"
                 id="video-upload"
               />
-              <label
-                htmlFor="video-upload"
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm transition-colors"
-              >
-                <Upload className="w-4 h-4" />
-                Vidéo
-              </label>
+              <ContextMenuButton 
+                fileInputRef={fileInputRef}
+                onFileSelect={handleFileSelect}
+                onFicheSelect={handleFicheSelect}
+              />
 
               <input
                 type="text"
