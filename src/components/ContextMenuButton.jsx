@@ -75,9 +75,14 @@ export default function ContextMenuButton({ onFileSelect, onFicheSelect, fileInp
             className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-left transition-colors border-t border-gray-100"
           >
             <FileText className="w-4 h-4 text-[#dbae61]" />
-            <div>
+            <div className="flex-1">
               <div className="text-sm font-medium text-gray-900">Sélectionner une fiche</div>
-              <div className="text-xs text-gray-500">Enrichir avec vos données</div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Enrichir avec vos données</span>
+                <span className="px-1.5 py-0.5 bg-[#dbae61] text-white text-[10px] font-bold rounded uppercase tracking-wide animate-bounce">
+                  NEW
+                </span>
+              </div>
             </div>
           </button>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 import { FileText, X } from 'lucide-react'
 
@@ -6,6 +6,8 @@ export default function FicheSelector({ userId, onSelect, onClose }) {
   const [fiches, setFiches] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
 
   useEffect(() => {
     const fetchFiches = async () => {
@@ -32,6 +34,23 @@ export default function FicheSelector({ userId, onSelect, onClose }) {
 
     fetchFiches()
   }, [userId])
+
+  // Fermer le dropdown si clic en dehors
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const handleSelectFiche = async (fiche) => {
     // On va fetch les détails complets de la fiche
@@ -82,33 +101,44 @@ export default function FicheSelector({ userId, onSelect, onClose }) {
   }
 
   return (
-    <div className="mb-3 flex items-center gap-2">
-      <FileText className="w-4 h-4 text-[#dbae61]" />
-      <select
-        onChange={(e) => {
-          const ficheId = e.target.value
-          if (ficheId) {
-            const fiche = fiches.find(f => f.id === ficheId)
-            if (fiche) handleSelectFiche(fiche)
-          }
-        }}
-        className="w-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] text-sm"
-        defaultValue=""
-      >
-        <option value="" disabled>Sélectionner une fiche...</option>
-        {fiches.map((fiche) => (
-          <option key={fiche.id} value={fiche.id}>
-            {fiche.nom} - {new Date(fiche.created_at).toLocaleDateString('fr-FR')}
-          </option>
-        ))}
-      </select>
-      <button 
-        onClick={onClose} 
-        className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-        title="Annuler"
-      >
-        <X className="w-4 h-4" />
-      </button>
+    <div className="mb-3 relative" ref={dropdownRef}>
+      <div className="flex items-center gap-2">
+        <FileText className="w-4 h-4 text-[#dbae61]" />
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] text-sm text-left bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
+        >
+          <span className="text-gray-500">Sélectionner une fiche...</span>
+          <span className="text-gray-400">▼</span>
+        </button>
+        <button 
+          onClick={onClose} 
+          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          title="Annuler"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+  
+      {isOpen && (
+        <div className="absolute bottom-full left-0 mb-1 w-80 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">          {fiches.map((fiche) => (
+            <button
+              key={fiche.id}
+              type="button"
+              onClick={() => {
+                handleSelectFiche(fiche)
+                setIsOpen(false)
+              }}
+              className="w-full px-3 py-2 text-left hover:bg-[#dbae61] hover:bg-opacity-10 text-sm border-b border-gray-100 last:border-b-0 transition-colors"
+            >
+              <div className="font-medium text-gray-900">{fiche.nom}</div>
+              <div className="text-xs text-gray-500">
+                {new Date(fiche.created_at).toLocaleDateString('fr-FR')}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
-  )
-}
+  )}
