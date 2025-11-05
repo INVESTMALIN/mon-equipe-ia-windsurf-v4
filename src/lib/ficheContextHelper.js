@@ -20,13 +20,25 @@ export function extractFicheContext(fiche) {
       if (fiche.section_clefs.interphone !== undefined && fiche.section_clefs.interphone !== null) {
         clefs.interphone = fiche.section_clefs.interphone
       }
+
+      if (fiche.section_clefs.interphoneDetails) {
+        clefs.interphone_instructions = fiche.section_clefs.interphoneDetails
+      }
       
       if (fiche.section_clefs.tempoGache !== undefined && fiche.section_clefs.tempoGache !== null) {
         clefs.tempo_gache = fiche.section_clefs.tempoGache
       }
+
+      if (fiche.section_clefs.tempoGacheDetails) {
+        clefs.tempo_gache_instructions = fiche.section_clefs.tempoGacheDetails
+      }
       
       if (fiche.section_clefs.digicode !== undefined && fiche.section_clefs.digicode !== null) {
         clefs.digicode = fiche.section_clefs.digicode
+      }
+
+      if (fiche.section_clefs.digicodeDetails) {
+        clefs.digicode_instructions = fiche.section_clefs.digicodeDetails
       }
       
       if (fiche.section_clefs.clefs?.precision) {
@@ -60,6 +72,14 @@ export function extractFicheContext(fiche) {
       // WiFi
       if (fiche.section_equipements.wifi_statut) {
         equipements.wifi_statut = fiche.section_equipements.wifi_statut
+      }
+
+      if (fiche.section_equipements.wifi_nom_reseau) {
+        equipements.wifi_nom_reseau = fiche.section_equipements.wifi_nom_reseau
+      }
+
+      if (fiche.section_equipements.wifi_mot_de_passe) {
+        equipements.wifi_mot_de_passe = fiche.section_equipements.wifi_mot_de_passe
       }
       
       if (fiche.section_equipements.wifi_details) {
