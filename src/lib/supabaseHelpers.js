@@ -249,3 +249,66 @@ export const updateFicheStatut = async (ficheId, newStatut) => {
       }
     }
   }
+
+  // ============================================
+  // BRAND CHARTER HELPERS
+  // ============================================
+
+  export async function getUserBrandCharter(userId) {
+    const { data, error } = await supabase
+      .from('user_brand_charter')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching brand charter:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  export async function createBrandCharter(userId, charterData) {
+    const { data, error } = await supabase
+      .from('user_brand_charter')
+      .insert({
+        user_id: userId,
+        business_description: charterData.business_description,
+        target_audience: charterData.target_audience,
+        brand_style: charterData.brand_style,
+        tone_of_voice: charterData.tone_of_voice,
+        color_palette: charterData.color_palette,
+        keywords: charterData.keywords,
+        location: charterData.location,
+        photos_urls: charterData.photos_urls || []
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating brand charter:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  export async function updateBrandCharter(userId, charterData) {
+    const { data, error } = await supabase
+      .from('user_brand_charter')
+      .update({
+        ...charterData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating brand charter:', error)
+      throw error
+    }
+
+    return data
+  }

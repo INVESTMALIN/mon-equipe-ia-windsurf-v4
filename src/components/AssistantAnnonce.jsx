@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Brain, PenTool, Upload, FileText, X, Copy, Check } from 'lucide-react'
+import { Bot, User, ArrowLeft, Brain, PenTool, Upload, FileText, X, Copy, Check, Info } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
 import useProgressiveLoading from '../hooks/useProgressiveLoading'
+import HowItWorksDrawer from './HowItWorksDrawer'
 
 export default function AssistantAnnonce() {
   const [messages, setMessages] = useState([])
@@ -14,6 +15,7 @@ export default function AssistantAnnonce() {
   const [copied, setCopied] = useState(false)
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [showHowItWorks, setShowHowItWorks] = useState(false)
   const conversationIdRef = useRef(null)
   const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(loading, selectedFile !== null)
 
@@ -354,6 +356,13 @@ export default function AssistantAnnonce() {
               </div>
             </div>
           </div>
+          <button
+            onClick={() => setShowHowItWorks(true)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-[#dbae61]"
+            title="Comment ça marche ?"
+          >
+            <Info className="w-7 h-7" />
+          </button>
         </div>
         <div className="flex-1 overflow-hidden flex flex-col">
           <div ref={listRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
@@ -484,6 +493,11 @@ export default function AssistantAnnonce() {
         </div>
       </div>
       </div>
+      <HowItWorksDrawer 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        activeAssistant="guide-acces"
+      />
     </div>
   )
 }

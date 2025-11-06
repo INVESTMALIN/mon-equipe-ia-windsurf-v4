@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Video, Upload, X, Copy, Check, FileText } from 'lucide-react'
+import { Bot, User, ArrowLeft, Video, Upload, X, Copy, Check, FileText, Info } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
 import ContextMenuButton from './ContextMenuButton'
 import FicheSelector from './FicheSelector'
 import { extractFicheContext } from '../lib/ficheContextHelper'
+import HowItWorksDrawer from './HowItWorksDrawer'
 
 
 export default function AssistantGuideAcces() {
@@ -19,6 +20,7 @@ export default function AssistantGuideAcces() {
   const [copied, setCopied] = useState(false)
   const [showFicheSelector, setShowFicheSelector] = useState(false)
   const [selectedFiche, setSelectedFiche] = useState(null)
+  const [showHowItWorks, setShowHowItWorks] = useState(false)
   const conversationIdRef = useRef(null)
   const abortControllerRef = useRef(null)
 
@@ -330,6 +332,13 @@ export default function AssistantGuideAcces() {
               </div>
             </div>
           </div>
+          <button
+            onClick={() => setShowHowItWorks(true)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-[#dbae61]"
+            title="Comment ça marche ?"
+          >
+            <Info className="w-7 h-7" />
+          </button>
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col">
@@ -474,6 +483,11 @@ export default function AssistantGuideAcces() {
           </div>
         </div>
       </div>
+      <HowItWorksDrawer 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        activeAssistant="guide-acces"
+      />
     </div>
   )
 }

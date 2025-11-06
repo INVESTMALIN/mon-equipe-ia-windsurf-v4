@@ -17,6 +17,8 @@ import AssistantJuridique from './components/AssistantJuridique'
 import AssistantNegociateur from './components/AssistantNegociateur'
 import AssistantGuideAcces from './components/AssistantGuideAcces'
 import AssistantTranscript from './components/AssistantTranscript'
+import AssistantCommunication from './components/AssistantCommunication'
+
 
 import TestStripe from './components/TestStripe'
 
@@ -164,6 +166,15 @@ function AppWrapper() {
             element={
               <ProtectedRoute requirePremium={true}>
                 <AssistantTranscript />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assistant-communication"
+            element={
+              <ProtectedRoute requiresPremium>
+                <AssistantCommunication />
               </ProtectedRoute>
             }
           />

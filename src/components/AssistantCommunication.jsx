@@ -1,24 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Scale, Upload, FileText, X, Copy, Check, Info } from 'lucide-react'
+import { Bot, User, ArrowLeft, Brain, Share2, Upload, FileText, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import SidebarConversations from './SidebarConversations'
 import useProgressiveLoading from '../hooks/useProgressiveLoading'
-import HowItWorksDrawer from './HowItWorksDrawer'
+import BrandCharterWizard from './BrandCharterWizard'
+import CharterSummaryCard from './CharterSummaryCard'
+import { getUserBrandCharter } from '../lib/supabaseHelpers'
 
-
-export default function AssistantJuridique() {
+export default function AssistantCommunication() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [userId, setUserId] = useState(null)
   const [selectedFile, setSelectedFile] = useState(null)
-  const [copied, setCopied] = useState(false)
-  const [showHowItWorks, setShowHowItWorks] = useState(false)
   const conversationIdRef = useRef(null)
   const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(loading, selectedFile !== null)
+  const [charter, setCharter] = useState(null)
+  const [showWizard, setShowWizard] = useState(false)
+  const [loadingCharter, setLoadingCharter] = useState(true)
 
 
   useEffect(() => {
@@ -26,7 +29,7 @@ export default function AssistantJuridique() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setUserId(user.id)
 
-      let id = localStorage.getItem('conversation_id_annonce')
+      let id = localStorage.getItem('conversation_id_communication')
       
       // Vérifier si cet ID a déjà des messages en DB
       if (id && user) {
@@ -34,21 +37,21 @@ export default function AssistantJuridique() {
           .from('conversations')
           .select('conversation_id')
           .eq('conversation_id', id)
-          .eq('source', 'assistant-annonce')
+          .eq('source', 'assistant-communication')
           .eq('user_id', user.id)
           .limit(1)
         
         // Si conversation existe déjà, créer un nouvel ID
         if (data && data.length > 0) {
           id = uuidv4()
-          localStorage.setItem('conversation_id_annonce', id)
+          localStorage.setItem('conversation_id_communication', id)
         }
       }
       
       // Si pas d'ID du tout, en créer un nouveau
       if (!id) {
         id = uuidv4()
-        localStorage.setItem('conversation_id_annonce', id)
+        localStorage.setItem('conversation_id_communication', id)
       }
       
       conversationIdRef.current = id
@@ -57,7 +60,33 @@ export default function AssistantJuridique() {
     initConversation()
   }, [])
 
-  const welcome = "Salut ! Je suis votre Assistant LegalBNB IA. ⚖️"
+  // Charger la charte de l'utilisateur
+    useEffect(() => {
+        const loadCharter = async () => {
+        if (!userId) return
+        
+        try {
+            setLoadingCharter(true)
+            const data = await getUserBrandCharter(userId)
+            
+            if (data) {
+            setCharter(data)
+            setShowWizard(false)
+            } else {
+            setShowWizard(true)
+            }
+        } catch (error) {
+            console.error('Erreur chargement charte:', error)
+            setShowWizard(true)
+        } finally {
+            setLoadingCharter(false)
+        }
+        }
+        
+        loadCharter()
+    }, [userId])
+
+  const welcome = "Salut ! Je suis votre Assistant Communication IA 🏡. Créez du contenu pour vos réseaux !"
 
   useEffect(() => {
     let i = 0
@@ -71,6 +100,12 @@ export default function AssistantJuridique() {
 
   const scrollToBottom = () => {
     endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+  }
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const handleFileSelect = (e) => {
@@ -109,12 +144,6 @@ export default function AssistantJuridique() {
   const removeFile = () => {
     setSelectedFile(null)
     document.querySelector('input[type="file"]').value = ''
-  }
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   // ✅ FIX AUTO-SCROLL : Refs pour scroll intelligent
@@ -193,7 +222,7 @@ export default function AssistantJuridique() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 120000)
   
-      const res = await fetch('https://hub.cardin.cloud/webhook/350f827a-6a1e-44ec-ad67-e8c46f84fa70/chat', {
+      const res = await fetch('https://hub.cardin.cloud/webhook/...', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -228,7 +257,7 @@ export default function AssistantJuridique() {
       const title = isFirstUserMessage ? userInput.slice(0, 80) : undefined
 
       await supabase.from('conversations').insert({
-        source: 'assistant-juridique',
+        source: 'assistant-communication',
         question: userInput,
         answer: reply.text,
         conversation_id: conversationIdRef.current,
@@ -244,40 +273,44 @@ export default function AssistantJuridique() {
       fileInputRef.current && (fileInputRef.current.value = '')
   
     } catch (err) {
-      console.error('Erreur sendMessage:', err)
-      let errorText = 'Une erreur est survenue. Veuillez réessayer.'
+      console.error('Erreur webhook:', err)
+      
+      let errorMessage = "Une erreur est survenue, merci de réessayer dans quelques instants."
       
       if (err.name === 'AbortError') {
-        errorText = 'Délai d\'attente dépassé (2 minutes). Réessayez ou contactez le support.'
-      } else if (err.message?.includes('HTTP 400')) {
-        errorText = 'Fichier vide ou invalide. Veuillez sélectionner un fichier valide.'
+        errorMessage = "La requête a expiré (30s). Merci de réessayer."
+      } else if (err.message?.includes('HTTP 504')) {
+        errorMessage = "L'assistant prend plus de temps que prévu à analyser votre demande. Merci de réessayer dans quelques instants.\n\nSi le problème persiste, contactez le support : contact@invest-malin.com"
+      } else if (err.message?.includes('HTTP 500') || err.message?.includes('HTTP 502') || err.message?.includes('HTTP 503')) {
+        errorMessage = "Une erreur technique s'est produite côté serveur. Notre équipe technique a été notifiée automatiquement.\n\nMerci de réessayer dans quelques instants."
       } else if (err.message?.includes('HTTP 413')) {
-        errorText = 'Fichier trop volumineux (max 10MB). Réduisez la taille et réessayez.'
-      } else if (err.message?.includes('HTTP 429')) {
-        errorText = 'Trop de requêtes. Attendez quelques instants avant de réessayer.'
+        errorMessage = "Le fichier est trop volumineux. Merci d'utiliser un fichier de moins de 10MB."
+      } else if (err.message?.includes('HTTP 400')) {
+        errorMessage = "Problème avec votre demande. Vérifiez le fichier sélectionné et réessayez."
+      } else if (err.message?.includes('HTTP 401') || err.message?.includes('HTTP 403')) {
+        errorMessage = "Problème d'autorisation. Merci de vous reconnecter ou de contacter le support."
+      } else if (err.message?.includes('JSON malformé')) {
+        errorMessage = "Erreur de communication avec le serveur. Merci de réessayer."
       } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        errorText = 'Problème de connexion réseau. Vérifiez votre connexion internet.'
-      } else if (err.message?.includes('HTTP 5')) {
-        errorText = 'Le serveur rencontre un problème temporaire. Réessayez dans quelques minutes.'
-      } else if (err.message?.includes('JSON')) {
-        errorText = 'Réponse serveur invalide. Contactez le support si le problème persiste.'
+        errorMessage = "Problème de connexion réseau. Vérifiez votre connexion internet et réessayez."
       }
-  
-      setMessages((prev) => [...prev, { sender: 'bot', text: errorText }])
+      
+      setMessages((prev) => [...prev, { 
+        sender: 'bot', 
+        text: errorMessage 
+      }])
     } finally {
       setLoading(false)
     }
   }
 
+
   const loadConversation = async (conversationId) => {
-    if (!userId) return
-  
     const { data, error } = await supabase
       .from('conversations')
       .select('question, answer, created_at')
       .eq('conversation_id', conversationId)
-      .eq('user_id', userId)
-      .eq('source', 'assistant-juridique')
+      .eq('source', 'assistant-communication')
       .order('created_at', { ascending: true })
   
     if (error) {
@@ -298,19 +331,19 @@ export default function AssistantJuridique() {
   
     setMessages(loadedMessages)
     conversationIdRef.current = conversationId
-    localStorage.setItem('conversation_id_juridique', conversationId)
+    localStorage.setItem('conversation_id_communication', conversationId)
   }
 
   const createNewConversation = async () => {
     const newId = uuidv4()
-    localStorage.setItem('conversation_id_juridique', newId)
+    localStorage.setItem('conversation_id_communication', newId)
     conversationIdRef.current = newId
     setMessages([{ sender: 'bot', text: welcome }])
   
     if (userId) {
       await supabase.from('conversations').insert({
         user_id: userId,
-        source: 'assistant-juridique',
+        source: 'assistant-communication',
         conversation_id: newId,
         title: 'Nouvelle conversation',
         question: '',
@@ -322,17 +355,49 @@ export default function AssistantJuridique() {
     }
   }
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <SidebarConversations
-        activeId={conversationIdRef.current}
-        onSelect={loadConversation}
+  // Si la charte est en cours de chargement
+if (loadingCharter) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Si pas de charte, afficher le wizard
+  if (showWizard) {
+    return (
+      <BrandCharterWizard 
         userId={userId}
-        source="assistant-juridique"
-        onNewConversation={createNewConversation}
+        onComplete={() => {
+          // Recharger la charte après création
+          getUserBrandCharter(userId).then(data => {
+            setCharter(data)
+            setShowWizard(false)
+          })
+        }}
       />
+    )
+  }
 
-      <div className="flex-1 flex flex-col">
+  return (
+    <div className="h-screen bg-gray-50 flex flex-col">
+
+
+      <div className="flex-1 flex overflow-hidden">
+        <SidebarConversations
+            activeId={conversationIdRef.current}
+            onSelect={loadConversation}
+            userId={userId}
+            source="assistant-communication"
+            onNewConversation={createNewConversation}
+        />
+        
+        <div className="flex-1 flex flex-col">
+
         {/* Header moderne unifié */}
         <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -341,23 +406,15 @@ export default function AssistantJuridique() {
             </Link>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center">
-                <Scale className="w-5 h-5 text-white" />
+                <Share2 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Assistant LegalBNB</h1>
-                <p className="text-xs text-gray-500">Expert juridique location courte durée</p>
+                <h1 className="text-lg font-semibold text-gray-900">Assistant Communication</h1>
+                <p className="text-xs text-gray-500">Créez du contenu pour vos réseaux</p>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setShowHowItWorks(true)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-[#dbae61]"
-            title="Comment ça marche ?"
-          >
-            <Info className="w-5 h-5" />
-          </button>
         </div>
-
         <div className="flex-1 overflow-hidden flex flex-col">
           <div ref={listRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
             {messages.map((msg, idx) => (
@@ -372,9 +429,9 @@ export default function AssistantJuridique() {
                     <User className="w-4 h-4 text-gray-600" />
                   </div>
                 )}
-                <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                  msg.sender === 'user' ? 'bg-[#dbae61] bg-opacity-10 text-right ml-auto' : 'bg-gray-100 text-left'
-                }`}>
+                  <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                    msg.sender === 'user' ? 'bg-[#dbae61] bg-opacity-10 text-right ml-auto' : 'bg-gray-100 text-left'
+                  }`}>
                   {msg.text}
                   {msg.sender === 'bot' && idx > 0 && (
                     <button
@@ -409,6 +466,10 @@ export default function AssistantJuridique() {
           )}
 
           <div className="border-t border-gray-200 bg-white p-4">
+          <CharterSummaryCard 
+            charter={charter}
+            onEdit={() => setShowWizard(true)}
+          />
             {selectedFile && (
               <div className="mb-3 p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -424,22 +485,22 @@ export default function AssistantJuridique() {
 
             <div className="flex flex-wrap gap-2 mb-3">
               <button
-                onClick={() => setInput("Puis-je sous-louer mon appartement ?")}
+                onClick={() => setInput("Crée un post Facebook pour promouvoir un nouveau logement")}
                 className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
               >
-                Puis-je sous-louer mon appartement ?
+                Crée un post Facebook
               </button>
               <button
-                onClick={() => setInput("Quelles sont mes obligations fiscales ?")}
+                onClick={() => setInput("Écris une légende Instagram avec un ton chaleureux et local")}
                 className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
               >
-                Quelles sont mes obligations fiscales ?
+                Écris une légende Instagram
               </button>
               <button
-                onClick={() => setInput("Règlement de copropriété et location courte durée")}
+                onClick={() => setInput("Propose trois idées de stories pour présenter nos services")}
                 className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
               >
-                Règlement de copropriété
+                Propose trois idées de stories
               </button>
             </div>
 
@@ -468,7 +529,7 @@ export default function AssistantJuridique() {
 
               <input
                 type="text"
-                placeholder="Posez votre question..."
+                placeholder="Décrivez ce que vous souhaitez..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={loading}
@@ -477,24 +538,16 @@ export default function AssistantJuridique() {
 
               <button
                 type="submit"
-                disabled={loading || !input.trim()}
+                disabled={loading || (!input.trim() && !selectedFile)}
                 className="px-6 py-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Envoi...' : 'Envoyer'}
               </button>
             </form>
-
-            <p className="text-xs text-gray-500 mt-3 text-center">
-              Réponses générées par IA, à vérifier. Ce service ne remplace pas un conseil juridique.
-            </p>
           </div>
         </div>
       </div>
-      <HowItWorksDrawer 
-        isOpen={showHowItWorks}
-        onClose={() => setShowHowItWorks(false)}
-        activeAssistant="guide-acces"
-      />
+      </div>
     </div>
   )
 }

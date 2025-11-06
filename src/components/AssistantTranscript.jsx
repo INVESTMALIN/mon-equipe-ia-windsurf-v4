@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, FileAudio, Upload, X, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { ArrowLeft, FileAudio, Upload, X, CheckCircle, Clock, AlertCircle, Info } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
+import HowItWorksDrawer from './HowItWorksDrawer'
 
 export default function AssistantTranscript() {
   const [userId, setUserId] = useState(null)
@@ -12,6 +13,7 @@ export default function AssistantTranscript() {
   const [dragActive, setDragActive] = useState(false)
   const [sendHistory, setSendHistory] = useState([])
   const [toast, setToast] = useState(null)
+  const [showHowItWorks, setShowHowItWorks] = useState(false)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -183,9 +185,10 @@ export default function AssistantTranscript() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
+    {/* Header */}
+    <div className="bg-white border-b border-gray-200 p-4">
+      <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Link to="/assistants" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
@@ -199,7 +202,16 @@ export default function AssistantTranscript() {
             </div>
           </div>
         </div>
+        
+        <button
+          onClick={() => setShowHowItWorks(true)}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Comment ça marche ?"
+        >
+          <Info className="w-6 h-6 text-gray-600 hover:text-[#dbae61]" />
+        </button>
       </div>
+    </div>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto p-8">
@@ -410,6 +422,11 @@ export default function AssistantTranscript() {
           </div>
         </div>
       )}
+      <HowItWorksDrawer 
+        isOpen={showHowItWorks}
+        onClose={() => setShowHowItWorks(false)}
+        activeAssistant="guide-acces"
+      />
     </div>
   )
 }
