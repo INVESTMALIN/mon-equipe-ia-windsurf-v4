@@ -454,7 +454,7 @@ export default function MonCompte() {
               </div>
             )}
 
-            {/* Assistant Juridique - Premium */}
+            {/* Assistant LebalBNB - Premium */}
             {(userProfile?.subscription_status === 'premium' || userProfile?.subscription_status === 'trial') ? (
               <Link 
                 to="/juridique" 
@@ -464,8 +464,8 @@ export default function MonCompte() {
                   <MessageSquare className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Assistant Juridique</h3>
-                  <p className="text-sm text-gray-600">Conseils juridiques immobiliers</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">Assistant LegalBNB</h3>
+                  <p className="text-sm text-gray-600">Lit et analyse les règlements</p>
                   <p className="text-xs text-green-600 font-medium mt-1">Premium • Disponible</p>
                 </div>
               </Link>
@@ -475,8 +475,8 @@ export default function MonCompte() {
                   <MessageSquare className="w-6 h-6 text-gray-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-700 mb-1">Assistant Juridique</h3>
-                  <p className="text-sm text-gray-500">Conseils juridiques immobiliers</p>
+                  <h3 className="font-semibold text-gray-700 mb-1">Assistant LegalBNB</h3>
+                  <p className="text-sm text-gray-500">Lit et analyse les règlements</p>
                   <p className="text-xs text-gray-400 font-medium mt-1">Nécessite Premium</p>
                 </div>
               </div>

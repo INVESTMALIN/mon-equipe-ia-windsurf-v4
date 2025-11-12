@@ -1,553 +1,294 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bot, User, ArrowLeft, Brain, Share2, Upload, FileText, X, Copy, Check } from 'lucide-react'
+import { ArrowLeft, Sparkles, Facebook, Instagram, Calendar, TrendingUp, FileText, Image, Video, MessageCircle, Lightbulb, CheckCircle, AlertTriangle, Palette, Info } from 'lucide-react'
 import { supabase } from '../supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
-import SidebarConversations from './SidebarConversations'
-import useProgressiveLoading from '../hooks/useProgressiveLoading'
+import { getUserBrandCharter } from '../lib/supabaseHelpers'
 import BrandCharterWizard from './BrandCharterWizard'
 import CharterSummaryCard from './CharterSummaryCard'
-import { getUserBrandCharter } from '../lib/supabaseHelpers'
+import HowItWorksDrawer from './HowItWorksDrawer'
+
 
 export default function AssistantCommunication() {
-  const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [showScrollButton, setShowScrollButton] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [userId, setUserId] = useState(null)
-  const [selectedFile, setSelectedFile] = useState(null)
-  const conversationIdRef = useRef(null)
-  const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(loading, selectedFile !== null)
   const [charter, setCharter] = useState(null)
   const [showWizard, setShowWizard] = useState(false)
   const [loadingCharter, setLoadingCharter] = useState(true)
-
+  const [showChatSidebar, setShowChatSidebar] = useState(false)
+  const [showHowItWorks, setShowHowItWorks] = useState(false) // ← AJOUTER
 
   useEffect(() => {
-    const initConversation = async () => {
+    const initUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setUserId(user.id)
-
-      let id = localStorage.getItem('conversation_id_communication')
-      
-      // Vérifier si cet ID a déjà des messages en DB
-      if (id && user) {
-        const { data } = await supabase
-          .from('conversations')
-          .select('conversation_id')
-          .eq('conversation_id', id)
-          .eq('source', 'assistant-communication')
-          .eq('user_id', user.id)
-          .limit(1)
-        
-        // Si conversation existe déjà, créer un nouvel ID
-        if (data && data.length > 0) {
-          id = uuidv4()
-          localStorage.setItem('conversation_id_communication', id)
-        }
-      }
-      
-      // Si pas d'ID du tout, en créer un nouveau
-      if (!id) {
-        id = uuidv4()
-        localStorage.setItem('conversation_id_communication', id)
-      }
-      
-      conversationIdRef.current = id
     }
-    
-    initConversation()
+    initUser()
   }, [])
 
-  // Charger la charte de l'utilisateur
-    useEffect(() => {
-        const loadCharter = async () => {
-        if (!userId) return
-        
-        try {
-            setLoadingCharter(true)
-            const data = await getUserBrandCharter(userId)
-            
-            if (data) {
-            setCharter(data)
-            setShowWizard(false)
-            } else {
-            setShowWizard(true)
-            }
-        } catch (error) {
-            console.error('Erreur chargement charte:', error)
-            setShowWizard(true)
-        } finally {
-            setLoadingCharter(false)
-        }
-        }
-        
-        loadCharter()
-    }, [userId])
-
-  const welcome = "Salut ! Je suis votre Assistant Communication IA 🏡. Créez du contenu pour vos réseaux !"
-
+  // Charger la charte
   useEffect(() => {
-    let i = 0
-    const interval = setInterval(() => {
-      i++
-      setMessages([{ sender: 'bot', text: welcome.slice(0, i) }])
-      if (i >= welcome.length) clearInterval(interval)
-    }, 10)
-    return () => clearInterval(interval)
-  }, [])
-
-  const scrollToBottom = () => {
-    endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
-  }
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0]
-    
-    if (!file) return
-    
-    // Validation du type de fichier
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-    const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.toLowerCase().endsWith('.docx')
-    
-    if (!isPdf && !isDocx) {
-      alert('Veuillez sélectionner un fichier PDF ou DocX uniquement.')
-      e.target.value = ''
-      return
-    }
-    
-    // Validation de la taille (10MB max)
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-      alert('Le fichier est trop volumineux. Taille maximum autorisée : 10MB.')
-      e.target.value = ''
-      return
-    }
-    
-    // Validation fichier vide
-    if (file.size === 0) {
-      alert('Le fichier sélectionné est vide.')
-      e.target.value = ''
-      return
-    }
-    
-    setSelectedFile(file)
-  }
-
-  const removeFile = () => {
-    setSelectedFile(null)
-    document.querySelector('input[type="file"]').value = ''
-  }
-
-  // ✅ FIX AUTO-SCROLL : Refs pour scroll intelligent
-  const fileInputRef = useRef(null)
-  const listRef = useRef(null)
-  const endRef = useRef(null) 
-  const shouldStickRef = useRef(true)
-
-  // Helper pour détecter si on est proche du bas
-  const isNearBottom = (el) => el ? (el.scrollHeight - el.scrollTop - el.clientHeight) < 40 : true
-
-  // ✅ AUTO-SCROLL : Scroll quand messages changent si l'utilisateur était en bas
-  useEffect(() => {
-    if (shouldStickRef.current) {
-      endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
-    }
-  }, [messages])
-
-  // ✅ AUTO-SCROLL : Listener pour détecter le scroll utilisateur
-  useEffect(() => {
-    const el = listRef.current
-    const onScroll = () => { 
-      shouldStickRef.current = isNearBottom(el)
-      setShowScrollButton(!shouldStickRef.current)
-    }
-    el?.addEventListener('scroll', onScroll)
-    return () => el?.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const sendMessage = async (e) => {
-    e.preventDefault()
-    if (!input.trim() || !userId) return
-  
-    // Capturer l'état avant d'ajouter le message
-    shouldStickRef.current = isNearBottom(listRef.current)
-  
-    const newMessage = { sender: 'user', text: input }
-    const updatedMessages = [...messages, newMessage]
-    setMessages(updatedMessages)
-    const userInput = input
-    setInput('')
-    setLoading(true)
-  
-    try {
-      let requestBody = {
-        chatInput: userInput,
-        sessionId: conversationIdRef.current
-      }
-  
-      // Si un fichier est sélectionné, on l'ajoute
-      if (selectedFile) {
-        // Guards sur la taille du fichier
-        if (selectedFile.size === 0) {
-          throw new Error('HTTP 400 - Fichier vide')
-        }
-        if (selectedFile.size > 10 * 1024 * 1024) {
-          throw new Error('HTTP 413 - Fichier trop volumineux (max 10MB)')
-        }
-  
-        const base64Promise = new Promise((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result.split(',')[1])
-          reader.onerror = reject
-          reader.readAsDataURL(selectedFile)
-        })
-  
-        const base64Data = await base64Promise
-        requestBody.files = [{
-          data: base64Data,
-          fileName: selectedFile.name,
-          mimeType: selectedFile.type || 'application/pdf'
-        }]
-      }
-  
-      // AbortController pour timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 120000)
-  
-      const res = await fetch('https://hub.cardin.cloud/webhook/...', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      })
-  
-      clearTimeout(timeoutId)
-  
-      // Lire le corps d'erreur avant de throw
-      if (!res.ok) {
-        let errText = null
-        try {
-          errText = await res.text()
-        } catch {}
-        const tail = errText ? ` - ${errText.slice(0, 200)}` : ''
-        throw new Error(`HTTP ${res.status}${tail}`)
-      }
-  
-      // Gérer le cas JSON invalide
-      let data
+    const loadCharter = async () => {
+      if (!userId) return
+      
       try {
-        data = await res.json()
-      } catch (jsonError) {
-        throw new Error(`Réponse invalide du serveur (JSON malformé)`)
+        setLoadingCharter(true)
+        const data = await getUserBrandCharter(userId)
+        
+        if (data) {
+          setCharter(data)
+          setShowWizard(false)
+        } else {
+          setShowWizard(true)
+        }
+      } catch (error) {
+        console.error('Erreur chargement charte:', error)
+        setShowWizard(true)
+      } finally {
+        setLoadingCharter(false)
       }
-  
-      const reply = { sender: 'bot', text: data.output || 'Réponse indisponible.' }
-      setMessages((prev) => [...prev, reply])
-  
-      // Détecter si c'est le premier message utilisateur
-      const isFirstUserMessage = messages.every(m => m.sender !== 'user')
-      const title = isFirstUserMessage ? userInput.slice(0, 80) : undefined
-
-      await supabase.from('conversations').insert({
-        source: 'assistant-communication',
-        question: userInput,
-        answer: reply.text,
-        conversation_id: conversationIdRef.current,
-        user_id: userId,
-        ...(title ? { title } : {})   // Titre écrit dès l'INSERT du premier message
-      })
-
-      // Force le refresh de la sidebar immédiatement
-      window.dispatchEvent(new CustomEvent('refreshSidebar'))
-  
-      // Reset fichier avec useRef
-      setSelectedFile(null)
-      fileInputRef.current && (fileInputRef.current.value = '')
-  
-    } catch (err) {
-      console.error('Erreur webhook:', err)
-      
-      let errorMessage = "Une erreur est survenue, merci de réessayer dans quelques instants."
-      
-      if (err.name === 'AbortError') {
-        errorMessage = "La requête a expiré (30s). Merci de réessayer."
-      } else if (err.message?.includes('HTTP 504')) {
-        errorMessage = "L'assistant prend plus de temps que prévu à analyser votre demande. Merci de réessayer dans quelques instants.\n\nSi le problème persiste, contactez le support : contact@invest-malin.com"
-      } else if (err.message?.includes('HTTP 500') || err.message?.includes('HTTP 502') || err.message?.includes('HTTP 503')) {
-        errorMessage = "Une erreur technique s'est produite côté serveur. Notre équipe technique a été notifiée automatiquement.\n\nMerci de réessayer dans quelques instants."
-      } else if (err.message?.includes('HTTP 413')) {
-        errorMessage = "Le fichier est trop volumineux. Merci d'utiliser un fichier de moins de 10MB."
-      } else if (err.message?.includes('HTTP 400')) {
-        errorMessage = "Problème avec votre demande. Vérifiez le fichier sélectionné et réessayez."
-      } else if (err.message?.includes('HTTP 401') || err.message?.includes('HTTP 403')) {
-        errorMessage = "Problème d'autorisation. Merci de vous reconnecter ou de contacter le support."
-      } else if (err.message?.includes('JSON malformé')) {
-        errorMessage = "Erreur de communication avec le serveur. Merci de réessayer."
-      } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        errorMessage = "Problème de connexion réseau. Vérifiez votre connexion internet et réessayez."
-      }
-      
-      setMessages((prev) => [...prev, { 
-        sender: 'bot', 
-        text: errorMessage 
-      }])
-    } finally {
-      setLoading(false)
     }
-  }
+    
+    loadCharter()
+  }, [userId])
 
+  // Fake data pour le prototype
+  const insights = [
+    { type: 'warning', icon: AlertTriangle, text: 'Votre bio Instagram manque de CTA', action: 'Améliorer' },
+    { type: 'success', icon: CheckCircle, text: 'Vos couleurs sont cohérentes', action: null },
+    { type: 'info', icon: Lightbulb, text: 'Publiez entre 18h-20h pour plus d\'engagement', action: 'Planifier' },
+  ]
 
-  const loadConversation = async (conversationId) => {
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('question, answer, created_at')
-      .eq('conversation_id', conversationId)
-      .eq('source', 'assistant-communication')
-      .order('created_at', { ascending: true })
-  
-    if (error) {
-      console.error(error)
-      return
-    }
-  
-    const loadedMessages = []
-    data.forEach(row => {
-      // ✅ Éviter de charger les placeholders
-      if (row.question && row.question !== '(Nouvelle conversation)') {
-        loadedMessages.push({ sender: 'user', text: row.question })
-      }
-      if (row.answer) {
-        loadedMessages.push({ sender: 'bot', text: row.answer })
-      }
-    })
-  
-    setMessages(loadedMessages)
-    conversationIdRef.current = conversationId
-    localStorage.setItem('conversation_id_communication', conversationId)
-  }
+  const quickActions = [
+    { icon: Facebook, label: 'Post Facebook', color: 'from-blue-600 to-blue-700', description: 'Créer un post optimisé' },
+    { icon: Instagram, label: 'Story Instagram', color: 'from-pink-600 to-purple-700', description: 'Générer une story' },
+    { icon: FileText, label: 'Carrousel', color: 'from-orange-600 to-red-700', description: 'Post multi-slides' },
+    { icon: Calendar, label: 'Planifier', color: 'from-green-600 to-emerald-700', description: 'Calendrier éditorial' },
+    { icon: Image, label: 'Suggestions visuelles', color: 'from-purple-600 to-indigo-700', description: 'Idées de photos' },
+    { icon: TrendingUp, label: 'Analyser mes posts', color: 'from-teal-600 to-cyan-700', description: 'Performance actuelle' },
+  ]
 
-  const createNewConversation = async () => {
-    const newId = uuidv4()
-    localStorage.setItem('conversation_id_communication', newId)
-    conversationIdRef.current = newId
-    setMessages([{ sender: 'bot', text: welcome }])
-  
-    if (userId) {
-      await supabase.from('conversations').insert({
-        user_id: userId,
-        source: 'assistant-communication',
-        conversation_id: newId,
-        title: 'Nouvelle conversation',
-        question: '',
-        answer: ''
-      })
-      
-      // ✅ FORCER le refresh de la sidebar immédiatement
-      window.dispatchEvent(new CustomEvent('refreshSidebar'))
-    }
-  }
+  const recentContent = [
+    { type: 'Facebook', date: '2025-11-10', status: 'Publié', preview: 'Découvrez nos nouveaux logements...' },
+    { type: 'Instagram', date: '2025-11-09', status: 'Planifié', preview: '✨ Week-end parfait à Lyon...' },
+    { type: 'Facebook', date: '2025-11-08', status: 'Brouillon', preview: 'Témoignage client : "Excellent séjour"...' },
+  ]
 
-  // Si la charte est en cours de chargement
-if (loadingCharter) {
+  if (loadingCharter) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin w-8 h-8 border-4 border-[#dbae61] border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
     )
   }
   
-  // Si pas de charte, afficher le wizard
   if (showWizard) {
     return (
-      <BrandCharterWizard 
-        userId={userId}
-        onComplete={() => {
-          // Recharger la charte après création
-          getUserBrandCharter(userId).then(data => {
-            setCharter(data)
-            setShowWizard(false)
-          })
-        }}
-      />
+    <BrandCharterWizard 
+    userId={userId}
+    onComplete={() => {
+        getUserBrandCharter(userId).then(data => {
+        setCharter(data)
+        setShowWizard(false)
+        })
+    }}
+    onCancel={() => setShowWizard(false)}  // ← AJOUTER ICI
+    />
     )
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
-
-
-      <div className="flex-1 flex overflow-hidden">
-        <SidebarConversations
-            activeId={conversationIdRef.current}
-            onSelect={loadConversation}
-            userId={userId}
-            source="assistant-communication"
-            onNewConversation={createNewConversation}
-        />
-        
-        <div className="flex-1 flex flex-col">
-
-        {/* Header moderne unifié */}
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/assistants" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center">
-                <Share2 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">Assistant Communication</h1>
-                <p className="text-xs text-gray-500">Créez du contenu pour vos réseaux</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+{/* Header */}
+<div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+  <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <Link to="/assistants" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
+        </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">Assistant Communication</h1>
+            <p className="text-xs text-gray-500">Créez du contenu pour vos réseaux</p>
           </div>
         </div>
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div ref={listRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex gap-3 items-start ${msg.sender === 'user' ? 'justify-end flex-row-reverse' : ''}`}>
-                {msg.sender === 'bot' && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-white" />
+      </div>
+      <div className="flex items-center gap-2">
+            <button
+            onClick={() => setShowHowItWorks(true)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-[#dbae61]"
+            title="Comment ça marche ?"
+        >
+            <Info className="w-5 h-5" />
+        </button>
+        <button
+            onClick={() => setShowChatSidebar(!showChatSidebar)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-[#dbae61]"
+            title="Chat IA"
+        >
+            <MessageCircle className="w-5 h-5" />
+            Chat IA
+        </button>
+        </div>
+    </div>
+
+    {/* Utiliser le composant existant */}
+    <CharterSummaryCard 
+      charter={charter}
+      onEdit={() => setShowWizard(true)}
+    />
+  </div>
+</div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        
+        {/* Insights Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">📊 Insights & Recommandations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {insights.map((insight, idx) => (
+              <div
+                key={idx}
+                className={`p-4 rounded-lg border-2 ${
+                  insight.type === 'warning' ? 'bg-orange-50 border-orange-200' :
+                  insight.type === 'success' ? 'bg-green-50 border-green-200' :
+                  'bg-blue-50 border-blue-200'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <insight.icon className={`w-5 h-5 flex-shrink-0 ${
+                    insight.type === 'warning' ? 'text-orange-600' :
+                    insight.type === 'success' ? 'text-green-600' :
+                    'text-blue-600'
+                  }`} />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900 mb-2">{insight.text}</p>
+                    {insight.action && (
+                      <button className="text-xs font-medium text-[#dbae61] hover:text-[#c49a4f] transition-colors">
+                        {insight.action} →
+                      </button>
+                    )}
                   </div>
-                )}
-                {msg.sender === 'user' && (
-                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-gray-600" />
-                  </div>
-                )}
-                  <div className={`max-w-[80%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                    msg.sender === 'user' ? 'bg-[#dbae61] bg-opacity-10 text-right ml-auto' : 'bg-gray-100 text-left'
-                  }`}>
-                  {msg.text}
-                  {msg.sender === 'bot' && idx > 0 && (
-                    <button
-                      onClick={() => handleCopy(msg.text)}
-                      className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors inline-flex items-center gap-1"
-                      title="Copier"
-                    >
-                      {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3 text-gray-500" />}
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
-            
-            {loading && (
-              <div className="text-sm text-gray-500 italic flex items-center gap-2 animate-pulse">
-                <LoadingIcon className="w-4 h-4 text-[#dbae61]" />
-                <span>{currentMessage}{dots}</span>
-              </div>
-            )}
-            <div ref={endRef} />
-          </div>
-
-          {showScrollButton && (
-            <button
-              onClick={scrollToBottom}
-              className="absolute bottom-24 right-8 bg-white border border-gray-300 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
-              title="Aller en bas"
-            >
-              ↓
-            </button>
-          )}
-
-          <div className="border-t border-gray-200 bg-white p-4">
-          <CharterSummaryCard 
-            charter={charter}
-            onEdit={() => setShowWizard(true)}
-          />
-            {selectedFile && (
-              <div className="mb-3 p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#dbae61]" />
-                  <span className="text-sm text-gray-700">{selectedFile.name}</span>
-                  <span className="text-xs text-gray-500">({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
-                </div>
-                <button onClick={removeFile} className="text-[#dbae61] hover:text-[#c49a4f]">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-2 mb-3">
-              <button
-                onClick={() => setInput("Crée un post Facebook pour promouvoir un nouveau logement")}
-                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
-              >
-                Crée un post Facebook
-              </button>
-              <button
-                onClick={() => setInput("Écris une légende Instagram avec un ton chaleureux et local")}
-                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
-              >
-                Écris une légende Instagram
-              </button>
-              <button
-                onClick={() => setInput("Propose trois idées de stories pour présenter nos services")}
-                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
-              >
-                Propose trois idées de stories
-              </button>
-            </div>
-
-            <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-xs text-gray-600">
-                <strong>Formats acceptés :</strong> PDF, DocX • <strong>Taille max :</strong> 10 MB
-              </p>
-            </div>
-
-            <form onSubmit={sendMessage} className="flex items-center gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="pdf-upload"
-              />
-              <label
-                htmlFor="pdf-upload"
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm transition-colors"
-              >
-                <Upload className="w-4 h-4" />
-                Fichier
-              </label>
-
-              <input
-                type="text"
-                placeholder="Décrivez ce que vous souhaitez..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                disabled={loading}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] disabled:bg-gray-100"
-              />
-
-              <button
-                type="submit"
-                disabled={loading || (!input.trim() && !selectedFile)}
-                className="px-6 py-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Envoi...' : 'Envoyer'}
-              </button>
-            </form>
           </div>
         </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ Actions rapides</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quickActions.map((action, idx) => (
+              <button
+                key={idx}
+                className="group relative overflow-hidden bg-white border-2 border-gray-200 hover:border-[#dbae61] rounded-xl p-6 transition-all duration-300 hover:shadow-lg text-left"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                <div className="relative">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${action.color} rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                    <action.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{action.label}</h3>
+                  <p className="text-sm text-gray-600">{action.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Content */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">📝 Contenus récents</h2>
+            <button className="text-sm text-[#dbae61] hover:text-[#c49a4f] font-medium transition-colors">
+              Voir tout →
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {recentContent.map((content, idx) => (
+              <div
+                key={idx}
+                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {content.type === 'Facebook' ? (
+                      <Facebook className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <Instagram className="w-4 h-4 text-pink-600" />
+                    )}
+                    <span className="text-xs font-medium text-gray-900">{content.type}</span>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    content.status === 'Publié' ? 'bg-green-100 text-green-700' :
+                    content.status === 'Planifié' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {content.status}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{content.preview}</p>
+                <p className="text-xs text-gray-500">{content.date}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Empty state si pas de contenu */}
+          {recentContent.length === 0 && (
+            <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+              <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucun contenu créé</h3>
+              <p className="text-gray-600 mb-4">Commencez par créer votre premier post !</p>
+              <button className="px-6 py-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-colors">
+                Créer un post
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-      </div>
+
+      {/* Chat Sidebar (collapse) */}
+      {showChatSidebar && (
+        <div className="fixed right-0 top-0 h-screen w-96 bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">Chat IA</h3>
+            <button
+              onClick={() => setShowChatSidebar(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 p-4 overflow-y-auto">
+            <div className="text-center text-gray-500 text-sm mt-8">
+              💬 Posez vos questions ici...
+              <br />
+              <span className="text-xs text-gray-400">(Chat IA à implémenter)</span>
+            </div>
+          </div>
+          <div className="p-4 border-t border-gray-200">
+            <input
+              type="text"
+              placeholder="Posez votre question..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61]"
+            />
+          </div>
+        </div>
+      )}
+      {showHowItWorks && (
+        <HowItWorksDrawer
+          isOpen={showHowItWorks}
+          onClose={() => setShowHowItWorks(false)}
+          assistantName="Communication"
+        />
+      )}
     </div>
   )
 }

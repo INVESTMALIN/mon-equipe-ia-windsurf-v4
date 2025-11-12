@@ -73,11 +73,13 @@ export default function AssistantTranscript() {
     const isWebm = file.type === 'video/webm' || file.type === 'audio/webm' || file.name.toLowerCase().endsWith('.webm')
     const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || file.name.toLowerCase().endsWith('.wav')
     const isM4a = file.type === 'audio/mp4' || file.type === 'audio/x-m4a' || file.name.toLowerCase().endsWith('.m4a')
+    const isMov = file.type === 'video/quicktime' || file.name.toLowerCase().endsWith('.mov')
+
     
-    if (!isMp4 && !isMp3 && !isWebm && !isWav && !isM4a) {
-      showToast('Veuillez sélectionner un fichier audio (MP3, WAV, M4A, WebM) ou vidéo (MP4, WebM) uniquement.', 'error')
+    if (!isMp4 && !isMp3 && !isWebm && !isWav && !isM4a && !isMov) {
+      showToast('Veuillez sélectionner un fichier audio (MP3, WAV, M4A, WebM) ou vidéo (MP4, MOV, WebM) uniquement.', 'error')
       return
-    }
+    }    
     
     // Détection si c'est un fichier audio ou vidéo
     const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
@@ -253,7 +255,7 @@ export default function AssistantTranscript() {
               ref={fileInputRef}
               type="file"
               onChange={handleInputChange}
-              accept=".mp4,.mp3,.webm,.wav,.m4a,video/mp4,video/webm,audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/webm"
+              accept=".mp4,.mov,.mp3,.webm,.wav,.m4a,video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/webm"
               className="hidden"
               id="file-upload"
             />

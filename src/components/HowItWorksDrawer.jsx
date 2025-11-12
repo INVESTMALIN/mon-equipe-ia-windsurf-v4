@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { X, Sparkles } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 export default function HowItWorksDrawer({ isOpen, onClose, activeAssistant = 'guide-acces' }) {
@@ -875,16 +875,93 @@ export default function HowItWorksDrawer({ isOpen, onClose, activeAssistant = 'g
         </div>
     </div>
     ),
-    'communication': (
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Comment fonctionne l'Assistant Communication ?</h3>
-          <p className="text-gray-700 leading-relaxed">
-            Contenu à venir pour l'Assistant Communication...
-          </p>
-        </div>
-      </div>
-    )
+'communication': (
+  <div className="space-y-6">
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-3">Comment fonctionne l'Assistant Communication ?</h3>
+      <p className="text-gray-700 leading-relaxed mb-4">
+        L'Assistant Communication vous aide à créer du contenu professionnel pour vos réseaux sociaux en s'appuyant sur votre identité de marque.
+      </p>
+    </div>
+
+    <div className="bg-gradient-to-r from-[#dbae61]/10 to-[#c49a4f]/10 border border-[#dbae61]/30 rounded-lg p-4">
+      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+        <Sparkles className="w-5 h-5 text-[#dbae61]" />
+        Première utilisation : Définir votre identité de marque
+      </h4>
+      <p className="text-sm text-gray-700 leading-relaxed">
+        Lors de votre première connexion, un wizard vous guide pour définir votre style, ton de communication, couleurs de marque et audience cible. Ces informations permettent à l'IA de générer du contenu personnalisé et cohérent avec votre image.
+      </p>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-gray-900 mb-3">📊 Insights & Recommandations</h4>
+      <p className="text-gray-700 mb-3">
+        Le dashboard affiche des recommandations personnalisées pour améliorer votre présence en ligne :
+      </p>
+      <ul className="space-y-2">
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700">Analyse de votre bio et suggestions d'amélioration</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700">Meilleurs moments pour publier selon votre audience</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700">Validation de la cohérence visuelle de votre marque</span>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-gray-900 mb-3">⚡ Actions rapides</h4>
+      <p className="text-gray-700 mb-3">
+        Créez du contenu optimisé en quelques clics :
+      </p>
+      <ul className="space-y-2">
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700"><strong>Post Facebook/Instagram</strong> : Générez du texte et des suggestions visuelles adaptées à votre style</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700"><strong>Stories</strong> : Créez des stories engageantes avec le bon ton</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700"><strong>Carrousels</strong> : Posts multi-slides pour raconter une histoire</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#dbae61] font-bold mt-1">•</span>
+          <span className="text-gray-700"><strong>Planification</strong> : Organisez votre calendrier éditorial mensuel</span>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-gray-900 mb-3">📝 Bibliothèque de contenus</h4>
+      <p className="text-gray-700 leading-relaxed">
+        Tous vos contenus générés sont sauvegardés et accessibles dans la section "Contenus récents". Vous pouvez les télécharger, les modifier ou les planifier pour publication ultérieure.
+      </p>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-gray-900 mb-3">💬 Chat IA pour questions rapides</h4>
+      <p className="text-gray-700 leading-relaxed">
+        Une sidebar de chat est disponible pour poser des questions spécifiques sur votre stratégie de communication, demander des conseils ou affiner un contenu déjà généré.
+      </p>
+    </div>
+
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <h4 className="font-semibold text-blue-900 mb-2">💡 Astuce</h4>
+      <p className="text-sm text-blue-800 leading-relaxed">
+        Plus votre identité de marque est détaillée (logo, couleurs, description), plus le contenu généré sera personnalisé et cohérent. N'hésitez pas à mettre à jour votre charte régulièrement !
+      </p>
+    </div>
+  </div>
+)
   }
 
   if (!isOpen) return null
