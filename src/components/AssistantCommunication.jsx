@@ -6,6 +6,8 @@ import { getUserBrandCharter } from '../lib/supabaseHelpers'
 import BrandCharterWizard from './BrandCharterWizard'
 import CharterSummaryCard from './CharterSummaryCard'
 import HowItWorksDrawer from './HowItWorksDrawer'
+import ContentBriefModal from './ContentBriefModal'
+import { generateBrandingContext } from '../lib/brandingHelpers'
 
 
 export default function AssistantCommunication() {
@@ -14,7 +16,17 @@ export default function AssistantCommunication() {
   const [showWizard, setShowWizard] = useState(false)
   const [loadingCharter, setLoadingCharter] = useState(true)
   const [showChatSidebar, setShowChatSidebar] = useState(false)
-  const [showHowItWorks, setShowHowItWorks] = useState(false) // ← AJOUTER
+  const [showHowItWorks, setShowHowItWorks] = useState(false)
+  const [selectedActionType, setSelectedActionType] = useState(null)
+  const [showBriefModal, setShowBriefModal] = useState(false)
+  const [aiGeneratedText, setAiGeneratedText] = useState(null);
+  const [aiGeneratedImage, setAiGeneratedImage] = useState(null);
+
+  const resetAiGeneratedContent = () => {
+    setAiGeneratedText(null)
+    setAiGeneratedImage(null)
+  }
+  
 
   useEffect(() => {
     const initUser = async () => {
@@ -23,6 +35,71 @@ export default function AssistantCommunication() {
     }
     initUser()
   }, [])
+
+  const handleQuickAction = (actionType) => {
+    setSelectedActionType(actionType)
+    
+    // Types qui utilisent ContentBriefModal (génération de contenu texte + image)
+    const briefModalTypes = ['facebook_post', 'instagram_story', 'carrousel_photos']
+    
+    if (briefModalTypes.includes(actionType)) {
+      setShowBriefModal(true)
+    } else {
+      // Pour les autres types, afficher un message temporaire
+      // TODO: implémenter les modals spécifiques pour chaque type
+      alert(`Fonctionnalité "${actionType}" en cours de développement`)
+    }
+  }
+  
+  const handleSubmitBrief = async (briefData) => {
+    if (!charter || !selectedActionType) {
+      console.error('Charter ou actionType manquant')
+      return
+    }
+
+    const sessionId = `communication_${Date.now()}`
+    const branding_context = generateBrandingContext(charter)
+
+    const payload = {
+      sessionId,
+      message: `Génère un ${selectedActionType.replace('_', ' ')}`,
+      content_type: selectedActionType,
+      content_brief: {
+        theme: briefData.theme || '',
+        visual_idea: briefData.visual_idea || ''
+      },
+      branding_context
+    }
+
+    try {
+      const response = await fetch('https://hub.cardin.cloud/webhook/6a95d0c7-d4fc-4806-a386-1d3bfaecd7b5/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`)
+      }
+
+      const result = await response.json()
+      
+      // Extraction des données (adapter selon la structure exacte du webhook)
+      const text = result.output || result.texte || result.text || null
+      const imageBase64 = result.image || result.image_base64 || null
+
+      // Mise à jour des states parent
+      setAiGeneratedText(text)
+      setAiGeneratedImage(imageBase64)
+
+      console.log('✅ Contenu généré:', { text: text ? 'OK' : 'Manquant', image: imageBase64 ? 'OK' : 'Manquant' })
+
+    } catch (error) {
+      console.error('❌ Erreur webhook:', error)
+      alert('Erreur lors de la génération du contenu. Veuillez réessayer.')
+    }
+  }  
+  
 
   // Charger la charte
   useEffect(() => {
@@ -58,12 +135,12 @@ export default function AssistantCommunication() {
   ]
 
   const quickActions = [
-    { icon: Facebook, label: 'Post Facebook', color: 'from-blue-600 to-blue-700', description: 'Créer un post optimisé' },
-    { icon: Instagram, label: 'Story Instagram', color: 'from-pink-600 to-purple-700', description: 'Générer une story' },
-    { icon: FileText, label: 'Carrousel', color: 'from-orange-600 to-red-700', description: 'Post multi-slides' },
-    { icon: Calendar, label: 'Planifier', color: 'from-green-600 to-emerald-700', description: 'Calendrier éditorial' },
-    { icon: Image, label: 'Suggestions visuelles', color: 'from-purple-600 to-indigo-700', description: 'Idées de photos' },
-    { icon: TrendingUp, label: 'Analyser mes posts', color: 'from-teal-600 to-cyan-700', description: 'Performance actuelle' },
+    { icon: Facebook, label: 'Post Facebook', type: 'facebook_post', color: 'from-blue-600 to-blue-700', description: 'Créer un post optimisé' },
+    { icon: Instagram, label: 'Story Instagram', type: 'instagram_story', color: 'from-pink-600 to-purple-700', description: 'Générer une story' },
+    { icon: FileText, label: 'Carrousel', type: 'carrousel_photos', color: 'from-orange-600 to-red-700', description: 'Post multi-slides' },
+    { icon: Calendar, label: 'Planifier', type: 'editorial_calendar', color: 'from-green-600 to-emerald-700', description: 'Calendrier éditorial' },
+    { icon: Image, label: 'Suggestions visuelles', type: 'suggestion_photos', color: 'from-purple-600 to-indigo-700', description: 'Idées de photos' },
+    { icon: TrendingUp, label: 'Analyser mes posts', type: 'post_insights', color: 'from-teal-600 to-cyan-700', description: 'Performance actuelle' },
   ]
 
   const recentContent = [
@@ -188,6 +265,7 @@ export default function AssistantCommunication() {
             {quickActions.map((action, idx) => (
               <button
                 key={idx}
+                onClick={() => handleQuickAction(action.type)}
                 className="group relative overflow-hidden bg-white border-2 border-gray-200 hover:border-[#dbae61] rounded-xl p-6 transition-all duration-300 hover:shadow-lg text-left"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
@@ -289,6 +367,21 @@ export default function AssistantCommunication() {
           assistantName="Communication"
         />
       )}
+      <ContentBriefModal
+        visible={showBriefModal}
+        onClose={() => setShowBriefModal(false)} // juste ferme la modal
+        onSubmit={handleSubmitBrief}             // envoie le brief au webhook
+        onReset={resetAiGeneratedContent}        // remet à zéro les données AI
+        contentTypeLabel={
+          selectedActionType === 'facebook_post'
+            ? 'post Facebook'
+            : selectedActionType === 'instagram_story'
+            ? 'story Instagram'
+            : 'contenu'
+        }
+        aiText={aiGeneratedText}
+        aiImageUrl={aiGeneratedImage}
+      />
     </div>
   )
 }

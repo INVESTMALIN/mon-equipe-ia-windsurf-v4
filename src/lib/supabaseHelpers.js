@@ -260,12 +260,12 @@ export const updateFicheStatut = async (ficheId, newStatut) => {
       .select('*')
       .eq('user_id', userId)
       .single()
-
+  
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching brand charter:', error)
       throw error
     }
-
+  
     return data
   }
 
@@ -274,23 +274,50 @@ export const updateFicheStatut = async (ficheId, newStatut) => {
       .from('user_brand_charter')
       .insert({
         user_id: userId,
+        
+        // Étape 1 : Votre conciergerie
+        conciergerie_name: charterData.conciergerie_name,
+        years_experience: charterData.years_experience,
+        team_structure: charterData.team_structure,
+        
+        // Étape 2 : Vos objectifs de communication
+        communication_goals: charterData.communication_goals,
+        communication_goals_other: charterData.communication_goals_other,
+        communication_habits: charterData.communication_habits,
+        
+        // Étape 3 : Parlez-nous de votre activité
         business_description: charterData.business_description,
+        
+        // Étape 4 : Qui sont vos clients idéaux ?
         target_audience: charterData.target_audience,
-        brand_style: charterData.brand_style,
-        tone_of_voice: charterData.tone_of_voice,
-        color_palette: charterData.color_palette,
-        keywords: charterData.keywords,
+        
+        // Étape 5 : Où se trouvent vos logements ?
         location: charterData.location,
+        
+        // Étape 6 : Votre style et ton de communication
+        tone_of_voice: charterData.tone_of_voice, // TEXT[]
+        recurring_keywords: charterData.recurring_keywords,
+        pronoun_tu_vous: charterData.pronoun_tu_vous,
+        pronoun_je_neutral: charterData.pronoun_je_neutral,
+        
+        // Étape 7 : Votre palette de couleur
+        visual_style: charterData.visual_style, // TEXT[]
+        has_logo: charterData.has_logo,
+        color_palette: charterData.color_palette, // JSONB
+        
+        // Champs legacy (conservés pour compatibilité)
+        brand_style: charterData.brand_style || [], // TEXT[]
+        keywords: charterData.keywords || [],
         photos_urls: charterData.photos_urls || []
       })
       .select()
       .single()
-
+  
     if (error) {
       console.error('Error creating brand charter:', error)
       throw error
     }
-
+  
     return data
   }
 
@@ -298,17 +325,51 @@ export const updateFicheStatut = async (ficheId, newStatut) => {
     const { data, error } = await supabase
       .from('user_brand_charter')
       .update({
-        ...charterData,
+        // Étape 1
+        conciergerie_name: charterData.conciergerie_name,
+        years_experience: charterData.years_experience,
+        team_structure: charterData.team_structure,
+        
+        // Étape 2
+        communication_goals: charterData.communication_goals,
+        communication_goals_other: charterData.communication_goals_other,
+        communication_habits: charterData.communication_habits,
+        
+        // Étape 3
+        business_description: charterData.business_description,
+        
+        // Étape 4
+        target_audience: charterData.target_audience,
+        
+        // Étape 5
+        location: charterData.location,
+        
+        // Étape 6
+        tone_of_voice: charterData.tone_of_voice,
+        recurring_keywords: charterData.recurring_keywords,
+        pronoun_tu_vous: charterData.pronoun_tu_vous,
+        pronoun_je_neutral: charterData.pronoun_je_neutral,
+        
+        // Étape 7
+        visual_style: charterData.visual_style,
+        has_logo: charterData.has_logo,
+        color_palette: charterData.color_palette,
+        
+        // Legacy
+        brand_style: charterData.brand_style || [],
+        keywords: charterData.keywords || [],
+        photos_urls: charterData.photos_urls || [],
+        
         updated_at: new Date().toISOString()
       })
       .eq('user_id', userId)
       .select()
       .single()
-
+  
     if (error) {
       console.error('Error updating brand charter:', error)
       throw error
     }
-
+  
     return data
   }
