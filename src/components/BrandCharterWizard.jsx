@@ -1,10 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronRight, ChevronLeft, Sparkles, Upload, X, Palette } from 'lucide-react'
 import ColorThief from 'colorthief'
 import { createBrandCharter, updateBrandCharter, getUserBrandCharter } from '../lib/supabaseHelpers'
 
 // Palettes pré-définies par style
 const COLOR_PALETTES = {
+  neutres: [
+    { name: 'Élégant', colors: ['#000000', '#333333', '#CCCCCC', '#FFFFFF'] },
+    { name: 'Doux', colors: ['#4A4A4A', '#8E8E8E', '#D9D9D9', '#F8F8F8'] },
+    { name: 'Moderne', colors: ['#1A1A1A', '#666666', '#E0E0E0', '#FAFAFA'] },
+  ],
   chauds: [
     { name: 'Méditerranée', colors: ['#E8A87C', '#C38D5C', '#8B6F47', '#FFF8DC'] },
     { name: 'Terracotta', colors: ['#E07A5F', '#F2CC8F', '#81B29A', '#F4F1DE'] },
@@ -20,19 +25,24 @@ const COLOR_PALETTES = {
     { name: 'Campagne', colors: ['#8B7355', '#A0826D', '#C9B79C', '#F5F5DC'] },
     { name: 'Jardin', colors: ['#52796F', '#84A98C', '#CAD2C5', '#F6FFF8'] },
   ],
-  neutres: [
-    { name: 'Élégant', colors: ['#000000', '#333333', '#CCCCCC', '#FFFFFF'] },
-    { name: 'Doux', colors: ['#4A4A4A', '#8E8E8E', '#D9D9D9', '#F8F8F8'] },
-    { name: 'Moderne', colors: ['#1A1A1A', '#666666', '#E0E0E0', '#FAFAFA'] },
+  dynamiques: [
+    { name: 'Énergie', colors: ['#FF6B35', '#F7931E', '#FDC830', '#37E2D5'] },
+    { name: 'Pop Art', colors: ['#FF006E', '#FB5607', '#FFBE0B', '#8338EC'] },
+    { name: 'Tropical', colors: ['#06FFA5', '#00D9FF', '#FF3EA5', '#FFED00'] },
   ],
   luxe: [
     { name: 'Royal', colors: ['#6A0572', '#AB83A1', '#D4AF37', '#FFFEF7'] },
     { name: 'Prestige', colors: ['#8B0000', '#C19A6B', '#2C2C2C', '#F5F5F5'] },
     { name: 'Raffiné', colors: ['#4B3832', '#854442', '#BE9B7B', '#FFF4E6'] },
   ],
+  energetiques: [
+    { name: 'Vitaminé', colors: ['#FF4500', '#FF1493', '#00CED1', '#32CD32'] },
+    { name: 'Néon', colors: ['#39FF14', '#FF10F0', '#00F0FF', '#FFD700'] },
+    { name: 'Électrique', colors: ['#7DF9FF', '#FF1493', '#FFFF00', '#FF6600'] },
+  ],
 }
 
-export default function BrandCharterWizard({ userId, onComplete, onCancel }) {
+export default function BrandCharterWizard({ userId, existingCharter, onComplete, onCancel }) {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   
@@ -50,40 +60,47 @@ export default function BrandCharterWizard({ userId, onComplete, onCancel }) {
   
   const [formData, setFormData] = useState({
     // Étape 1 : Votre conciergerie
-    conciergerie_name: '',
-    years_experience: '',
-    team_structure: '',
+    conciergerie_name: existingCharter?.conciergerie_name || '',
+    years_experience: existingCharter?.years_experience || '',
+    team_structure: existingCharter?.team_structure || '',
     
     // Étape 2 : Vos objectifs de communication
-    communication_goals: [], // Array de strings
-    communication_goals_other: '',
-    communication_habits: '',
+    communication_goals: existingCharter?.communication_goals || [],
+    communication_goals_other: existingCharter?.communication_goals_other || '',
+    communication_habits: existingCharter?.communication_habits || '',
     
     // Étape 3 : Parlez-nous de votre activité
-    business_description: '',
+    business_description: existingCharter?.business_description || '',
     
     // Étape 4 : Qui sont vos clients idéaux ?
-    target_audience: '',
+    target_audience: existingCharter?.target_audience || '',
     
     // Étape 5 : Où se trouvent vos logements ?
-    location: '',
+    location: existingCharter?.location || '',
     
     // Étape 6 : Votre style et ton de communication
-    tone_of_voice: [], // Array de strings (multi-select)
-    recurring_keywords: '',
-    pronoun_tu_vous: '', // 'Tu' ou 'Vous'
-    pronoun_je_neutral: '', // 'Je' ou 'Neutre'
+    tone_of_voice: existingCharter?.tone_of_voice || [],
+    recurring_keywords: existingCharter?.recurring_keywords || '',
+    pronoun_tu_vous: existingCharter?.pronoun_tu_vous || '',
+    pronoun_je_neutral: existingCharter?.pronoun_je_neutral || '',
     
     // Étape 7 : Votre palette de couleur
-    visual_style: [], // Array de strings (multi-select)
-    has_logo: '', // 'Oui', 'Oui mais à moderniser', 'Non'
-    wants_color_charter: null, // true/false/null (pour le flow sans logo)
+    visual_style: existingCharter?.visual_style || [],
+    has_logo: existingCharter?.has_logo || '',
+    wants_color_charter: null,
     
     // Legacy (conservés pour compatibilité mais pas utilisés dans le formulaire)
-    brand_style: [],
+    brand_style: existingCharter?.brand_style || [],
     keywords: [],
     photos_urls: []
-  })  
+  })
+
+  // Pré-remplir les couleurs si elles existent
+  useEffect(() => {
+    if (existingCharter?.color_palette?.colors) {
+      setFinalColors(existingCharter.color_palette.colors)
+    }
+  }, [existingCharter])
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -307,31 +324,36 @@ export default function BrandCharterWizard({ userId, onComplete, onCancel }) {
       )
 
       case 7:
-      // Étape 7 : au moins 1 style visuel + validation des couleurs selon le cas
-      if (formData.visual_style.length === 0 || !formData.has_logo) {
-        return false
-      }
-      
-      // Si "Oui" → besoin des couleurs extraites
-      if (formData.has_logo === 'Oui') {
-        return finalColors.length > 0
-      }
-      
-      // Si "Moderniser" → besoin de réponse sur garder couleurs
-      if (formData.has_logo === 'Oui mais il faudrait le moderniser') {
-        return keepExtractedColors !== null && finalColors.length > 0
-      }
-      
-      // Si "Non" → besoin de réponse sur vouloir charte
-      if (formData.has_logo === 'Non') {
-        if (formData.wants_color_charter === null) return false
-        if (formData.wants_color_charter === true) {
-          return finalColors.length > 0
+        // Étape 7 : au moins 1 style visuel sélectionné
+        if (formData.visual_style.length === 0 || !formData.has_logo) {
+          return false
         }
-        return true // Si ne veut pas de charte, c'est OK
-      }
-      
-      return true
+        
+        // Si on a déjà des couleurs finales (mode édition avec couleurs existantes)
+        if (finalColors.length > 0) {
+          return true
+        }
+        
+        // Si "Oui" → besoin couleurs extraites OU couleurs existantes
+        if (formData.has_logo === 'Oui') {
+          return extractedColors.length > 0 || finalColors.length > 0
+        }
+        
+        // Si "Moderniser" → besoin de réponse sur garder couleurs
+        if (formData.has_logo === 'Oui mais il faudrait le moderniser') {
+          return keepExtractedColors !== null && finalColors.length > 0
+        }
+        
+        // Si "Non" → besoin de réponse sur vouloir charte
+        if (formData.has_logo === 'Non') {
+          if (formData.wants_color_charter === null) return false
+          if (formData.wants_color_charter === true) {
+            return finalColors.length > 0
+          }
+          return true
+        }
+        
+        return false
       
       default:
         return false
@@ -1051,11 +1073,13 @@ export default function BrandCharterWizard({ userId, onComplete, onCancel }) {
                     {Object.entries(COLOR_PALETTES).map(([category, palettes]) => (
                       <div key={category}>
                         <p className="text-sm font-medium text-gray-700 mb-2 capitalize">
-                          {category === 'chauds' && '🟠 Tons chauds'}
-                          {category === 'froids' && '🔵 Tons froids'}
-                          {category === 'naturels' && '🟢 Naturels'}
-                          {category === 'neutres' && '⚪ Neutres'}
-                          {category === 'luxe' && '💜 Luxe'}
+                          {category === 'chauds' && '🔥 Tons chauds'}
+                          {category === 'froids' && '❄️ Tons froids'}
+                          {category === 'naturels' && '🍂 Naturels'}
+                          {category === 'neutres' && '➖ Neutres'}
+                          {category === 'luxe' && '💎 Luxe'}
+                          {category === 'dynamiques' && '💫 Dynamiques'}
+                          {category === 'energetiques' && '⚡ Énergétiques'}
                         </p>
                         <div className="grid grid-cols-3 gap-2">
                           {palettes.map((palette) => (
@@ -1160,12 +1184,12 @@ export default function BrandCharterWizard({ userId, onComplete, onCancel }) {
               {loading ? (
                 <>
                   <span className="animate-spin">⏳</span>
-                  Génération...
+                  {existingCharter ? 'Enregistrement...' : 'Génération...'}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Générer ma charte
+                  {existingCharter ? 'Enregistrer les modifications' : 'Générer ma charte'}
                 </>
               )}
             </button>

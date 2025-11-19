@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Sparkles, Facebook, Instagram, Calendar, TrendingUp, FileText, Image, Video, MessageCircle, Lightbulb, CheckCircle, AlertTriangle, Palette, Info } from 'lucide-react'
 import { supabase } from '../supabaseClient'
@@ -16,11 +16,15 @@ export default function AssistantCommunication() {
   const [showWizard, setShowWizard] = useState(false)
   const [loadingCharter, setLoadingCharter] = useState(true)
   const [showChatSidebar, setShowChatSidebar] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
   const [selectedActionType, setSelectedActionType] = useState(null)
   const [showBriefModal, setShowBriefModal] = useState(false)
   const [aiGeneratedText, setAiGeneratedText] = useState(null);
   const [aiGeneratedImage, setAiGeneratedImage] = useState(null);
+  const chatSessionIdRef = useRef(`communication_chat_${Date.now()}`)
 
   const resetAiGeneratedContent = () => {
     setAiGeneratedText(null)
@@ -57,7 +61,7 @@ export default function AssistantCommunication() {
       return
     }
 
-    const sessionId = `communication_${Date.now()}`
+    const sessionId = chatSessionIdRef.current
     const branding_context = generateBrandingContext(charter)
 
     const payload = {
@@ -99,8 +103,56 @@ export default function AssistantCommunication() {
       alert('Erreur lors de la génération du contenu. Veuillez réessayer.')
     }
   }  
-  
 
+  const handleChatSubmit = async (e) => {
+    e.preventDefault()
+    if (!chatInput.trim() || chatLoading || !charter) return
+  
+    const userMessage = chatInput.trim()
+    
+    // Ajouter le message user immédiatement
+    setChatMessages(prev => [...prev, { sender: 'user', text: userMessage }])
+    setChatInput('')
+    setChatLoading(true)
+  
+    const sessionId = `communication_chat_${Date.now()}`
+    const branding_context = generateBrandingContext(charter)
+  
+    const payload = {
+      sessionId,
+      message: userMessage,
+      content_type: 'chat_question',
+      branding_context
+    }
+  
+    try {
+      const response = await fetch('https://hub.cardin.cloud/webhook/6a95d0c7-d4fc-4806-a386-1d3bfaecd7b5/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+  
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`)
+      }
+  
+      const result = await response.json()
+      const botResponse = result.output || result.texte || result.text || 'Aucune réponse reçue.'
+  
+      // Ajouter la réponse bot
+      setChatMessages(prev => [...prev, { sender: 'bot', text: botResponse }])
+  
+    } catch (error) {
+      console.error('❌ Erreur chat:', error)
+      setChatMessages(prev => [...prev, { 
+        sender: 'bot', 
+        text: 'Désolé, une erreur est survenue. Veuillez réessayer.' 
+      }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
+  
   // Charger la charte
   useEffect(() => {
     const loadCharter = async () => {
@@ -162,16 +214,17 @@ export default function AssistantCommunication() {
   
   if (showWizard) {
     return (
-    <BrandCharterWizard 
-    userId={userId}
-    onComplete={() => {
-        getUserBrandCharter(userId).then(data => {
-        setCharter(data)
-        setShowWizard(false)
-        })
-    }}
-    onCancel={() => setShowWizard(false)}  // ← AJOUTER ICI
-    />
+      <BrandCharterWizard 
+        userId={userId}
+        existingCharter={charter}
+        onComplete={() => {
+          getUserBrandCharter(userId).then(data => {
+            setCharter(data)
+            setShowWizard(false)
+          })
+        }}
+        onCancel={() => setShowWizard(false)}
+      />
     )
   }
 
@@ -332,9 +385,10 @@ export default function AssistantCommunication() {
         </div>
       </div>
 
-      {/* Chat Sidebar (collapse) */}
+      {/* Chat Sidebar */}
       {showChatSidebar && (
         <div className="fixed right-0 top-0 h-screen w-96 bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col">
+          {/* Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Chat IA</h3>
             <button
@@ -344,22 +398,67 @@ export default function AssistantCommunication() {
               ✕
             </button>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-            <div className="text-center text-gray-500 text-sm mt-8">
-              💬 Posez vos questions ici...
-              <br />
-              <span className="text-xs text-gray-400">(Chat IA à implémenter)</span>
-            </div>
+
+          {/* Messages */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            {chatMessages.length === 0 ? (
+              <div className="text-center text-gray-500 text-sm mt-8">
+                💬 Posez vos questions sur votre communication...
+              </div>
+            ) : (
+              chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.sender === 'bot' && (
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <div className={`max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                    msg.sender === 'user' 
+                      ? 'bg-[#dbae61] bg-opacity-10 text-gray-900' 
+                      : 'bg-gray-100 text-gray-900'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))
+            )}
+            
+            {chatLoading && (
+              <div className="flex gap-2 justify-start">
+                <div className="w-8 h-8 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm text-gray-500">
+                  <span className="animate-pulse">En train de réfléchir...</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Input */}
           <div className="p-4 border-t border-gray-200">
-            <input
-              type="text"
-              placeholder="Posez votre question..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61]"
-            />
+            <form onSubmit={handleChatSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Posez votre question..."
+                disabled={chatLoading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] disabled:bg-gray-100"
+              />
+              <button
+                type="submit"
+                disabled={chatLoading || !chatInput.trim()}
+                className="px-4 py-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Envoyer
+              </button>
+            </form>
           </div>
         </div>
       )}
+
       {showHowItWorks && (
         <HowItWorksDrawer
           isOpen={showHowItWorks}
