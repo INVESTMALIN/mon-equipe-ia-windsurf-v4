@@ -18,6 +18,7 @@ import AssistantNegociateur from './components/AssistantNegociateur'
 import AssistantGuideAcces from './components/AssistantGuideAcces'
 import AssistantTranscript from './components/AssistantTranscript'
 import AssistantCommunication from './components/AssistantCommunication'
+import AssistantLogo from './components/AssistantLogo'
 
 
 import TestStripe from './components/TestStripe'
@@ -76,6 +77,15 @@ function AppWrapper() {
             element={
               <ProtectedRoute>
                 <AssistantFormation />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/assistant-logo" 
+            element={
+              <ProtectedRoute>
+                <AssistantLogo />
               </ProtectedRoute>
             } 
           />
