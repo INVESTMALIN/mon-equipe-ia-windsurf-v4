@@ -91,7 +91,7 @@ export default function AssistantLogo() {
         sessionId,
         mode
       }
-
+  
       if (mode === 'create') {
         payload = {
           ...payload,
@@ -109,25 +109,42 @@ export default function AssistantLogo() {
           modernization_instructions: modernizationInstructions
         }
       }
-
+  
+      // Timeout de 90 secondes pour génération d'image
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 90000)
+  
       const response = await fetch('https://hub.cardin.cloud/webhook/c79b4713-2daa-4cf5-ad01-7814766a51ea/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       })
-
+  
+      clearTimeout(timeoutId)
+  
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`)
       }
-
+  
       const result = await response.json()
-      const logoBase64 = result.logo || result.image || null
-
+      
+      // Le webhook renvoie un array [{ image: "..." }]
+      const logoBase64 = result[0]?.image || null
+  
+      if (!logoBase64) {
+        throw new Error('Aucune image reçue du webhook')
+      }
+  
       setGeneratedLogo(logoBase64)
-
+  
     } catch (error) {
-      console.error('❌ Erreur génération logo:', error)
-      alert('Erreur lors de la génération du logo. Veuillez réessayer.')
+      if (error.name === 'AbortError') {
+        alert('La génération prend trop de temps. Veuillez réessayer.')
+      } else {
+        console.error('❌ Erreur génération logo:', error)
+        alert('Erreur lors de la génération du logo. Veuillez réessayer.')
+      }
     } finally {
       setLoading(false)
     }
