@@ -129,14 +129,15 @@ export default function AssistantLogo() {
   
       const result = await response.json()
       
-      // Le webhook renvoie un array [{ image: "..." }]
-      const logoBase64 = result[0]?.image || null
+      // SIMPLIFIÉ : Le webhook renvoie une URL directement
+      const logoUrl = result.image_url || result.url || result.image || null
   
-      if (!logoBase64) {
+      if (!logoUrl) {
+        console.error('Réponse webhook:', result)
         throw new Error('Aucune image reçue du webhook')
       }
   
-      setGeneratedLogo(logoBase64)
+      setGeneratedLogo(logoUrl)
   
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -150,22 +151,15 @@ export default function AssistantLogo() {
     }
   }
 
-  const handleDownloadLogo = () => {
+  const handleDownloadLogo = async () => {
     if (!generatedLogo) return
-
+  
     try {
-      const base64Data = generatedLogo.includes('base64,') 
-        ? generatedLogo.split('base64,')[1] 
-        : generatedLogo
-
-      const byteCharacters = atob(base64Data)
-      const byteNumbers = new Array(byteCharacters.length)
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i)
-      }
-      const byteArray = new Uint8Array(byteNumbers)
-      const blob = new Blob([byteArray], { type: 'image/png' })
-
+      // Fetch l'image depuis l'URL
+      const response = await fetch(generatedLogo)
+      const blob = await response.blob()
+  
+      // Créer le lien de téléchargement
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -174,7 +168,7 @@ export default function AssistantLogo() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
-
+  
     } catch (error) {
       console.error('Erreur téléchargement logo:', error)
       alert('Erreur lors du téléchargement du logo')
