@@ -151,27 +151,25 @@ export default function AssistantLogo() {
     }
   }
 
-  const handleDownloadLogo = async () => {
+  const handleDownloadLogo = () => {
     if (!generatedLogo) return
   
     try {
-      // Fetch l'image depuis l'URL
-      const response = await fetch(generatedLogo)
-      const blob = await response.blob()
-  
-      // Créer le lien de téléchargement
-      const url = URL.createObjectURL(blob)
+      // Créer un lien de téléchargement direct (contourne CORS)
       const link = document.createElement('a')
-      link.href = url
+      link.href = generatedLogo
       link.download = `logo-${Date.now()}.png`
+      link.target = '_blank'  // Ouvre dans un nouvel onglet si le download échoue
+      
+      // Forcer le téléchargement
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      URL.revokeObjectURL(url)
   
     } catch (error) {
       console.error('Erreur téléchargement logo:', error)
-      alert('Erreur lors du téléchargement du logo')
+      // Fallback : ouvrir l'image dans un nouvel onglet
+      window.open(generatedLogo, '_blank')
     }
   }
 

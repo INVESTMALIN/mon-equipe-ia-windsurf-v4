@@ -74,12 +74,17 @@ export default function AssistantTranscript() {
     const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || file.name.toLowerCase().endsWith('.wav')
     const isM4a = file.type === 'audio/mp4' || file.type === 'audio/x-m4a' || file.name.toLowerCase().endsWith('.m4a')
     const isMov = file.type === 'video/quicktime' || file.name.toLowerCase().endsWith('.mov')
-
-    
+  
     if (!isMp4 && !isMp3 && !isWebm && !isWav && !isM4a && !isMov) {
       showToast('Veuillez sélectionner un fichier audio (MP3, WAV, M4A, WebM) ou vidéo (MP4, MOV, WebM) uniquement.', 'error')
       return
-    }    
+    }
+    
+    // TEMPORAIRE : 200 Mo max
+    if (file.size > 200 * 1024 * 1024) {
+      showToast('Le fichier est trop volumineux (max 200 Mo). Les fichiers plus gros seront supportés prochainement.', 'error')
+      return
+    }
     
     // Détection si c'est un fichier audio ou vidéo
     const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
@@ -135,29 +140,34 @@ export default function AssistantTranscript() {
 
   const sendFile = async () => {
     if (!selectedFile || loading) return
-
+  
     setLoading(true)
-
+  
     try {
       const sessionId = uuidv4()
-
       const formData = new FormData()
       formData.append('sessionId', sessionId)
       if (userEmail) formData.append('userEmail', userEmail)
       formData.append('file', selectedFile)
-
-      console.log('📦 FormData envoyée avec sessionId:', sessionId, 'et email:', userEmail)
-
-      // Envoi sans attendre de réponse (fire and forget)
-      fetch('https://hub.cardin.cloud/webhook/396c1d02-5034-466e-865a-774764ccdaae', {
+  
+      console.log('📦 Envoi fichier:', selectedFile.name, selectedFile.size, 'bytes')
+  
+      // ✅ ATTENDRE la réponse au lieu de "fire and forget"
+      const response = await fetch('https://hub.cardin.cloud/webhook/396c1d02-5034-466e-865a-774764ccdaae', {
         method: 'POST',
         body: formData
-      }).catch(err => console.error('Erreur envoi webhook:', err))
-
-      // Simuler un temps de traitement (2 secondes)
-      await new Promise(resolve => setTimeout(resolve, 2000))
-
+      })
+  
+      const responseText = await response.text().catch(() => '')
+      console.log('📬 Réponse serveur:', response.status, response.statusText, responseText)
+  
+      // ✅ Vérifier si ça a vraiment marché
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
+      }
+  
       const successMessage = `Fichier envoyé avec succès ! Vous recevrez la transcription par email à : ${userEmail}`
+  
 
       // Sauvegarder dans l'historique
       if (userId) {
