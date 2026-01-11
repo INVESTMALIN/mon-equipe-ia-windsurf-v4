@@ -59,6 +59,29 @@ export default function AssistantTranscript() {
     }
   }
 
+  const clearHistory = async () => {
+    if (!userId) return
+    
+    const confirmed = window.confirm('Êtes-vous sûr de vouloir effacer tout l\'historique ?')
+    if (!confirmed) return
+  
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', userId)
+        .eq('source', 'assistant-transcript')
+  
+      if (!error) {
+        setSendHistory([])
+        showToast('Historique effacé', 'success')
+      }
+    } catch (error) {
+      console.error('Erreur suppression historique:', error)
+      showToast('Erreur lors de la suppression', 'error')
+    }
+  }
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 5000)
@@ -80,11 +103,11 @@ export default function AssistantTranscript() {
       return
     }
     
-    // TEMPORAIRE : 200 Mo max
-    if (file.size > 200 * 1024 * 1024) {
-      showToast('Le fichier est trop volumineux (max 200 Mo). Les fichiers plus gros seront supportés prochainement.', 'error')
-      return
-    }
+  // Limite Railway : 500 Mo
+  if (file.size > 500 * 1024 * 1024) {
+    showToast('Le fichier est trop volumineux (max 500 Mo). Veuillez compresser votre vidéo.', 'error')
+    return
+  }
     
     // Détection si c'est un fichier audio ou vidéo
     const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
@@ -153,7 +176,7 @@ export default function AssistantTranscript() {
       console.log('📦 Envoi fichier:', selectedFile.name, selectedFile.size, 'bytes')
   
       // ✅ ATTENDRE la réponse au lieu de "fire and forget"
-      const response = await fetch('https://hub.cardin.cloud/webhook/396c1d02-5034-466e-865a-774764ccdaae', {
+      const response = await fetch('https://video-compressor-production.up.railway.app/extract-and-transcript', {
         method: 'POST',
         body: formData
       })
@@ -351,7 +374,7 @@ export default function AssistantTranscript() {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-gray-50 px-4 text-sm text-gray-500">Vos envois précédents</span>
+                <span className="bg-gray-50 px-4 text-sm text-gray-500">Vos 10 derniers envois</span>
               </div>
             </div>
           )}
@@ -359,9 +382,17 @@ export default function AssistantTranscript() {
         {/* Send History */}
         {sendHistory.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-[#dbae61]" />
-              Historique des envois
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#dbae61]" />
+                Historique
+              </div>
+              <button
+                onClick={clearHistory}
+                className="text-xs text-red-600 hover:text-red-700 hover:underline"
+              >
+                Tout effacer
+              </button>
             </h2>
             <div className="space-y-3">
               {sendHistory.map((item, idx) => (
