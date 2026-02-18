@@ -5,53 +5,53 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Utensils } from 'lucide-react'
 
-  // Composant CounterInput réutilisable
-  const CounterInput = ({ label, fieldPath, value, onCounterChange }) => {
-    
-    // Handler pour empêcher le scroll mobile
-    const handleCounterClick = (delta, event) => {
-      // Empêcher le scroll automatique mobile
-      event.preventDefault()
-      event.stopPropagation()
-      
-      // Appeler la fonction de compteur existante
-      onCounterChange(fieldPath, delta)
-      
-      // Forcer la perte de focus pour éviter le keyboard
-      event.target.blur()
-    }
-    
-    return (
-      <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-        <span className="text-sm flex-1 font-medium">{label}</span>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={(e) => handleCounterClick(-1, e)}
-            className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-lg font-semibold transition-colors disabled:bg-gray-300"
-            style={{ touchAction: 'manipulation' }}
-            disabled={value === 0}
-          >
-            −
-          </button>
-          <span className="w-12 text-center font-semibold text-lg">
-            {value || 0}
-          </span>
-          <button
-            type="button"
-            onClick={(e) => handleCounterClick(1, e)}
-            className="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center text-lg font-semibold transition-colors"
-            style={{ touchAction: 'manipulation' }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-    )
+// Composant CounterInput réutilisable
+const CounterInput = ({ label, fieldPath, value, onCounterChange }) => {
+
+  // Handler pour empêcher le scroll mobile
+  const handleCounterClick = (delta, event) => {
+    // Empêcher le scroll automatique mobile
+    event.preventDefault()
+    event.stopPropagation()
+
+    // Appeler la fonction de compteur existante
+    onCounterChange(fieldPath, delta)
+
+    // Forcer la perte de focus pour éviter le keyboard
+    event.target.blur()
   }
 
+  return (
+    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+      <span className="text-sm flex-1 font-medium">{label}</span>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={(e) => handleCounterClick(-1, e)}
+          className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-lg font-semibold transition-colors disabled:bg-gray-300"
+          style={{ touchAction: 'manipulation' }}
+          disabled={value === 0}
+        >
+          −
+        </button>
+        <span className="w-12 text-center font-semibold text-lg">
+          {value || 0}
+        </span>
+        <button
+          type="button"
+          onClick={(e) => handleCounterClick(1, e)}
+          className="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center text-lg font-semibold transition-colors"
+          style={{ touchAction: 'manipulation' }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function FicheCuisine2() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -126,7 +126,10 @@ export default function FicheCuisine2() {
     { key: 'ustensiles_couteau_huitre', label: 'Couteau à huître' },
     { key: 'ustensiles_verre_mesureur', label: 'Verre mesureur' },
     { key: 'ustensiles_presse_agrume_manuel', label: 'Presse-agrume manuel' },
-    { key: 'ustensiles_pichet', label: 'Pichet' }
+    { key: 'ustensiles_pichet', label: 'Pichet' },
+    { key: 'ustensiles_fouet', label: 'Fouet' },
+    { key: 'ustensiles_louche', label: 'Louche' },
+    { key: 'ustensiles_pic_fondue', label: 'Pic à fondue' }
   ]
 
   const platsRecipients = [
@@ -146,15 +149,15 @@ export default function FicheCuisine2() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           {/* Container centré */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Cuisine - Ustensiles</h1>
-            
+
             <div className="bg-white rounded-xl shadow-sm p-8">
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
@@ -169,7 +172,7 @@ export default function FicheCuisine2() {
               </div>
 
               <div className="space-y-8">
-                
+
                 {/* Section principale : Introduction */}
                 <div>
                   <p className="text-gray-600">
@@ -243,7 +246,7 @@ export default function FicheCuisine2() {
 
                 {/* CHAMPS COMPLÉMENTAIRES */}
                 <div className="space-y-6">
-                  
+
                   {/* Autres ustensiles */}
                   <div>
                     <label className="block font-medium text-gray-900 mb-2">
@@ -358,7 +361,7 @@ export default function FicheCuisine2() {
                 </div>
 
               </div>
-              
+
               <NavigationButtons />
             </div>
           </div>
