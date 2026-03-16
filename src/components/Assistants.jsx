@@ -372,140 +372,163 @@ export default function MonCompteV2() {
         </div>
       </section>
 
-      {/* Section BETA - Nouveautés en exclusivité */}
-      <section className="bg-gradient-to-b from-gray-50 to-white py-20">
+      {/* Section Nouveautés */}
+      <section className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-20">
           {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-[#dbae61] text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
-              <span>⚡</span>
-              <span>BETA - TESTEZ EN EXCLUSIVITÉ</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
-              Soyez parmi les premiers à tester nos dernières innovations
+          <div className="text-center mb-16">
+            <h2 className="text-2xl md:text-3xl font-bold text-black text-center mb-4">
+              NOUVEAUX ASSISTANTS
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Accédez en avant-première à nos nouveaux assistants IA et aidez-nous à les perfectionner
+            <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Deux nouveaux assistants pour aller encore plus loin dans votre conciergerie.
             </p>
           </div>
 
-          {/* Grille des assistants BETA */}
+          {/* Grille des nouveaux assistants */}
           <div className="grid md:grid-cols-2 gap-8">
+
             {/* Assistant Transcript */}
-            <div className="bg-white border-2 border-[#dbae61] rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative overflow-hidden">
-              {/* Badge BETA */}
-              <div className="absolute top-4 right-4 bg-[#dbae61] text-white text-xs font-bold px-3 py-1 rounded-full">
-                BETA
+            <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
+              {/* Header visuel */}
+              <div className="aspect-[4/3] bg-gradient-to-br from-gray-900 via-gray-800 to-[#1a1a2e] flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-20" style={{background: 'radial-gradient(circle at 70% 30%, #dbae61, transparent 60%)'}}></div>
+                <div className="relative flex flex-col items-center gap-4">
+                  <div className="w-20 h-20 bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white border-opacity-20 group-hover:scale-110 transition-transform duration-500">
+                    <FileAudio className="w-10 h-10 text-[#dbae61]" />
+                  </div>
+                  <div className="flex gap-1">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="w-1 rounded-full bg-[#dbae61] opacity-70" style={{height: `${12 + (i % 3) * 8}px`}}></div>
+                    ))}
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="w-1 rounded-full bg-[#dbae61] opacity-40" style={{height: `${8 + (i % 4) * 6}px`}}></div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              
-              {/* Icône */}
-              <div className="w-16 h-16 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-2xl flex items-center justify-center mb-6">
-                <FileAudio className="w-8 h-8 text-white" />
+
+              <div className="p-8 flex flex-col flex-grow">
+                <div className="flex items-center gap-3 mb-4">
+                  <FileAudio className="w-8 h-8 text-[#dbae61]" />
+                  <h3 className="text-2xl font-bold text-black">ASSISTANT TRANSCRIPT</h3>
+                </div>
+                <p className="text-lg font-medium text-gray-800 mb-4">
+                  L'IA qui transcrit vos audio et vidéos instantanément
+                </p>
+                <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Transcription automatique audio et vidéo
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Support de tous formats (MP3, MP4, WAV, etc.)
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Export du texte pour vos autres assistants
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Analyse et archivage de vos appels commerciaux
+                  </li>
+                </ul>
+                {isPremium ? (
+                  <Link
+                    to="/assistant-transcript"
+                    className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#dbae61' }}
+                  >
+                    Accéder à l'assistant →
+                  </Link>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                      <Lock className="w-4 h-4" />
+                      <span>Premium requis</span>
+                    </div>
+                    <Link
+                      to="/upgrade"
+                      className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                    >
+                      {ctaText}
+                    </Link>
+                  </div>
+                )}
               </div>
-              
-              {/* Contenu */}
-              <h3 className="text-2xl font-bold text-black mb-3">
-                Assistant Transcript
-              </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Uploadez vos appels commerciaux, vidéos ou fichiers audio, 
-                et obtenez une transcription complète pour analyser, archiver ou réutiliser le contenu.
-              </p>
-              
-              {/* Features */}
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
-                  <span>Transcription automatique audio et vidéo</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
-                  <span>Support de tous formats (MP3, MP4, WAV, etc.)</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
-                  <span>Export du texte pour vos autres assistants</span>
-                </li>
-              </ul>
-              
-              {/* CTA */}
-              {isPremium ? (
-                <Link
-                  to="/assistant-transcript"
-                  className="w-full inline-flex items-center justify-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
-                >
-                  Tester maintenant
-                  <span className="ml-2">→</span>
-                </Link>
-              ) : (
-                <Link
-                  to="/upgrade"
-                  className="w-full inline-flex items-center justify-center bg-gray-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
-                >
-                  <Lock className="w-5 h-5 mr-2" />
-                  {ctaText}
-                </Link>
-              )}
             </div>
 
             {/* Assistant Guide d'Accès */}
-            <div className="bg-white border-2 border-[#dbae61] rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative overflow-hidden">
-              {/* Badge BETA */}
-              <div className="absolute top-4 right-4 bg-[#dbae61] text-white text-xs font-bold px-3 py-1 rounded-full">
-                BETA
+            <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
+              {/* Header visuel */}
+              <div className="aspect-[4/3] bg-gradient-to-br from-[#1a1a2e] via-[#2d1b4e] to-gray-900 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-20" style={{background: 'radial-gradient(circle at 30% 70%, #dbae61, transparent 60%)'}}></div>
+                <div className="relative flex flex-col items-center gap-5">
+                  <div className="w-20 h-20 bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white border-opacity-20 group-hover:scale-110 transition-transform duration-500">
+                    <Video className="w-10 h-10 text-[#dbae61]" />
+                  </div>
+                  <div className="flex gap-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="w-8 h-8 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 flex items-center justify-center">
+                        <div className="w-3 h-3 rounded-sm bg-[#dbae61] opacity-70"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              
-              {/* Icône */}
-              <div className="w-16 h-16 bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-2xl flex items-center justify-center mb-6">
-                <Video className="w-8 h-8 text-white" />
+
+              <div className="p-8 flex flex-col flex-grow">
+                <div className="flex items-center gap-3 mb-4">
+                  <Video className="w-8 h-8 text-[#dbae61]" />
+                  <h3 className="text-2xl font-bold text-black">GUIDE D'ACCÈS IA</h3>
+                </div>
+                <p className="text-lg font-medium text-gray-800 mb-4">
+                  L'IA qui génère vos guides d'accès professionnels
+                </p>
+                <ul className="text-gray-600 mb-6 space-y-2 flex-grow">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Génération automatique depuis vidéos/audio
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Guides personnalisés propriétaires/voyageurs
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Export PDF professionnel prêt à l'envoi
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#dbae61] font-bold">•</span>
+                    Transformez vos transcriptions en documents clairs
+                  </li>
+                </ul>
+                {isPremium ? (
+                  <Link
+                    to="/assistant-guide-acces"
+                    className="inline-block text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#dbae61' }}
+                  >
+                    Accéder à l'assistant →
+                  </Link>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                      <Lock className="w-4 h-4" />
+                      <span>Premium requis</span>
+                    </div>
+                    <Link
+                      to="/upgrade"
+                      className="inline-block bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                    >
+                      {ctaText}
+                    </Link>
+                  </div>
+                )}
               </div>
-              
-              {/* Contenu */}
-              <h3 className="text-2xl font-bold text-black mb-3">
-                Assistant Guide d'Accès
-              </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Créez des guides d'accès professionnels en quelques clics. Transformez vos vidéos, audios ou transcriptions 
-                en documents clairs pour propriétaires et voyageurs.
-              </p>
-              
-              {/* Features */}
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
-                  <span>Génération automatique depuis vidéos/audio</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
-                  <span>Guides personnalisés propriétaires/voyageurs</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle className="w-5 h-5 text-[#dbae61] flex-shrink-0 mt-0.5" />
-                  <span>Export PDF professionnel prêt à l'envoi</span>
-                </li>
-              </ul>
-              
-              {/* CTA */}
-              {isPremium ? (
-                <Link
-                  to="/assistant-guide-acces"
-                  className="w-full inline-flex items-center justify-center bg-[#dbae61] hover:bg-[#c49a4f] text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
-                >
-                  Tester maintenant
-                  <span className="ml-2">→</span>
-                </Link>
-              ) : (
-                <Link
-                  to="/upgrade"
-                  className="w-full inline-flex items-center justify-center bg-gray-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-all duration-300"
-                >
-                  <Lock className="w-5 h-5 mr-2" />
-                  {ctaText}
-                </Link>
-              )}
             </div>
 
-            
           </div>
         </div>
       </section>
