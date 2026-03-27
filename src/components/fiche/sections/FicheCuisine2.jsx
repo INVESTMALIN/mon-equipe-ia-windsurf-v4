@@ -1,23 +1,19 @@
 // src/components/fiche/sections/FicheCuisine2.jsx
+import { useState, useRef } from 'react'
+import { Mic, FolderOpen, Diff, CheckCircle, AlertCircle, Loader2, ChevronDown, TriangleAlert, Utensils } from 'lucide-react'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
-import { Utensils } from 'lucide-react'
 
-// Composant CounterInput réutilisable
+const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_VOICE_INVENTORY
+
+// Composant CounterInput réutilisable - design Mon Équipe IA
 const CounterInput = ({ label, fieldPath, value, onCounterChange }) => {
-
-  // Handler pour empêcher le scroll mobile
   const handleCounterClick = (delta, event) => {
-    // Empêcher le scroll automatique mobile
     event.preventDefault()
     event.stopPropagation()
-
-    // Appeler la fonction de compteur existante
     onCounterChange(fieldPath, delta)
-
-    // Forcer la perte de focus pour éviter le keyboard
     event.target.blur()
   }
 
@@ -52,30 +48,29 @@ const CounterInput = ({ label, fieldPath, value, onCounterChange }) => {
 
 export default function FicheCuisine2() {
   const {
+    formData: allFormData,
     getField,
     updateField
   } = useForm()
 
-  // Récupération des données de la section
-  const formData = getField('section_cuisine_2')
+  // Lecture directe depuis le state React du contexte pour une réactivité garantie
+  const formData = allFormData?.section_cuisine_2 || {}
 
-  // Handler pour champs simples
   const handleInputChange = (field, value) => {
-    updateField(field, value)
+    updateField(`section_cuisine_2.${field}`, value)
   }
 
-  // Handler pour compteurs numériques (+ et -)
-  const handleCounterChange = (field, delta) => {
-    const currentValue = parseInt(formData[field.split('.').pop()]) || 0
-    const newValue = Math.max(0, currentValue + delta) // Pas de valeurs négatives
-    updateField(field, newValue)
-  }
-
-  // Handler pour radio buttons
   const handleRadioChange = (field, value) => {
-    if (value === 'true') updateField(field, true)
-    else if (value === 'false') updateField(field, false)
-    else updateField(field, value)
+    updateField(
+      `section_cuisine_2.${field}`,
+      value === 'true' ? true : value === 'false' ? false : null
+    )
+  }
+
+  const handleCounterChange = (field, delta) => {
+    const currentValue = parseInt(getField(field)) || 0
+    const newValue = Math.max(0, currentValue + delta)
+    updateField(field, newValue)
   }
 
   // Listes des ustensiles par catégorie
@@ -100,24 +95,29 @@ export default function FicheCuisine2() {
     { key: 'couverts_cuilleres_dessert', label: 'Cuillères à dessert' }
   ]
 
-  const ustensilesCuisine = [
+  // 🟢 Ustensiles obligatoires
+  const ustensilesObligatoires = [
     { key: 'ustensiles_poeles_differentes_tailles', label: 'Poêles de différentes tailles' },
     { key: 'ustensiles_casseroles_differentes_tailles', label: 'Casseroles de différentes tailles' },
-    { key: 'ustensiles_faitouts', label: 'Faitouts' },
-    { key: 'ustensiles_wok', label: 'Wok' },
-    { key: 'ustensiles_cocotte_minute', label: 'Cocotte-minute' },
     { key: 'ustensiles_couvercle_anti_eclaboussures', label: 'Couvercle anti-éclaboussures' },
-    { key: 'ustensiles_robot_cuisine', label: 'Robot de cuisine' },
-    { key: 'ustensiles_batteur_electrique', label: 'Batteur électrique' },
     { key: 'ustensiles_couteaux_cuisine', label: 'Couteaux de cuisine' },
-    { key: 'ustensiles_spatules', label: 'Spatules' },
     { key: 'ustensiles_ecumoire', label: 'Écumoire' },
+    { key: 'ustensiles_spatules', label: 'Spatules' },
     { key: 'ustensiles_ouvre_boite', label: 'Ouvre-boîte' },
-    { key: 'ustensiles_rape', label: 'Râpe' },
     { key: 'ustensiles_tire_bouchon', label: 'Tire-bouchon' },
     { key: 'ustensiles_econome', label: 'Économe' },
     { key: 'ustensiles_passoire', label: 'Passoire' },
-    { key: 'ustensiles_planche_decouper', label: 'Planche à découper' },
+    { key: 'ustensiles_planche_decouper', label: 'Planche à découper' }
+  ]
+
+  // 🔵 Ustensiles facultatifs
+  const ustensilesFacultatifs = [
+    { key: 'ustensiles_faitouts', label: 'Faitouts' },
+    { key: 'ustensiles_wok', label: 'Wok' },
+    { key: 'ustensiles_cocotte_minute', label: 'Cocotte-minute' },
+    { key: 'ustensiles_robot_cuisine', label: 'Robot de cuisine' },
+    { key: 'ustensiles_batteur_electrique', label: 'Batteur électrique' },
+    { key: 'ustensiles_rape', label: 'Râpe' },
     { key: 'ustensiles_rouleau_patisserie', label: 'Rouleau à pâtisserie' },
     { key: 'ustensiles_ciseaux_cuisine', label: 'Ciseaux de cuisine' },
     { key: 'ustensiles_balance_cuisine', label: 'Balance de cuisine' },
@@ -146,6 +146,126 @@ export default function FicheCuisine2() {
     { key: 'plats_maniques', label: 'Maniques' }
   ]
 
+  // --- Mode state ---
+  const [manualExpanded, setManualExpanded] = useState(true)
+  const [vocalExpanded, setVocalExpanded] = useState(false)
+
+  // --- Vocal mode state ---
+  const [vocalSubMode, setVocalSubMode] = useState('micro') // 'micro' | 'upload'
+  const [isRecording, setIsRecording] = useState(false)
+  const [vocalStatus, setVocalStatus] = useState(null) // 'processing' | 'success' | 'error'
+  const [vocalError, setVocalError] = useState(null)
+  const mediaRecorderRef = useRef(null)
+  const chunksRef = useRef([])
+  const [uploadFile, setUploadFile] = useState(null)
+
+  // --- Mic handlers ---
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      chunksRef.current = []
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        await sendAudio(blob, 'recording.webm')
+      }
+
+      mediaRecorder.start()
+      setIsRecording(true)
+      setVocalStatus(null)
+      setVocalError(null)
+    } catch (err) {
+      setVocalError("Impossible d'accéder au microphone : " + err.message)
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop()
+      setIsRecording(false)
+      setVocalStatus('processing')
+    }
+  }
+
+  // --- Upload handlers ---
+  const handleFileChange = (e) => {
+    setUploadFile(e.target.files[0] || null)
+    setVocalError(null)
+    setVocalStatus(null)
+  }
+
+  const handleUploadSend = async () => {
+    if (!uploadFile) return
+    setVocalStatus('processing')
+    setVocalError(null)
+    await sendAudio(uploadFile, uploadFile.name)
+  }
+
+  // --- Envoi audio + mise à jour des champs ---
+  const sendAudio = async (blob, filename) => {
+    const formPayload = new FormData()
+    formPayload.append('audio', blob, filename)
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        body: formPayload,
+        signal: controller.signal
+      })
+      clearTimeout(timeoutId)
+
+      const contentType = response.headers.get('content-type') || ''
+      const rawBody = await response.text()
+      console.log('[FicheCuisine2/vocal] status:', response.status, '| content-type:', contentType, '| body brut:', rawBody)
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP ${response.status}`)
+      }
+
+      // Parser le JSON quelle que soit le content-type
+      // (Make.com renvoie souvent text/plain même pour un body JSON)
+      let parsed = null
+      try { parsed = JSON.parse(rawBody) } catch { /* not JSON */ }
+
+      if (parsed && typeof parsed === 'object') {
+        Object.entries(parsed).forEach(([key, value]) => {
+          if (key === 'autres_ustensiles_vocal') {
+            const current = getField('section_cuisine_2.autres_ustensiles') || ''
+            const updated = current.trim() ? current + ', ' + value : String(value)
+            updateField('section_cuisine_2.autres_ustensiles', updated)
+          } else {
+            updateField(`section_cuisine_2.${key}`, value)
+          }
+        })
+        console.log('[vocal] JSON reçu:', parsed)
+        // Ouvrir le mode manuel pour que l'utilisateur voie les compteurs mis à jour
+        setManualExpanded(true)
+      }
+
+      setVocalStatus('success')
+    } catch (err) {
+      clearTimeout(timeoutId)
+      if (err.name === 'AbortError') {
+        setVocalError('Timeout : pas de réponse après 30 secondes.')
+      } else {
+        setVocalError(err.message || 'Erreur inconnue.')
+      }
+      setVocalStatus('error')
+    }
+  }
+
+  const webhookMissing = !WEBHOOK_URL
+
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
@@ -154,11 +274,12 @@ export default function FicheCuisine2() {
         <ProgressBar />
 
         <div className="flex-1 p-6 bg-gray-100">
-          {/* Container centré */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Cuisine - Ustensiles</h1>
 
             <div className="bg-white rounded-xl shadow-sm p-8">
+
+              {/* En-tête */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
@@ -173,75 +294,253 @@ export default function FicheCuisine2() {
 
               <div className="space-y-8">
 
-                {/* Section principale : Introduction */}
-                <div>
-                  <p className="text-gray-600">
-                    Quels ustensiles et équipements de cuisine sont disponibles dans le logement ?
-                  </p>
+                {/* ===================== MODE VOCAL ===================== */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden opacity-70">
+                  <button
+                    type="button"
+                    onClick={() => setVocalExpanded((prev) => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-4 h-4 text-gray-400" />
+                      <span className="text-base font-semibold text-gray-500">Saisie vocale</span>
+                      <span className="text-xs text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded">En cours de développement</span>
+                    </div>
+                    <ChevronDown
+                      className={`w-5 h-5 text-gray-400 transition-transform ${vocalExpanded ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  {vocalExpanded && <div className="p-4 space-y-4">
+                    {webhookMissing ? (
+                      <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                        <TriangleAlert className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span>
+                          Webhook non configuré — ajoutez{' '}
+                          <code>VITE_WEBHOOK_VOICE_INVENTORY</code> dans votre fichier{' '}
+                          <code>.env</code>.
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Sub-mode toggle */}
+                        <div className="flex rounded-lg overflow-hidden border border-gray-200 w-fit">
+                          <button
+                            type="button"
+                            onClick={() => setVocalSubMode('micro')}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                              vocalSubMode === 'micro'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Mic className="w-4 h-4 shrink-0" /> Microphone
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVocalSubMode('upload')}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                              vocalSubMode === 'upload'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <FolderOpen className="w-4 h-4 shrink-0" /> Fichier audio
+                          </button>
+                        </div>
+
+                        {/* Micro panel */}
+                        {vocalSubMode === 'micro' && (
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-500">
+                              Appuyez pour démarrer l'enregistrement, relâchez pour envoyer.
+                            </p>
+                            <button
+                              type="button"
+                              onMouseDown={startRecording}
+                              onMouseUp={stopRecording}
+                              onTouchStart={(e) => { e.preventDefault(); startRecording() }}
+                              onTouchEnd={(e) => { e.preventDefault(); stopRecording() }}
+                              disabled={vocalStatus === 'processing'}
+                              className={`flex items-center justify-center gap-3 w-full py-4 rounded-lg font-medium text-white transition-colors select-none ${
+                                isRecording
+                                  ? 'bg-red-500 hover:bg-red-600'
+                                  : vocalStatus === 'processing'
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                              }`}
+                            >
+                              {isRecording && (
+                                <span className="w-3 h-3 rounded-full bg-white animate-pulse" />
+                              )}
+                              {isRecording
+                                ? 'Enregistrement en cours… (relâchez pour envoyer)'
+                                : vocalStatus === 'processing'
+                                ? 'Envoi en cours…'
+                                : 'Appuyer pour parler'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Upload panel */}
+                        {vocalSubMode === 'upload' && (
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-500">
+                              Sélectionnez un fichier audio puis cliquez sur Envoyer.
+                            </p>
+                            <input
+                              type="file"
+                              accept="audio/*"
+                              onChange={handleFileChange}
+                              className="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleUploadSend}
+                              disabled={!uploadFile || vocalStatus === 'processing'}
+                              className="w-full py-3 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {vocalStatus === 'processing' ? 'Envoi en cours…' : 'Envoyer'}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Status feedback */}
+                    {vocalStatus === 'processing' && (
+                      <div className="flex items-center gap-2 text-sm text-blue-700">
+                        <Loader2 className="animate-spin h-4 w-4" />
+                        Traitement en cours…
+                      </div>
+                    )}
+                    {vocalStatus === 'error' && (
+                      <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span>{vocalError}</span>
+                      </div>
+                    )}
+                    {vocalStatus === 'success' && (
+                      <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
+                        <CheckCircle className="w-4 h-4 shrink-0" />
+                        Champs mis à jour
+                      </div>
+                    )}
+                  </div>
+                  }
                 </div>
 
-                {/* VAISSELLE */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Vaisselle</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {vaisselle.map(({ key, label }) => (
-                      <CounterInput
-                        key={key}
-                        label={label}
-                        fieldPath={`section_cuisine_2.${key}`}
-                        value={formData[key]}
-                        onCounterChange={handleCounterChange}
-                      />
-                    ))}
-                  </div>
-                </div>
+                {/* ===================== MODE MANUEL ===================== */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setManualExpanded((prev) => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Diff className="w-4 h-4 text-gray-500" />
+                      <span className="text-base font-semibold text-gray-700">Saisie manuelle</span>
+                    </div>
+                    <ChevronDown
+                      className={`w-5 h-5 text-gray-500 transition-transform ${manualExpanded ? 'rotate-180' : ''}`}
+                    />
+                  </button>
 
-                {/* COUVERTS */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Couverts</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {couverts.map(({ key, label }) => (
-                      <CounterInput
-                        key={key}
-                        label={label}
-                        fieldPath={`section_cuisine_2.${key}`}
-                        value={formData[key]}
-                        onCounterChange={handleCounterChange}
-                      />
-                    ))}
-                  </div>
-                </div>
+                  {manualExpanded && (
+                    <div className="p-4 space-y-8">
 
-                {/* USTENSILES DE CUISINE */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Ustensiles de cuisine</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {ustensilesCuisine.map(({ key, label }) => (
-                      <CounterInput
-                        key={key}
-                        label={label}
-                        fieldPath={`section_cuisine_2.${key}`}
-                        value={formData[key]}
-                        onCounterChange={handleCounterChange}
-                      />
-                    ))}
-                  </div>
-                </div>
+                      {/* VAISSELLE */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Vaisselle</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {vaisselle.map(({ key, label }) => (
+                            <CounterInput
+                              key={key}
+                              label={label}
+                              fieldPath={`section_cuisine_2.${key}`}
+                              value={formData[key]}
+                              onCounterChange={handleCounterChange}
+                            />
+                          ))}
+                        </div>
+                      </div>
 
-                {/* PLATS ET RÉCIPIENTS */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Plats et récipients</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {platsRecipients.map(({ key, label }) => (
-                      <CounterInput
-                        key={key}
-                        label={label}
-                        fieldPath={`section_cuisine_2.${key}`}
-                        value={formData[key]}
-                        onCounterChange={handleCounterChange}
-                      />
-                    ))}
-                  </div>
+                      {/* COUVERTS */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Couverts</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {couverts.map(({ key, label }) => (
+                            <CounterInput
+                              key={key}
+                              label={label}
+                              fieldPath={`section_cuisine_2.${key}`}
+                              value={formData[key]}
+                              onCounterChange={handleCounterChange}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 🟢 USTENSILES OBLIGATOIRES */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <h3 className="text-lg font-semibold text-green-700">🟢 Ustensiles obligatoires</h3>
+                          <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
+                            Indispensables
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                          {ustensilesObligatoires.map(({ key, label }) => (
+                            <CounterInput
+                              key={key}
+                              label={label}
+                              fieldPath={`section_cuisine_2.${key}`}
+                              value={formData[key]}
+                              onCounterChange={handleCounterChange}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 🔵 USTENSILES FACULTATIFS */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <h3 className="text-lg font-semibold text-blue-700">🔵 Ustensiles facultatifs</h3>
+                          <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            Optionnels
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                          {ustensilesFacultatifs.map(({ key, label }) => (
+                            <CounterInput
+                              key={key}
+                              label={label}
+                              fieldPath={`section_cuisine_2.${key}`}
+                              value={formData[key]}
+                              onCounterChange={handleCounterChange}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* PLATS ET RÉCIPIENTS */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-[#dbae61]">Plats et récipients</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {platsRecipients.map(({ key, label }) => (
+                            <CounterInput
+                              key={key}
+                              label={label}
+                              fieldPath={`section_cuisine_2.${key}`}
+                              value={formData[key]}
+                              onCounterChange={handleCounterChange}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
                 </div>
 
                 {/* CHAMPS COMPLÉMENTAIRES */}
@@ -254,13 +553,13 @@ export default function FicheCuisine2() {
                     </label>
                     <textarea
                       placeholder="Précisez les autres ustensiles ou équipements disponibles dans votre cuisine."
-                      value={formData.autres_ustensiles || ""}
-                      onChange={(e) => handleInputChange('section_cuisine_2.autres_ustensiles', e.target.value)}
+                      value={formData.autres_ustensiles || ''}
+                      onChange={(e) => handleInputChange('autres_ustensiles', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all h-24"
                     />
                   </div>
 
-                  {/* Question quantité suffisante */}
+                  {/* Quantité suffisante */}
                   <div>
                     <label className="block font-medium text-gray-900 mb-3">
                       Disposez-vous d'une quantité suffisante de vaisselle et couverts pour le nombre maximal de voyageurs ? <span className="text-red-500">*</span>
@@ -272,7 +571,7 @@ export default function FicheCuisine2() {
                           name="quantite_suffisante"
                           value="true"
                           checked={formData.quantite_suffisante === true}
-                          onChange={(e) => handleRadioChange('section_cuisine_2.quantite_suffisante', e.target.value)}
+                          onChange={(e) => handleRadioChange('quantite_suffisante', e.target.value)}
                           className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61]"
                         />
                         <span>Oui</span>
@@ -283,7 +582,7 @@ export default function FicheCuisine2() {
                           name="quantite_suffisante"
                           value="false"
                           checked={formData.quantite_suffisante === false}
-                          onChange={(e) => handleRadioChange('section_cuisine_2.quantite_suffisante', e.target.value)}
+                          onChange={(e) => handleRadioChange('quantite_suffisante', e.target.value)}
                           className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61]"
                         />
                         <span>Non</span>
@@ -298,15 +597,15 @@ export default function FicheCuisine2() {
                         </label>
                         <textarea
                           placeholder="Indiquez quels éléments ne sont pas disponibles en quantité suffisante et commentez l'état de la vaisselle."
-                          value={formData.quantite_insuffisante_details || ""}
-                          onChange={(e) => handleInputChange('section_cuisine_2.quantite_insuffisante_details', e.target.value)}
+                          value={formData.quantite_insuffisante_details || ''}
+                          onChange={(e) => handleInputChange('quantite_insuffisante_details', e.target.value)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all h-24"
                         />
                       </div>
                     )}
                   </div>
 
-                  {/* Question casseroles et poêles testées */}
+                  {/* Casseroles et poêles testées */}
                   <div>
                     <label className="block font-medium text-gray-900 mb-3">
                       Avez-vous testé les casseroles et les poêles ? <span className="text-red-500">*</span>
@@ -318,7 +617,7 @@ export default function FicheCuisine2() {
                           name="casseroles_poeles_testees"
                           value="true"
                           checked={formData.casseroles_poeles_testees === true}
-                          onChange={(e) => handleRadioChange('section_cuisine_2.casseroles_poeles_testees', e.target.value)}
+                          onChange={(e) => handleRadioChange('casseroles_poeles_testees', e.target.value)}
                           className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61]"
                         />
                         <span>Oui</span>
@@ -329,7 +628,7 @@ export default function FicheCuisine2() {
                           name="casseroles_poeles_testees"
                           value="false"
                           checked={formData.casseroles_poeles_testees === false}
-                          onChange={(e) => handleRadioChange('section_cuisine_2.casseroles_poeles_testees', e.target.value)}
+                          onChange={(e) => handleRadioChange('casseroles_poeles_testees', e.target.value)}
                           className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61]"
                         />
                         <span>Non</span>
@@ -337,7 +636,7 @@ export default function FicheCuisine2() {
                     </div>
                   </div>
 
-                  {/* Photos tiroirs et placards (VERSION LITE) */}
+                  {/* Photos tiroirs et placards (VERSION LITE - rappel checkbox) */}
                   <div>
                     <label className="block font-medium text-gray-900 mb-3">
                       Photos de tous les tiroirs et placards de la cuisine
@@ -348,7 +647,9 @@ export default function FicheCuisine2() {
                           type="checkbox"
                           id="photos_tiroirs_placards_taken"
                           checked={formData.photos_rappels?.photos_tiroirs_placards_taken || false}
-                          onChange={(e) => handleInputChange('section_cuisine_2.photos_rappels.photos_tiroirs_placards_taken', e.target.checked)}
+                          onChange={(e) =>
+                            handleInputChange('photos_rappels.photos_tiroirs_placards_taken', e.target.checked)
+                          }
                           className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
                         />
                         <label htmlFor="photos_tiroirs_placards_taken" className="text-sm text-yellow-800">
