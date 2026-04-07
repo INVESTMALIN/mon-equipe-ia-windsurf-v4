@@ -24,7 +24,7 @@ const StyledCheckboxGrid = ({ options, values, path, onChange }) => (
 )
 
 export default function FicheAvis() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -90,25 +90,25 @@ export default function FicheAvis() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Avis sur le logement</h1>
-            
+
             <div className="bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header avec icône */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <MessageSquare className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Votre avis fait la différence !</h2>
-                    <p className="text-gray-600">Partagez votre perception unique du logement</p>
+                    <h2 className="text-xl font-semibold text-gray-900">Votre avis compte</h2>
+                    <p className="text-gray-600">Votre perception du logement</p>
                   </div>
                 </div>
               </div>
@@ -116,14 +116,14 @@ export default function FicheAvis() {
               {/* Message d'information */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
                 <p className="text-sm text-blue-900 leading-relaxed">
-                Votre perception sur place compte énormément ! Ces observations vous serviront directement pour créer des annonces qui convertissent. L'assistant IA utilisera vos impressions pour générer des descriptions qui mettent en avant les vrais points forts du logement et séduisent vos futurs locataires.
+                  Votre perception sur place compte énormément ! Ces observations vous serviront directement pour créer des annonces qui convertissent. L'assistant IA utilisera vos impressions pour générer des descriptions qui mettent en avant les vrais points forts du logement et séduisent vos futurs locataires.
                 </p>
               </div>
 
               {/* Évaluation de l'environnement */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Évaluation de l'environnement et du logement</h3>
-                
+
                 {/* Vidéo globale - Rappel simple */}
                 <div className="mb-6">
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -146,11 +146,11 @@ export default function FicheAvis() {
               {/* Évaluation du quartier */}
               <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Évaluation du quartier</h3>
-                
+
                 {/* Type de quartier */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">Type de quartier</label>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {[
                       { key: 'quartier_neuf', label: 'Quartier neuf (récemment développé, moderne)' },
@@ -172,7 +172,7 @@ export default function FicheAvis() {
                           checked={formData.quartier_types?.includes(key) || false}
                           onChange={(e) => {
                             const currentTypes = formData.quartier_types || []
-                            const newTypes = e.target.checked 
+                            const newTypes = e.target.checked
                               ? [...currentTypes, key]
                               : currentTypes.filter(type => type !== key)
                             handleInputChange('section_avis.quartier_types', newTypes)
@@ -186,11 +186,11 @@ export default function FicheAvis() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Sécurité du quartier */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">Sécurité du quartier</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'securise', label: 'Sécurisé (quartier calme)' },
@@ -211,11 +211,11 @@ export default function FicheAvis() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Perturbations du quartier */}
                 <div className="mb-4">
                   <label className="block font-medium text-gray-900 mb-3">Perturbations du quartier</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'aucune', label: 'Pas d\'élément perturbateur' },
@@ -234,7 +234,7 @@ export default function FicheAvis() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Champ conditionnel - Détails perturbations */}
                   {formData.quartier_perturbations === 'perturbateur' && (
                     <div className="mt-4">
@@ -256,11 +256,11 @@ export default function FicheAvis() {
               {/* Évaluation de l'immeuble */}
               <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Évaluation de l'immeuble</h3>
-                
+
                 {/* État général de l'immeuble */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">État général de l'immeuble</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'bon_etat', label: 'Bon état (entretien régulier, bâtiment bien conservé, récentes rénovations)' },
@@ -281,11 +281,11 @@ export default function FicheAvis() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Propreté de l'immeuble */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">Propreté de l'immeuble</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'propre', label: 'Propre (espaces communs bien entretenus)' },
@@ -305,11 +305,11 @@ export default function FicheAvis() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Accessibilité de l'immeuble */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">Accessibilité de l'immeuble</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'tres_accessible', label: 'Très accessible (ascenseur fonctionnel, rampes, accès facile aux personnes à mobilité réduite)' },
@@ -330,11 +330,11 @@ export default function FicheAvis() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Niveau sonore de l'immeuble */}
                 <div className="mb-4">
                   <label className="block font-medium text-gray-900 mb-3">Niveau sonore de l'immeuble</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'tres_calme', label: 'Très calme (absence de bruit, excellente isolation sonore)' },
@@ -360,11 +360,11 @@ export default function FicheAvis() {
               {/* Évaluation du logement */}
               <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Évaluation du logement</h3>
-                
+
                 {/* État général du logement */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">État général du logement</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'excellent_etat', label: 'Excellent état (récent ou rénové, tout est fonctionnel, pas d\'usure visible)' },
@@ -386,7 +386,7 @@ export default function FicheAvis() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Champ conditionnel - Détails état dégradé */}
                   {(formData.logement_etat_general === 'etat_degrade' || formData.logement_etat_general === 'tres_mauvais_etat') && (
                     <div className="mt-4">
@@ -403,11 +403,11 @@ export default function FicheAvis() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Propreté et entretien */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">Propreté et entretien</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'propre', label: 'Propre (logement bien nettoyé, entretien régulier et approfondi du logement)' },
@@ -427,7 +427,7 @@ export default function FicheAvis() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Champ conditionnel - Détails éléments sales */}
                   {formData.logement_proprete === 'sale' && (
                     <div className="mt-4">
@@ -444,11 +444,11 @@ export default function FicheAvis() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Ambiance générale du logement */}
                 <div className="mb-6">
                   <label className="block font-medium text-gray-900 mb-3">Ambiance générale du logement</label>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       { key: 'logement_epure', label: 'Logement épuré (décor minimaliste, espaces aérés)' },
@@ -468,7 +468,7 @@ export default function FicheAvis() {
                           checked={formData.logement_ambiance?.includes(key) || false}
                           onChange={(e) => {
                             const currentAmbiance = formData.logement_ambiance || []
-                            const newAmbiance = e.target.checked 
+                            const newAmbiance = e.target.checked
                               ? [...currentAmbiance, key]
                               : currentAmbiance.filter(item => item !== key)
                             handleInputChange('section_avis.logement_ambiance', newAmbiance)
@@ -481,7 +481,7 @@ export default function FicheAvis() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Champ conditionnel - Absence de décoration */}
                   {formData.logement_ambiance?.includes('absence_decoration') && (
                     <div className="mt-4">
@@ -497,7 +497,7 @@ export default function FicheAvis() {
                       />
                     </div>
                   )}
-                  
+
                   {/* Champ conditionnel - Décoration personnalisée */}
                   {formData.logement_ambiance?.includes('decoration_personnalisee') && (
                     <div className="mt-4">
@@ -514,11 +514,11 @@ export default function FicheAvis() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Vis-à-vis du logement */}
                 <div className="mb-4">
                   <label className="block font-medium text-gray-900 mb-3">Vis-à-vis du logement</label>
-                  
+
                   <div className="space-y-3">
                     {[
                       { value: 'vue_degagee', label: 'Vue dégagée sur pièce principale et jardin' },
@@ -538,7 +538,7 @@ export default function FicheAvis() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Rappel photo vis-à-vis */}
                   <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div className="flex items-center gap-2">

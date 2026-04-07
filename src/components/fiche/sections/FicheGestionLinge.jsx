@@ -8,25 +8,25 @@ import { Package } from 'lucide-react'
 
 const getChampsParType = (typeAccordeon) => {
   const champsLits = [
-    'couettes', 'oreillers', 'draps_housses', 'housses_couette', 
+    'couettes', 'oreillers', 'draps_housses', 'housses_couette',
     'protections_matelas', 'taies_oreillers'
   ]
-  
+
   const champsMaison = [
-    'draps_bain', 'petites_serviettes', 'tapis_bain', 
+    'draps_bain', 'petites_serviettes', 'tapis_bain',
     'torchons', 'plaids', 'oreillers_decoratifs'
   ]
-  
+
   // Si c'est un accordéon de lit (90x200, 140x200, etc.)
   if (typeAccordeon.includes('x200')) {
     return champsLits
   }
-  
+
   // Si c'est l'accordéon "autres"
   if (typeAccordeon === 'autres') {
     return champsMaison
   }
-  
+
   // Fallback (ne devrait pas arriver)
   return []
 }
@@ -35,7 +35,7 @@ const getChampsParType = (typeAccordeon) => {
 const getLingeLabel = (key) => {
   const labels = {
     couettes: "Couettes",
-    oreillers: "Oreillers", 
+    oreillers: "Oreillers",
     draps_housses: "Draps housses (plats)",
     housses_couette: "Housses de couette",
     protections_matelas: "Protections matelas / Alaises",
@@ -54,7 +54,7 @@ const getLingeLabel = (key) => {
 const InventaireSection = ({ taille, titre, dataKey, formData, handleInputChange, openSections, toggleSection, getLingeLabel }) => {
   const inventaireData = formData[dataKey] || {}
   const isOpen = openSections[taille]
-  
+
   return (
     <div className="border border-gray-200 rounded-lg">
       <button
@@ -65,7 +65,7 @@ const InventaireSection = ({ taille, titre, dataKey, formData, handleInputChange
         <span>{titre}</span>
         <span className="text-gray-500">{isOpen ? '▼' : '▶'}</span>
       </button>
-      
+
       {isOpen && (
         <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
           {getChampsParType(taille).map((typeLingeKey) => {
@@ -93,7 +93,7 @@ const InventaireSection = ({ taille, titre, dataKey, formData, handleInputChange
 }
 
 export default function FicheGestionLinge() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -127,34 +127,34 @@ export default function FicheGestionLinge() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           {/* Container centré - OBLIGATOIRE */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Gestion du linge</h1>
-            
+
             {/* Carte blanche principale - OBLIGATOIRE */}
             <div className="bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header avec icône - OBLIGATOIRE */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Package className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Inventaire du linge</h2>
-                    <p className="text-gray-600">Répertoriez le linge disponible dans le logement</p>
+                    <p className="text-gray-600">Linge disponible dans le logement</p>
                   </div>
                 </div>
               </div>
 
               {/* Contenu du formulaire */}
               <div className="space-y-8">
-                
+
                 {/* Question principale */}
                 <div>
                   <label className="block font-medium text-gray-900 mb-3">
@@ -162,8 +162,8 @@ export default function FicheGestionLinge() {
                   </label>
                   <div className="flex gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
+                      <input
+                        type="radio"
                         name="dispose_de_linge"
                         checked={disposeDeLingeData === true}
                         onChange={() => handleInputChange('section_gestion_linge.dispose_de_linge', true)}
@@ -172,8 +172,8 @@ export default function FicheGestionLinge() {
                       <span>Oui</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
+                      <input
+                        type="radio"
                         name="dispose_de_linge"
                         checked={disposeDeLingeData === false}
                         onChange={() => handleInputChange('section_gestion_linge.dispose_de_linge', false)}
@@ -193,9 +193,9 @@ export default function FicheGestionLinge() {
                         Inventaire - Veuillez indiquer les quantités par taille de lit
                       </h3>
                       <div className="space-y-3">
-                        <InventaireSection 
-                          taille="90x200" 
-                          titre="90x200 (lit simple)" 
+                        <InventaireSection
+                          taille="90x200"
+                          titre="90x200 (lit simple)"
                           dataKey="inventaire_90x200"
                           formData={formData}
                           handleInputChange={handleInputChange}
@@ -203,9 +203,9 @@ export default function FicheGestionLinge() {
                           toggleSection={toggleSection}
                           getLingeLabel={getLingeLabel}
                         />
-                        <InventaireSection 
-                          taille="140x200" 
-                          titre="140x200 (lit standard)" 
+                        <InventaireSection
+                          taille="140x200"
+                          titre="140x200 (lit standard)"
                           dataKey="inventaire_140x200"
                           formData={formData}
                           handleInputChange={handleInputChange}
@@ -213,9 +213,9 @@ export default function FicheGestionLinge() {
                           toggleSection={toggleSection}
                           getLingeLabel={getLingeLabel}
                         />
-                        <InventaireSection 
-                          taille="160x200" 
-                          titre="160x200 (lit queen size)" 
+                        <InventaireSection
+                          taille="160x200"
+                          titre="160x200 (lit queen size)"
                           dataKey="inventaire_160x200"
                           formData={formData}
                           handleInputChange={handleInputChange}
@@ -223,9 +223,9 @@ export default function FicheGestionLinge() {
                           toggleSection={toggleSection}
                           getLingeLabel={getLingeLabel}
                         />
-                        <InventaireSection 
-                          taille="180x200" 
-                          titre="180x200 (lit king size)" 
+                        <InventaireSection
+                          taille="180x200"
+                          titre="180x200 (lit king size)"
                           dataKey="inventaire_180x200"
                           formData={formData}
                           handleInputChange={handleInputChange}
@@ -233,9 +233,9 @@ export default function FicheGestionLinge() {
                           toggleSection={toggleSection}
                           getLingeLabel={getLingeLabel}
                         />
-                        <InventaireSection 
-                          taille="autres" 
-                          titre="Autres ou hors catégorie (serviettes, oreillers, taies, torchons etc)" 
+                        <InventaireSection
+                          taille="autres"
+                          titre="Autres ou hors catégorie (serviettes, oreillers, taies, torchons etc)"
                           dataKey="inventaire_autres"
                           formData={formData}
                           handleInputChange={handleInputChange}
@@ -258,7 +258,7 @@ export default function FicheGestionLinge() {
                           { key: 'etat_tache', label: 'Taché (taches incrustées mais propre)' }
                         ].map(({ key, label }) => (
                           <label key={key} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                            <input 
+                            <input
                               type="checkbox"
                               checked={formData[key] === true}
                               onChange={(e) => handleInputChange(`section_gestion_linge.${key}`, e.target.checked)}
@@ -275,7 +275,7 @@ export default function FicheGestionLinge() {
                       <label className="block font-medium text-gray-900 mb-2">
                         État du linge - Informations supplémentaires sur l'état et/ou sur le linge manquant
                       </label>
-                      <textarea 
+                      <textarea
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all h-24"
                         placeholder="Décrivez l'état général du linge, les éléments manquants, les remplacements nécessaires..."
                         value={formData.etat_informations || ""}
@@ -304,7 +304,7 @@ export default function FicheGestionLinge() {
                       <label className="block font-medium text-gray-900 mb-2">
                         Linge - Emplacement du stock - Description
                       </label>
-                      <textarea 
+                      <textarea
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all h-24"
                         placeholder="Décrivez précisément où se situe le stock de linge dans le logement. Combien-y-a-t-il de stockage dans le logement ? Supplément de certaines choses..."
                         value={formData.emplacement_description || ""}
@@ -333,7 +333,7 @@ export default function FicheGestionLinge() {
                       <label className="block font-medium text-gray-900 mb-2">
                         Linge - Emplacement du stock - Code du cadenas, de la malle ou emplacement de la clé ? *
                       </label>
-                      <input 
+                      <input
                         type="text"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                         placeholder="Précisez ici le code ou l'emplacement de la clé."

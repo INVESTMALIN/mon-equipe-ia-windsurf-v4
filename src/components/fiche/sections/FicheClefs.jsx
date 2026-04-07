@@ -5,7 +5,7 @@ import { useForm } from '../../FormContext'
 import { Key } from 'lucide-react'
 
 export default function FicheClefs() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -27,25 +27,25 @@ export default function FicheClefs() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Gestion des clés et accès</h1>
-            
+
             <div className="bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header avec icône */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Key className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Accès au logement</h2>
-                    <p className="text-gray-600">Configuration des systèmes d'accès et clés</p>
+                    <p className="text-gray-600">Systèmes d'accès et clés</p>
                   </div>
                 </div>
               </div>
@@ -70,15 +70,15 @@ export default function FicheClefs() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Champ conditionnel pour "Autres" - DÉPLACÉ ICI */}
                   {isAutreBoite && (
                     <div className="mt-4">
                       <label className="block font-medium text-gray-900 mb-2">
-                      Précisez le type de boîte *
+                        Précisez le type de boîte *
                       </label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="Ex: Boîte magnétique, coffre-fort, etc."
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                         value={getField('section_clefs.boiteType_autre_precision') || ''}
@@ -91,14 +91,14 @@ export default function FicheClefs() {
                 {/* Emplacement de la boîte à clés */}
                 <div>
                   <label className="block font-medium text-gray-900 mb-2">Emplacement de la boîte à clés *</label>
-                  <textarea 
+                  <textarea
                     placeholder="Décrivez précisément où se trouve la boîte à clés (ex: à côté de la porte d'entrée, sur la droite)"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
                     rows="3"
                     value={formData.emplacementBoite || ''}
                     onChange={(e) => handleInputChange('section_clefs.emplacementBoite', e.target.value)}
                   />
-                  
+
                   {/* Rappel photo emplacement */}
                   <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div className="flex items-center gap-2">
@@ -123,8 +123,8 @@ export default function FicheClefs() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code Masterpin conciergerie *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 2863"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.ttlock?.masterpinConciergerie || ''}
@@ -133,8 +133,8 @@ export default function FicheClefs() {
                       </div>
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code Propriétaire *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 1234"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.ttlock?.codeProprietaire || ''}
@@ -143,8 +143,8 @@ export default function FicheClefs() {
                       </div>
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code Ménage *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 5678"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.ttlock?.codeMenage || ''}
@@ -161,8 +161,8 @@ export default function FicheClefs() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Masterpin conciergerie *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 2863"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.igloohome?.masterpinConciergerie || ''}
@@ -171,8 +171,8 @@ export default function FicheClefs() {
                       </div>
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code Voyageur *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 1111"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.igloohome?.codeVoyageur || ''}
@@ -181,8 +181,8 @@ export default function FicheClefs() {
                       </div>
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code Propriétaire *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 1234"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.igloohome?.codeProprietaire || ''}
@@ -191,8 +191,8 @@ export default function FicheClefs() {
                       </div>
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code Ménage *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="ex: 5678"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                           value={formData.igloohome?.codeMenage || ''}
@@ -208,8 +208,8 @@ export default function FicheClefs() {
                     <h3 className="text-lg font-semibold text-orange-800 mb-4">Configuration Masterlock</h3>
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">Code de la boîte à clés *</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="ex: 2863"
                         className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                         value={formData.masterlock?.code || ''}
@@ -224,9 +224,9 @@ export default function FicheClefs() {
                   <label className="block font-medium text-gray-900 mb-3">Logement équipé d'un interphone ? *</label>
                   <div className="flex gap-6 mb-4">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="interphone" 
+                      <input
+                        type="radio"
+                        name="interphone"
                         value="true"
                         checked={formData.interphone === true}
                         onChange={(e) => handleRadioChange('section_clefs.interphone', e.target.value)}
@@ -235,9 +235,9 @@ export default function FicheClefs() {
                       <span>Oui</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="interphone" 
+                      <input
+                        type="radio"
+                        name="interphone"
                         value="false"
                         checked={formData.interphone === false}
                         onChange={(e) => handleRadioChange('section_clefs.interphone', e.target.value)}
@@ -252,7 +252,7 @@ export default function FicheClefs() {
                     <div className="pl-6 border-l-4 border-blue-500 space-y-4 mt-4">
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Instructions pour l'interphone</label>
-                        <textarea 
+                        <textarea
                           placeholder="S'il existe un code d'accès, notez-le ici et expliquez comment l'utiliser. S'il n'y a pas de code, précisez à quel nom il faut sonner. Ajoutez toute instruction spéciale."
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
                           rows="3"
@@ -260,7 +260,7 @@ export default function FicheClefs() {
                           onChange={(e) => handleInputChange('section_clefs.interphoneDetails', e.target.value)}
                         />
                       </div>
-                      
+
                       {/* Rappel photo interphone */}
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <div className="flex items-center gap-2">
@@ -283,9 +283,9 @@ export default function FicheClefs() {
                   <label className="block font-medium text-gray-900 mb-3">Logement équipé d'un tempo-gâche ? *</label>
                   <div className="flex gap-6 mb-4">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="tempoGache" 
+                      <input
+                        type="radio"
+                        name="tempoGache"
                         value="true"
                         checked={formData.tempoGache === true}
                         onChange={(e) => handleRadioChange('section_clefs.tempoGache', e.target.value)}
@@ -294,9 +294,9 @@ export default function FicheClefs() {
                       <span>Oui</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="tempoGache" 
+                      <input
+                        type="radio"
+                        name="tempoGache"
                         value="false"
                         checked={formData.tempoGache === false}
                         onChange={(e) => handleRadioChange('section_clefs.tempoGache', e.target.value)}
@@ -311,7 +311,7 @@ export default function FicheClefs() {
                     <div className="pl-6 border-l-4 border-green-500 space-y-4 mt-4">
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Instructions pour le tempo-gâche</label>
-                        <textarea 
+                        <textarea
                           placeholder="Expliquez comment utiliser le tempo-gâche, le délai d'ouverture, les codes nécessaires, etc."
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
                           rows="3"
@@ -319,7 +319,7 @@ export default function FicheClefs() {
                           onChange={(e) => handleInputChange('section_clefs.tempoGacheDetails', e.target.value)}
                         />
                       </div>
-                      
+
                       {/* Rappel photo tempo-gâche */}
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <div className="flex items-center gap-2">
@@ -342,9 +342,9 @@ export default function FicheClefs() {
                   <label className="block font-medium text-gray-900 mb-3">Logement équipé d'un digicode ? *</label>
                   <div className="flex gap-6 mb-4">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="digicode" 
+                      <input
+                        type="radio"
+                        name="digicode"
                         value="true"
                         checked={formData.digicode === true}
                         onChange={(e) => handleRadioChange('section_clefs.digicode', e.target.value)}
@@ -353,9 +353,9 @@ export default function FicheClefs() {
                       <span>Oui</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="digicode" 
+                      <input
+                        type="radio"
+                        name="digicode"
                         value="false"
                         checked={formData.digicode === false}
                         onChange={(e) => handleRadioChange('section_clefs.digicode', e.target.value)}
@@ -370,7 +370,7 @@ export default function FicheClefs() {
                     <div className="pl-6 border-l-4 border-purple-500 space-y-4 mt-4">
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">Code et instructions du digicode</label>
-                        <textarea 
+                        <textarea
                           placeholder="Indiquez le code du digicode et expliquez comment l'utiliser (ex: tapez le code puis #, attendez le bip, etc.)"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
                           rows="3"
@@ -378,7 +378,7 @@ export default function FicheClefs() {
                           onChange={(e) => handleInputChange('section_clefs.digicodeDetails', e.target.value)}
                         />
                       </div>
-                      
+
                       {/* Rappel photo digicode */}
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <div className="flex items-center gap-2">
@@ -399,7 +399,7 @@ export default function FicheClefs() {
                 {/* Section Clefs physiques */}
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Clefs physiques - 3 JEUX DE CLEFS OBLIGATOIRES</h3>
-                  
+
                   <div className="space-y-6">
                     {/* Rappel photos clefs */}
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -419,7 +419,7 @@ export default function FicheClefs() {
 
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">Précisions sur les clefs</label>
-                      <textarea 
+                      <textarea
                         placeholder="Décrivez les clefs : nombre total, types (porte d'entrée, boîte aux lettres, cave, etc.), particularités..."
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
                         rows="3"
@@ -432,9 +432,9 @@ export default function FicheClefs() {
                       <label className="block font-medium text-gray-900 mb-3">Le prestataire a-t-il reçu les clefs ?</label>
                       <div className="flex gap-6">
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="clefs_prestataire" 
+                          <input
+                            type="radio"
+                            name="clefs_prestataire"
                             value="true"
                             checked={formData.clefs?.prestataire === true}
                             onChange={(e) => handleRadioChange('section_clefs.clefs.prestataire', e.target.value)}
@@ -443,9 +443,9 @@ export default function FicheClefs() {
                           <span>Oui</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <input 
-                            type="radio" 
-                            name="clefs_prestataire" 
+                          <input
+                            type="radio"
+                            name="clefs_prestataire"
                             value="false"
                             checked={formData.clefs?.prestataire === false}
                             onChange={(e) => handleRadioChange('section_clefs.clefs.prestataire', e.target.value)}
@@ -458,7 +458,7 @@ export default function FicheClefs() {
 
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">Détails sur la remise des clefs</label>
-                      <textarea 
+                      <textarea
                         placeholder="Le prestataire a-t-il reçu les clés en mains propres ? Où sont stockées les clés ? Quel type de clef ? Précisions complémentaires..."
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
                         rows="3"

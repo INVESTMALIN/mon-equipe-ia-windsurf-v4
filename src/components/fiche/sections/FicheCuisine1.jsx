@@ -6,7 +6,7 @@ import { useForm } from '../../FormContext'
 import { ChefHat } from 'lucide-react'
 
 export default function FicheCuisine1() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -64,36 +64,35 @@ export default function FicheCuisine1() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           {/* Container centré */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Cuisine 1 - Équipements</h1>
-            
+
             <div className="bg-white rounded-xl shadow-sm p-8">
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <ChefHat className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Équipements de cuisine</h2>
-                    <p className="text-gray-600">Configuration des appareils électroménagers et équipements</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-8">
-                
+
                 {/* Section principale : Sélection des équipements */}
                 <div>
                   <label className="block font-medium text-gray-900 mb-3">
                     Quels équipements électroménagers sont disponibles dans la cuisine ? <span className="text-red-500">*</span>
                   </label>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {equipements.map(({ key, label }) => (
                       <label key={key} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg border border-gray-200">
@@ -126,7 +125,7 @@ export default function FicheCuisine1() {
                 {formData.equipements_refrigerateur === true && (
                   <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
                     <h3 className="font-semibold text-blue-800">Réfrigérateur - Détails</h3>
-                    
+
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">
                         Marque <span className="text-red-500">*</span>
@@ -174,7 +173,7 @@ export default function FicheCuisine1() {
                 {formData.equipements_congelateur === true && (
                   <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
                     <h3 className="font-semibold text-blue-800">Congélateur - Détails</h3>
-                    
+
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">
                         Instructions d'utilisation
@@ -208,7 +207,7 @@ export default function FicheCuisine1() {
                 {formData.equipements_mini_refrigerateur === true && (
                   <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
                     <h3 className="font-semibold text-blue-800">Mini réfrigérateur - Détails</h3>
-                    
+
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">
                         Instructions d'utilisation
@@ -242,7 +241,7 @@ export default function FicheCuisine1() {
                 {formData.equipements_cuisiniere === true && (
                   <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
                     <h3 className="font-semibold text-blue-800">Cuisinière - Détails</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block font-medium text-gray-900 mb-2">
@@ -321,7 +320,7 @@ export default function FicheCuisine1() {
                 {formData.equipements_cafetiere === true && (
                   <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-6">
                     <h3 className="font-semibold text-blue-800">Cafetière - Détails</h3>
-                    
+
                     <div>
                       <label className="block font-medium text-gray-900 mb-2">
                         Marque <span className="text-red-500">*</span>
@@ -455,7 +454,7 @@ export default function FicheCuisine1() {
                   formData[`equipements_${key}`] === true && (
                     <div key={key} className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
                       <h3 className="font-semibold text-blue-800">{label} - Détails</h3>
-                      
+
                       {hasDetails && key === 'plaque_cuisson' && (
                         <>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -563,11 +562,11 @@ export default function FicheCuisine1() {
                     Photos de tous les éléments abîmés, cassés ou détériorés dans la cuisine
                   </label>
                   <p className="text-sm text-gray-600 mb-4">
-                    Traces d'usures, tâches, joints colorés, joints décollés, meubles abîmés, tâches sur les tissus, 
-                    tâches sur les murs, trous, absence de cache prise, absence de lustre, rayures, 
+                    Traces d'usures, tâches, joints colorés, joints décollés, meubles abîmés, tâches sur les tissus,
+                    tâches sur les murs, trous, absence de cache prise, absence de lustre, rayures,
                     traces dans électroménagers, traces dans les poêles/casseroles, etc.
                   </p>
-                  
+
                   <div className="flex gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -580,7 +579,7 @@ export default function FicheCuisine1() {
                       />
                       <span>Oui</span>
                     </label>
-                    
+
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
@@ -596,7 +595,7 @@ export default function FicheCuisine1() {
                       <span>Non</span>
                     </label>
                   </div>
-                  
+
                   {/* Rappel conditionnel éléments abîmés (VERSION LITE) */}
                   {formData.elements_abimes === true && (
                     <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -617,7 +616,7 @@ export default function FicheCuisine1() {
                 </div>
 
               </div>
-              
+
               <NavigationButtons />
             </div>
           </div>

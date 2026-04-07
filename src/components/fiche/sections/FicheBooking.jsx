@@ -5,7 +5,7 @@ import { useForm } from '../../FormContext'
 import { Calendar } from 'lucide-react'
 
 export default function FicheBooking() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -19,25 +19,25 @@ export default function FicheBooking() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Booking</h1>
-            
+
             <div className="bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header avec icône */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Calendar className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Configuration Booking</h2>
-                    <p className="text-gray-600">Gestion du compte et de l'annonce Booking</p>
+                    <h2 className="text-xl font-semibold text-gray-900">Accès Booking</h2>
+                    <p className="text-gray-600">Gestion du compte Booking</p>
                   </div>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export default function FicheBooking() {
                 {/* Section Codes de connexion */}
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-blue-800 mb-4">Codes de connexion au compte Booking du propriétaire</h3>
-                  
+
                   <div className="mb-6">
                     <label className="block font-medium text-gray-900 mb-3">
                       Code Booking - Avez-vous obtenu les identifiants de connexion du propriétaire ?

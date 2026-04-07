@@ -10,8 +10,13 @@ html, body, #root {
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   @apply bg-gray-50 text-gray-900;
   font-family: 'Montserrat', sans-serif;
+  overflow-x: hidden;
 }
 

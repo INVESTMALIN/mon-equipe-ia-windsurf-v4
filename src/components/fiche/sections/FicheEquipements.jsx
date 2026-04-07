@@ -188,12 +188,12 @@ export default function FicheEquipements() {
               {/* Header avec icône - OBLIGATOIRE */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Settings className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Matériel et commodités</h2>
-                    <p className="text-gray-600">Répertoriez tous les équipements disponibles dans le logement</p>
+                    <p className="text-gray-600">Équipements disponibles dans le logement</p>
                   </div>
                 </div>
               </div>

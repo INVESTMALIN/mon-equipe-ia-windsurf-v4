@@ -156,12 +156,12 @@ export default function FicheLogement() {
               {/* En-tête section */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Home className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Caractéristiques du logement</h2>
-                    <p className="text-gray-600">Renseignez les informations principales du bien immobilier</p>
+                    <h2 className="text-xl font-semibold text-gray-900">Logement</h2>
+                    <p className="text-gray-600">Informations sur le bien</p>
                   </div>
                 </div>
               </div>
@@ -289,8 +289,8 @@ export default function FicheLogement() {
                         <label
                           key={value}
                           className={`flex items-center gap-3 px-5 py-3 rounded-lg border-2 cursor-pointer transition-all ${maisonNiveau === value
-                              ? 'border-[#dbae61] bg-[#fdf6e8] text-gray-900 font-medium'
-                              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                            ? 'border-[#dbae61] bg-[#fdf6e8] text-gray-900 font-medium'
+                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                             }`}
                         >
                           <input

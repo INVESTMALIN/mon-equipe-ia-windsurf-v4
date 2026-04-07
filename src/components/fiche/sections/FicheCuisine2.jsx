@@ -238,6 +238,11 @@ export default function FicheCuisine2() {
       try { parsed = JSON.parse(rawBody) } catch { /* not JSON */ }
 
       if (parsed && typeof parsed === 'object') {
+        if (Object.keys(parsed).length === 0) {
+          setVocalError('Aucun ustensile détecté, veuillez vérifier votre micro.')
+          setVocalStatus('error')
+          return
+        }
         Object.entries(parsed).forEach(([key, value]) => {
           if (key === 'autres_ustensiles_vocal') {
             const current = getField('section_cuisine_2.autres_ustensiles') || ''
@@ -282,12 +287,11 @@ export default function FicheCuisine2() {
               {/* En-tête */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Utensils className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Inventaire des ustensiles</h2>
-                    <p className="text-gray-600">Quantité disponible de vaisselle, couverts et ustensiles de cuisine</p>
                   </div>
                 </div>
               </div>
@@ -328,22 +332,20 @@ export default function FicheCuisine2() {
                           <button
                             type="button"
                             onClick={() => setVocalSubMode('micro')}
-                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
-                              vocalSubMode === 'micro'
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${vocalSubMode === 'micro'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-white text-gray-600 hover:bg-gray-50'
-                            }`}
+                              }`}
                           >
                             <Mic className="w-4 h-4 shrink-0" /> Microphone
                           </button>
                           <button
                             type="button"
                             onClick={() => setVocalSubMode('upload')}
-                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
-                              vocalSubMode === 'upload'
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${vocalSubMode === 'upload'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-white text-gray-600 hover:bg-gray-50'
-                            }`}
+                              }`}
                           >
                             <FolderOpen className="w-4 h-4 shrink-0" /> Fichier audio
                           </button>
@@ -362,13 +364,12 @@ export default function FicheCuisine2() {
                               onTouchStart={(e) => { e.preventDefault(); startRecording() }}
                               onTouchEnd={(e) => { e.preventDefault(); stopRecording() }}
                               disabled={vocalStatus === 'processing'}
-                              className={`flex items-center justify-center gap-3 w-full py-4 rounded-lg font-medium text-white transition-colors select-none ${
-                                isRecording
+                              className={`flex items-center justify-center gap-3 w-full py-4 rounded-lg font-medium text-white transition-colors select-none ${isRecording
                                   ? 'bg-red-500 hover:bg-red-600'
                                   : vocalStatus === 'processing'
-                                  ? 'bg-gray-400 cursor-not-allowed'
-                                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
-                              }`}
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                                }`}
                             >
                               {isRecording && (
                                 <span className="w-3 h-3 rounded-full bg-white animate-pulse" />
@@ -376,8 +377,8 @@ export default function FicheCuisine2() {
                               {isRecording
                                 ? 'Enregistrement en cours… (relâchez pour envoyer)'
                                 : vocalStatus === 'processing'
-                                ? 'Envoi en cours…'
-                                : 'Appuyer pour parler'}
+                                  ? 'Envoi en cours…'
+                                  : 'Appuyer pour parler'}
                             </button>
                           </div>
                         )}

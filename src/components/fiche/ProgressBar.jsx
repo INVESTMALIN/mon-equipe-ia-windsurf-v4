@@ -20,19 +20,19 @@ export default function ProgressBar() {
         </div>
         
         {/* Barre de progression */}
-        <div className="relative">
+        <div className="relative overflow-x-hidden">
           {/* Ligne de fond */}
           <div className="absolute top-1/2 transform -translate-y-1/2 w-full h-0.5 bg-gray-200 rounded-full"></div>
-          
+
           {/* Ligne de progression - couleur Mon Équipe IA */}
-          <div 
+          <div
             className="absolute top-1/2 transform -translate-y-1/2 h-0.5 rounded-full transition-all duration-300 ease-out"
-            style={{ 
+            style={{
               width: `${progressPercentage}%`,
               background: 'linear-gradient(to right, #dbae61, #c19b4f)'
             }}
           ></div>
-          
+
           {/* Points des étapes */}
           <div className="relative flex justify-between">
             {sections.map((section, index) => {
@@ -67,8 +67,8 @@ export default function ProgressBar() {
                     }
                   ></div>
                   
-                  {/* Tooltip au hover */}
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  {/* Tooltip au hover - masqué sur mobile */}
+                  <div className="hidden lg:block absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                     <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
                       {index + 1}. {section}
                     </div>

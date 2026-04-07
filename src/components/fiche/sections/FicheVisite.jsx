@@ -6,7 +6,7 @@ import { useForm } from '../../FormContext'
 import { Camera } from 'lucide-react'
 
 export default function FicheVisite() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -14,7 +14,7 @@ export default function FicheVisite() {
   // Récupération des données des sections
   const formDataVisite = getField('section_visite') || {}
   const formDataLogement = getField('section_logement') || {}
-  
+
   // Pour la validation croisée
   const typologie = formDataLogement.typologie
   const nombreChambres = formDataVisite.nombre_chambres !== "" ? parseInt(formDataVisite.nombre_chambres) : null
@@ -43,10 +43,10 @@ export default function FicheVisite() {
   }
 
   const expectedChambres = getExpectedChambres(typologie)
-  const showValidationError = chambreSelectionnee && 
-                              nombreChambres !== null && 
-                              expectedChambres !== null && 
-                              nombreChambres !== expectedChambres
+  const showValidationError = chambreSelectionnee &&
+    nombreChambres !== null &&
+    expectedChambres !== null &&
+    nombreChambres !== expectedChambres
 
   // Options pour les types de pièces
   const pieceOptions = [
@@ -70,34 +70,34 @@ export default function FicheVisite() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           {/* Container centré - OBLIGATOIRE */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Visite du logement</h1>
-            
+
             {/* Carte blanche principale - OBLIGATOIRE */}
             <div className="bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header avec icône - OBLIGATOIRE */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Camera className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Tour du logement</h2>
-                    <p className="text-gray-600">Détaillez la composition et les espaces du bien</p>
+                    <p className="text-gray-600">Composition et espaces du bien</p>
                   </div>
                 </div>
               </div>
 
               {/* Contenu du formulaire */}
               <div className="space-y-8">
-                
+
                 {/* Types de pièces */}
                 <div>
                   <label className="block font-medium text-gray-900 mb-4">
@@ -116,7 +116,7 @@ export default function FicheVisite() {
                       </label>
                     ))}
                   </div>
-                  
+
                   {/* Champ conditionnel "Autre" */}
                   {formDataVisite.pieces_autre === true && (
                     <div className="mt-4">
@@ -139,7 +139,7 @@ export default function FicheVisite() {
                         Nombre de chambres *
                       </label>
                     </div>
-                    <select 
+                    <select
                       className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                       value={formDataVisite.nombre_chambres || ""}
                       onChange={(e) => handleInputChange('section_visite.nombre_chambres', e.target.value)}
@@ -154,19 +154,19 @@ export default function FicheVisite() {
                       <option value="6">6</option>
                     </select>
                     <p className="mt-4 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      💡 <strong>Note pour Studio :</strong> Si vous avez sélectionné "Studio" dans la typologie, 
+                      💡 <strong>Note pour Studio :</strong> Si vous avez sélectionné "Studio" dans la typologie,
                       choisissez 0 chambres.
                     </p>
-                    
+
                     {/* Alerte de validation croisée */}
                     {showValidationError && (
                       <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
                         <p className="font-medium text-red-800">
-                          ⚠️ Le nombre de chambres ne correspond pas à la typologie du bien ! 
+                          ⚠️ Le nombre de chambres ne correspond pas à la typologie du bien !
                           Merci de vérifier ces informations !
                         </p>
                         <p className="text-sm mt-2 text-red-700">
-                          Typologie actuelle : <strong>{typologie}</strong> 
+                          Typologie actuelle : <strong>{typologie}</strong>
                           {expectedChambres !== null && (
                             <> ({expectedChambres} chambre{expectedChambres > 1 ? 's' : ''})</>
                           )}
@@ -182,7 +182,7 @@ export default function FicheVisite() {
                     <label className="block font-medium text-gray-900 mb-3">
                       Nombre de salles de bains *
                     </label>
-                    <select 
+                    <select
                       className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                       value={formDataVisite.nombre_salles_bains || ""}
                       onChange={(e) => handleInputChange('section_visite.nombre_salles_bains', e.target.value)}
@@ -214,7 +214,7 @@ export default function FicheVisite() {
                       </label>
                     </div>
                   </div>
-                  
+
                   <div className="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
                     <h4 className="font-medium text-blue-800 mb-2">📹 Instructions pour la vidéo :</h4>
                     <ul className="text-sm text-blue-700 space-y-1">

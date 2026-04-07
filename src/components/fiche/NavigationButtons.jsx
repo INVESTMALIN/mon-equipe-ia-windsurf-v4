@@ -49,10 +49,13 @@ export default function NavigationButtons() {
           <button
             onClick={handleSaveClick}
             disabled={saveStatus.saving}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 border border-gray-300 px-3 py-3 sm:px-6 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            title={saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}
           >
-            <Save className="w-4 h-4" />
-            {saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}
+            <Save className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">
+              {saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}
+            </span>
           </button>
           
           <button 

@@ -76,9 +76,9 @@ export default function MiniDashboard({ formData }) {
     <div className="space-y-6">
       {/* HEADER IDENTITÉ DU LOGEMENT */}
       <div className="bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-xl p-6 text-white">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">{nomFiche}</h2>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-2xl font-bold mb-2 break-words">{nomFiche}</h2>
             <div className="space-y-1 text-white/90">
               <div className="flex items-center gap-2">
                 <span>📍</span>

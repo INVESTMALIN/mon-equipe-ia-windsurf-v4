@@ -7,7 +7,7 @@ import MiniDashboard from '../MiniDashboard'
 import { useForm } from '../../FormContext'
 import { cleanFormData, extractSummary, validateDataConsistency } from '../../../lib/DataProcessor'
 import { formatForPdf, prepareForN8nWebhook, generatePdfTitle } from '../../../lib/PdfFormatter'
-import { CheckCircle, FileText, PenTool, MessageSquare, Send, Copy, Sparkles, Bot } from 'lucide-react'
+import { CheckCircle, FileText, PenTool, MessageSquare, Send, Copy, Sparkles, Bot, Save } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 import useProgressiveLoading from '../../../hooks/useProgressiveLoading'
 
@@ -26,34 +26,34 @@ export default function FicheFinalisation() {
   const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(annonceLoading, false)
 
   const quickPrompts = [
-    { 
-      label: "Créer une annonce attractive", 
+    {
+      label: "Créer une annonce attractive",
       prompt: "Créez une annonce attractive pour ce logement basée sur l'inspection réalisée",
-      icon: "✨" 
+      icon: "✨"
     },
-    { 
-      label: "Version courte Airbnb", 
+    {
+      label: "Version courte Airbnb",
       prompt: "Créez une annonce courte et percutante pour Airbnb, mettant en avant les points forts",
-      icon: "🏠" 
+      icon: "🏠"
     },
-    { 
-      label: "Mettre en avant les équipements", 
+    {
+      label: "Mettre en avant les équipements",
       prompt: "Réécris l'annonce en mettant l'accent sur les équipements et commodités disponibles",
-      icon: "⚡" 
+      icon: "⚡"
     },
-    { 
-      label: "Plus professionnelle", 
+    {
+      label: "Plus professionnelle",
       prompt: "Transforme cette description en version plus professionnelle pour agence immobilière",
-      icon: "💼" 
+      icon: "💼"
     },
-    { 
-      label: "Ajouter des détails pratiques", 
+    {
+      label: "Ajouter des détails pratiques",
       prompt: "Enrichis l'annonce avec des détails pratiques sur l'accès, le quartier et les transports",
-      icon: "📍" 
+      icon: "📍"
     }
   ]
-  
-  const { 
+
+  const {
     formData,
     handleSave,
     saveStatus,
@@ -65,16 +65,16 @@ export default function FicheFinalisation() {
   const handleGeneratePDF = async () => {
     try {
       setPdfLoading(true)
-      
+
       // Sauvegarder avant génération
       await handleSave()
-      
+
       // Générer le PDF côté client
       generatePdfClientSide(formData)
-      
+
       setPdfGenerated(true)
       setShowAnnonceAssistant(true)
-      
+
     } catch (error) {
       console.error('Erreur génération PDF:', error)
       alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
@@ -98,61 +98,61 @@ export default function FicheFinalisation() {
       console.log('ficheDataForAI:', ficheDataForAI)
     }
   }, [formData])
-  
+
   // ✅ MODIFIER la fonction handleCreateAnnonce
   const handleCreateAnnonce = async () => {
     if (!annonceSessionIdRef.current) return
-    
+
     try {
       setAnnonceLoading(true)
-      
+
       const annoncePrompt = annonceInput || "Créez une annonce attractive pour ce logement basée sur l'inspection réalisée"
       const ficheDataForAI = prepareForN8nWebhook(formData)
-      
+
       const requestBody = {
         chatInput: annoncePrompt,
         sessionId: annonceSessionIdRef.current,
         ficheData: ficheDataForAI
       }
-      
+
       // ✅ AbortController + timeout + error handling complet
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), 120000)
-      
+
       const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
         signal: controller.signal
       })
-      
+
       clearTimeout(timeout)
-      
+
       if (!response.ok) {
         let errorMsg = ''
-        try { 
-          errorMsg = await response.text() 
+        try {
+          errorMsg = await response.text()
         } catch (e) {
           // Ignore l'erreur de lecture du texte
         }
         throw new Error(`HTTP ${response.status}${errorMsg ? ` - ${errorMsg.slice(0, 200)}` : ''}`)
       }
-      
+
       let data
       try {
         data = await response.json()
       } catch (e) {
         throw new Error('Réponse invalide du serveur (format JSON)')
       }
-      
+
       setAnnonceResult(data.output || 'Réponse indisponible.')
-      
+
     } catch (error) {
       console.error('Erreur création annonce:', error)
-      
+
       // ✅ Messages d'erreur user-friendly
       let errorMessage = 'Erreur lors de la création de l\'annonce. Veuillez réessayer.'
-      
+
       if (error.name === 'AbortError') {
         errorMessage = 'La génération a pris trop de temps. Vérifiez votre connexion et réessayez.'
       } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
@@ -160,7 +160,7 @@ export default function FicheFinalisation() {
       } else if (error.message?.includes('HTTP 500') || error.message?.includes('HTTP 502') || error.message?.includes('HTTP 503')) {
         errorMessage = 'Service temporairement indisponible. Merci de réessayer dans quelques instants.'
       }
-      
+
       setAnnonceResult(errorMessage)
     } finally {
       setAnnonceLoading(false)
@@ -194,21 +194,21 @@ export default function FicheFinalisation() {
     setCurrentInput(prompt)
     await sendMessage(prompt)
   }
-  
+
   const sendMessage = async (message) => {
     if (!message.trim()) return
-      // DEBUG - AJOUTE CES 3 LIGNES
-  console.log('sessionId:', annonceSessionIdRef.current)
-  console.log('formData:', formData)
-  
+    // DEBUG - AJOUTE CES 3 LIGNES
+    console.log('sessionId:', annonceSessionIdRef.current)
+    console.log('formData:', formData)
+
     // Ajouter le message utilisateur
     const userMessage = { type: 'user', content: message, timestamp: Date.now() }
     setChatMessages(prev => [...prev, userMessage])
     setCurrentInput('')
-  
+
     try {
       setAnnonceLoading(true)
-      
+
       const ficheDataForAI = prepareForN8nWebhook(formData)
       console.log('ficheDataForAI:', ficheDataForAI)
 
@@ -217,44 +217,44 @@ export default function FicheFinalisation() {
         sessionId: annonceSessionIdRef.current,
         ficheData: ficheDataForAI
       }
-      
+
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), 120000)
-      
+
       const response = await fetch('https://hub.cardin.cloud/webhook/00297790-8d18-44ff-b1ce-61b8980d9a46/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
         signal: controller.signal
       })
-      
+
       clearTimeout(timeout)
-      
+
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      
+
       const data = await response.json()
       console.log('Response data:', data)
-      const botMessage = { 
-        type: 'bot', 
-        content: data.output || 'Réponse indisponible.', 
-        timestamp: Date.now() 
+      const botMessage = {
+        type: 'bot',
+        content: data.output || 'Réponse indisponible.',
+        timestamp: Date.now()
       }
-      
+
       setChatMessages(prev => [...prev, botMessage])
-      
+
     } catch (error) {
       console.error('Erreur création annonce:', error)
-      const errorMessage = { 
-        type: 'bot', 
+      const errorMessage = {
+        type: 'bot',
         content: 'Erreur lors de la génération. Merci de réessayer.',
-        timestamp: Date.now() 
+        timestamp: Date.now()
       }
       setChatMessages(prev => [...prev, errorMessage])
     } finally {
       setAnnonceLoading(false)
     }
   }
-  
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -265,10 +265,10 @@ export default function FicheFinalisation() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           {/* Messages sauvegarde */}
           {saveStatus.saving && (
@@ -295,11 +295,11 @@ export default function FicheFinalisation() {
 
             {/* GÉNÉRATION PDF ET OUTILS */}
             <div className="mt-8 bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -316,17 +316,16 @@ export default function FicheFinalisation() {
                   <p className="text-gray-600 mb-4">
                     Générez une fiche d'inspection professionnelle au format PDF
                   </p>
-                  
+
                   <button
                     onClick={handleGeneratePDF}
                     disabled={pdfGenerated || pdfLoading}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                      pdfGenerated 
-                        ? 'bg-green-100 text-green-700 border-2 border-green-200' 
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
+                        ? 'bg-green-100 text-green-700 border-2 border-green-200'
                         : pdfLoading
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
                   >
                     <FileText className="w-5 h-5" />
                     {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré ✓' : 'Générer la Fiche Logement (PDF)'}
@@ -364,109 +363,126 @@ export default function FicheFinalisation() {
                       </div>
                     </div>
 
-                {/* Zone de chat */}
-                <div className="space-y-4">
-                    {/* Messages */}
-                    {chatMessages.length > 0 && (
-                      <div className="max-h-80 overflow-y-auto space-y-3 bg-gray-50 rounded-lg p-4">
-                        {chatMessages.map((msg, index) => (
-                          <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] ${
-                              msg.type === 'user' 
-                                ? 'bg-purple-600 text-white rounded-lg' 
-                                : 'bg-white border shadow-sm text-gray-900 rounded-lg'
-                            }`}>
-                              <div className="p-3 text-sm whitespace-pre-wrap">{msg.content}</div>
-                              
-                              {/* Bouton copier uniquement pour les réponses bot */}
-                              {msg.type === 'bot' && (
-                                <div className="px-3 pb-2 border-t border-gray-100">
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(msg.content)
-                                      setCopiedAnnonce(true)
-                                      setTimeout(() => setCopiedAnnonce(false), 2000)
-                                    }}
-                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors mt-2"
-                                  >
-                                    <Copy className="w-3 h-3" />
-                                    {copiedAnnonce ? 'Copié !' : 'Copier'}
-                                  </button>
-                                </div>
-                              )}
+                    {/* Zone de chat */}
+                    <div className="space-y-4">
+                      {/* Messages */}
+                      {chatMessages.length > 0 && (
+                        <div className="max-h-80 overflow-y-auto space-y-3 bg-gray-50 rounded-lg p-4">
+                          {chatMessages.map((msg, index) => (
+                            <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[80%] ${msg.type === 'user'
+                                  ? 'bg-purple-600 text-white rounded-lg'
+                                  : 'bg-white border shadow-sm text-gray-900 rounded-lg'
+                                }`}>
+                                <div className="p-3 text-sm whitespace-pre-wrap">{msg.content}</div>
+
+                                {/* Bouton copier uniquement pour les réponses bot */}
+                                {msg.type === 'bot' && (
+                                  <div className="px-3 pb-2 border-t border-gray-100">
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(msg.content)
+                                        setCopiedAnnonce(true)
+                                        setTimeout(() => setCopiedAnnonce(false), 2000)
+                                      }}
+                                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors mt-2"
+                                    >
+                                      <Copy className="w-3 h-3" />
+                                      {copiedAnnonce ? 'Copié !' : 'Copier'}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                        
-                        {annonceLoading && (
-  <div className="flex justify-start">
-    <div className="bg-white border shadow-sm rounded-lg p-3 max-w-[80%]">
-      <div className="flex items-center gap-2 text-sm text-gray-500 animate-pulse">
-        <LoadingIcon className="w-4 h-4 text-purple-600" />
-        <span>{currentMessage}{dots}</span>
-      </div>
-    </div>
-  </div>
-)}
+                          ))}
 
+                          {annonceLoading && (
+                            <div className="flex justify-start">
+                              <div className="bg-white border shadow-sm rounded-lg p-3 max-w-[80%]">
+                                <div className="flex items-center gap-2 text-sm text-gray-500 animate-pulse">
+                                  <LoadingIcon className="w-4 h-4 text-purple-600" />
+                                  <span>{currentMessage}{dots}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      )}
+
+                      {/* Zone de saisie */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={currentInput}
+                          onChange={(e) => setCurrentInput(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          placeholder="Demandez une modification ou posez une question..."
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          disabled={annonceLoading}
+                        />
+                        <button
+                          onClick={() => sendMessage(currentInput)}
+                          disabled={annonceLoading || !currentInput.trim()}
+                          className={`px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${annonceLoading || !currentInput.trim()
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-purple-600 hover:bg-purple-700 text-white'
+                            }`}
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
                       </div>
-                    )}
-
-                    {/* Zone de saisie */}
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={currentInput}
-                        onChange={(e) => setCurrentInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Demandez une modification ou posez une question..."
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        disabled={annonceLoading}
-                      />
-                      <button
-                        onClick={() => sendMessage(currentInput)}
-                        disabled={annonceLoading || !currentInput.trim()}
-                        className={`px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                          annonceLoading || !currentInput.trim()
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                            : 'bg-purple-600 hover:bg-purple-700 text-white'
-                        }`}
-                      >
-                        <Send className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
-                </div>
                 )}
 
               </div>
 
+              {/* Feedback sauvegarde */}
+              {saveStatus.saving && (
+                <div className="mt-8 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+                  ⏳ Sauvegarde en cours...
+                </div>
+              )}
+              {saveStatus.saved && (
+                <div className="mt-8 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                  ✅ Sauvegardé avec succès !
+                </div>
+              )}
+              {saveStatus.error && (
+                <div className="mt-8 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                  ❌ {saveStatus.error}
+                </div>
+              )}
+
               {/* NAVIGATION FINALE - Style Letahost */}
-              <div className="flex justify-between items-center pt-8 mt-8 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-8 mt-4 border-t border-gray-200">
                 <button
                   onClick={back}
-                  className="px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
                 >
                   ← Retour
                 </button>
-                
+
                 <div className="flex gap-3">
-                  {/* Bouton Enregistrer - Style doré vide */}
+                  {/* Bouton Enregistrer - icône seule sur mobile */}
                   <button
                     onClick={handleSave}
                     disabled={saveStatus.saving}
-                    className="flex items-center gap-2 px-6 py-3 border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white rounded-lg font-medium transition-all disabled:opacity-50"
+                    title={saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}
+                    className="flex items-center gap-2 px-3 sm:px-6 py-3 border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white rounded-lg font-medium transition-all disabled:opacity-50"
                   >
-                    {saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}
+                    <Save className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline">{saveStatus.saving ? 'Sauvegarde...' : 'Enregistrer'}</span>
                   </button>
-                  
+
                   {/* Bouton Finaliser - Style doré plein */}
                   <button
                     onClick={handleFinaliser}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-all"
+                    className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-medium transition-all"
                   >
-                    <CheckCircle className="w-5 h-5" />
-                    Finaliser la fiche
+                    <CheckCircle className="w-5 h-5 shrink-0" />
+                    <span>Finaliser la fiche</span>
                   </button>
                 </div>
               </div>
@@ -480,10 +496,10 @@ export default function FicheFinalisation() {
                   <pre className="text-gray-600 overflow-x-auto whitespace-pre-wrap">
                     {JSON.stringify({
                       statut: formData.statut,
-                      sections_remplies: Object.keys(formData).filter(key => 
-                        key.startsWith('section_') && 
-                        formData[key] && 
-                        typeof formData[key] === 'object' && 
+                      sections_remplies: Object.keys(formData).filter(key =>
+                        key.startsWith('section_') &&
+                        formData[key] &&
+                        typeof formData[key] === 'object' &&
                         Object.keys(formData[key]).length > 0
                       ).length,
                       last_update: formData.updated_at,
@@ -512,7 +528,7 @@ export default function FicheFinalisation() {
                 La fiche "<strong>{formData.nom}</strong>" a été marquée comme complétée.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => navigate('/dashboard')}

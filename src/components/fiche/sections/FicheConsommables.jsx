@@ -6,7 +6,7 @@ import { useForm } from '../../FormContext'
 import { ShoppingCart } from 'lucide-react'
 
 export default function FicheConsommables() {
-  const { 
+  const {
     getField,
     updateField
   } = useForm()
@@ -30,34 +30,34 @@ export default function FicheConsommables() {
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
-      
+
       <div className="flex-1 flex flex-col">
         <ProgressBar />
-        
+
         <div className="flex-1 p-6 bg-gray-100">
           {/* Container centré - OBLIGATOIRE */}
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Consommables</h1>
-            
+
             {/* Carte blanche principale - OBLIGATOIRE */}
             <div className="bg-white rounded-xl shadow-sm p-8">
-              
+
               {/* Header avec icône - OBLIGATOIRE */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
                     <ShoppingCart className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Gestion des consommables</h2>
-                    <p className="text-gray-600">Définissez les produits mis à disposition des voyageurs</p>
+                    <p className="text-gray-600">Produits à disposition des voyageurs</p>
                   </div>
                 </div>
               </div>
 
               {/* Contenu du formulaire */}
               <div className="space-y-8">
-                
+
                 {/* Question principale */}
                 <div>
                   <label className="block font-medium text-gray-900 mb-3">
@@ -209,27 +209,27 @@ export default function FicheConsommables() {
                           <span className="text-sm">Produit WC / Javel</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                            <input
-                                type="checkbox"
-                                checked={formData.consommables_recommandes_autre === true}
-                                onChange={(e) => handleCheckboxChange('section_consommables.consommables_recommandes_autre', e.target.checked)}
-                                className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                            />
-                            <span className="text-sm">Autre (précisez)</span>
+                          <input
+                            type="checkbox"
+                            checked={formData.consommables_recommandes_autre === true}
+                            onChange={(e) => handleCheckboxChange('section_consommables.consommables_recommandes_autre', e.target.checked)}
+                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          />
+                          <span className="text-sm">Autre (précisez)</span>
                         </label>
                       </div>
                       {/* Champ conditionnel "Autre recommandé" */}
-                        {formData.consommables_recommandes_autre === true && (
+                      {formData.consommables_recommandes_autre === true && (
                         <div className="mt-3">
-                            <input
+                          <input
                             type="text"
                             placeholder="Précisez l'autre consommable recommandé..."
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
                             value={formData.consommables_recommandes_autre_details || ""}
                             onChange={(e) => handleInputChange('section_consommables.consommables_recommandes_autre_details', e.target.value)}
-                            />
+                          />
                         </div>
-                    )}
+                      )}
                     </div>
                   </div>
                 )}
@@ -287,7 +287,7 @@ export default function FicheConsommables() {
                         <span className="text-sm">Autre (précisez)</span>
                       </label>
                     </div>
-                    
+
                     {/* Champ conditionnel "Autre" */}
                     {formData.autre_consommable === true && (
                       <div className="mt-3">
@@ -373,7 +373,7 @@ export default function FicheConsommables() {
                       <span className="text-sm">Autre (précisez)</span>
                     </label>
                   </div>
-                  
+
                   {/* Champ conditionnel "Autre café" */}
                   {formData.cafe_autre === true && (
                     <div className="mt-3">
