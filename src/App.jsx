@@ -28,7 +28,7 @@ import { FormProvider } from './components/FormContext'
 
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
-import AdminDashboard from './components/admin/AdminDashboard'
+import AdminUsersList from './components/admin/AdminUsersList'
 
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
@@ -227,7 +227,7 @@ function AppWrapper() {
             path="/admin/users"
             element={
               <AdminRoute>
-                <AdminDashboard />
+                <AdminUsersList />
               </AdminRoute>
             }
           />
