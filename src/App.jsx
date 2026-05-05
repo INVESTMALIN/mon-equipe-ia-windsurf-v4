@@ -27,6 +27,8 @@ import FicheWizard from './components/fiche/FicheWizard'
 import { FormProvider } from './components/FormContext'
 
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
+import AdminDashboard from './components/admin/AdminDashboard'
 
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
@@ -212,13 +214,22 @@ function AppWrapper() {
             } 
           />
 
-          <Route 
-            path="/test-stripe" 
+          <Route
+            path="/test-stripe"
             element={
               <ProtectedRoute>
                 <TestStripe />
               </ProtectedRoute>
-            } 
+            }
+          />
+
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
           />
 
         </Routes>
