@@ -1,7 +1,9 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Users, Search, AlertCircle, ChevronLeft, ChevronRight, Shield } from 'lucide-react'
+import { ArrowLeft, Users, Search, AlertCircle, ChevronLeft, ChevronRight, Shield, MoreVertical, Plus } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
+import AdminCreateUserModal from './AdminCreateUserModal'
+import AdminUpdateSubscriptionModal from './AdminUpdateSubscriptionModal'
 
 const PER_PAGE = 25
 const SEARCH_DEBOUNCE_MS = 350
@@ -86,6 +88,35 @@ export default function AdminUsersList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Action UI state
+  const [currentUserId, setCurrentUserId] = useState(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [updateModal, setUpdateModal] = useState({ open: false, user: null, action: null })
+  const [openMenuId, setOpenMenuId] = useState(null)
+  const menuContainerRef = useRef(null)
+
+  // Track the connected admin's id so we can disable destructive actions
+  // on their own row (server-side guard exists too).
+  useEffect(() => {
+    let cancelled = false
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!cancelled) setCurrentUserId(session?.user?.id || null)
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  // Close kebab menu on outside click
+  useEffect(() => {
+    if (openMenuId === null) return
+    const handler = (e) => {
+      if (menuContainerRef.current && !menuContainerRef.current.contains(e.target)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [openMenuId])
+
   // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS)
@@ -146,6 +177,12 @@ export default function AdminUsersList() {
   const showingFrom = total === 0 ? 0 : (page - 1) * PER_PAGE + 1
   const showingTo = Math.min(page * PER_PAGE, total)
 
+  const openUpdateModal = (user, action) => {
+    setOpenMenuId(null)
+    setUpdateModal({ open: true, user, action })
+  }
+  const closeUpdateModal = () => setUpdateModal({ open: false, user: null, action: null })
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-black text-white px-6 md:px-20 py-4">
@@ -170,12 +207,21 @@ export default function AdminUsersList() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 md:px-20 py-12">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-[#dbae61]" />
-            <h1 className="text-3xl font-bold text-black">Espace admin</h1>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-8 h-8 text-[#dbae61]" />
+              <h1 className="text-3xl font-bold text-black">Espace admin</h1>
+            </div>
+            <p className="text-gray-600">Gestion des utilisateurs</p>
           </div>
-          <p className="text-gray-600">Gestion des utilisateurs</p>
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white font-medium px-5 py-2.5 rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Créer un compte
+          </button>
         </div>
 
         {/* Filtres + recherche */}
@@ -258,20 +304,71 @@ export default function AdminUsersList() {
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Expiration</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Rôle</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Inscription</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{u.email || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{u.prenom || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{u.nom || '—'}</td>
-                      <td className="px-4 py-3"><StatusBadge status={u.subscription_status} /></td>
-                      <td className="px-4 py-3"><ExpirationCell user={u} /></td>
-                      <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{formatDate(u.created_at)}</td>
-                    </tr>
-                  ))}
+                  {users.map((u) => {
+                    const isSelf = u.id === currentUserId
+                    const canSetFree = u.subscription_status !== 'free'
+                    const canSetPremium = u.subscription_status === 'free' || u.subscription_status === 'expired'
+                    const canRenew = u.subscription_status === 'premium' || u.subscription_status === 'trial'
+                    const menuOpen = openMenuId === u.id
+                    return (
+                      <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">{u.email || '—'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{u.prenom || '—'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{u.nom || '—'}</td>
+                        <td className="px-4 py-3"><StatusBadge status={u.subscription_status} /></td>
+                        <td className="px-4 py-3"><ExpirationCell user={u} /></td>
+                        <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{formatDate(u.created_at)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <div
+                            className="relative inline-block"
+                            ref={menuOpen ? menuContainerRef : null}
+                          >
+                            <button
+                              onClick={() => setOpenMenuId(menuOpen ? null : u.id)}
+                              disabled={isSelf}
+                              title={isSelf ? 'Tu ne peux pas modifier ton propre compte' : 'Actions'}
+                              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            {menuOpen && !isSelf && (
+                              <div className="absolute right-0 mt-1 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-10 py-1">
+                                {canSetPremium && (
+                                  <button
+                                    onClick={() => openUpdateModal(u, 'set_premium')}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                  >
+                                    Passer en premium
+                                  </button>
+                                )}
+                                {canRenew && (
+                                  <button
+                                    onClick={() => openUpdateModal(u, 'renew')}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                  >
+                                    Renouveler
+                                  </button>
+                                )}
+                                {canSetFree && (
+                                  <button
+                                    onClick={() => openUpdateModal(u, 'set_free')}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    Passer en gratuit
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -308,6 +405,20 @@ export default function AdminUsersList() {
           )}
         </div>
       </div>
+
+      <AdminCreateUserModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={fetchUsers}
+      />
+
+      <AdminUpdateSubscriptionModal
+        isOpen={updateModal.open}
+        user={updateModal.user}
+        action={updateModal.action}
+        onClose={closeUpdateModal}
+        onSuccess={fetchUsers}
+      />
     </div>
   )
 }
