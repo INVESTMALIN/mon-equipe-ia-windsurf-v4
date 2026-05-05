@@ -4,6 +4,7 @@ import { ArrowLeft, Users, Search, AlertCircle, ChevronLeft, ChevronRight, Shiel
 import { supabase } from '../../supabaseClient'
 import AdminCreateUserModal from './AdminCreateUserModal'
 import AdminUpdateSubscriptionModal from './AdminUpdateSubscriptionModal'
+import AdminDeleteUserModal from './AdminDeleteUserModal'
 
 const PER_PAGE = 25
 const SEARCH_DEBOUNCE_MS = 350
@@ -92,6 +93,7 @@ export default function AdminUsersList() {
   const [currentUserId, setCurrentUserId] = useState(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [updateModal, setUpdateModal] = useState({ open: false, user: null, action: null })
+  const [deleteModal, setDeleteModal] = useState({ open: false, user: null })
   const [openMenuId, setOpenMenuId] = useState(null)
   const menuContainerRef = useRef(null)
 
@@ -182,6 +184,12 @@ export default function AdminUsersList() {
     setUpdateModal({ open: true, user, action })
   }
   const closeUpdateModal = () => setUpdateModal({ open: false, user: null, action: null })
+
+  const openDeleteModal = (user) => {
+    setOpenMenuId(null)
+    setDeleteModal({ open: true, user })
+  }
+  const closeDeleteModal = () => setDeleteModal({ open: false, user: null })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -362,6 +370,13 @@ export default function AdminUsersList() {
                                     Passer en gratuit
                                   </button>
                                 )}
+                                <div className="border-t border-gray-100 my-1" />
+                                <button
+                                  onClick={() => openDeleteModal(u)}
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                                >
+                                  Supprimer le compte
+                                </button>
                               </div>
                             )}
                           </div>
@@ -417,6 +432,13 @@ export default function AdminUsersList() {
         user={updateModal.user}
         action={updateModal.action}
         onClose={closeUpdateModal}
+        onSuccess={fetchUsers}
+      />
+
+      <AdminDeleteUserModal
+        isOpen={deleteModal.open}
+        user={deleteModal.user}
+        onClose={closeDeleteModal}
         onSuccess={fetchUsers}
       />
     </div>
