@@ -305,7 +305,57 @@ mon-equipe-ia-windsurf-v4/
 └── vite.config.js
 ```
 
+## 🔀 Workflow Git & PR
+
+### Mode par défaut: brainstorming
+Au début de chaque tâche, tu travailles librement avec Julien sans toucher à git.
+Tu peux:
+- Explorer le code, lire les fichiers, comprendre le contexte
+- Proposer des solutions, montrer des extraits de code
+- Modifier les fichiers en local pour que Julien puisse tester
+
+Tu ne dois PAS:
+- Créer de branche
+- Faire de commit
+- Faire de push
+- Créer de PR
+
+### Mode dev: déclenché par signal explicite
+Quand Julien envoie un signal explicite, tu bascules en mode dev. Signaux acceptés (non exhaustif):
+- "On dev"
+- "On passe en mode dev"
+- "Crée la branche"
+- "On push"
+- "On y va"
+
+Une fois le signal reçu:
+
+1. Vérifie la branche actuelle avec `git branch --show-current`
+2. Si tu es sur main, crée une nouvelle branche kebab-case descriptive
+   (ex: `add-dashboard-layout`, `fix-sidebar-mobile`, `refactor-fiche-context`)
+3. Si du travail est déjà fait en local, stage et commit les modifs avec un message clair en anglais à l'impératif
+4. Push la branche avec `git push -u origin <branch-name>`
+5. Crée la PR via `gh pr create --base main --title "<titre>" --body "<description courte>"`
+6. Affiche l'URL de la PR à Julien
+
+### Après création de la PR
+- Tu attends le feedback de Codex Review (review automatique configurée sur ce repo)
+- Tu attends les retours de Julien
+- Si des modifs sont demandées:
+  - Édite les fichiers
+  - Commit avec un message clair (ex: "Fix: address Codex P1 about email obfuscation")
+  - Push (la PR se met à jour automatiquement)
+  - Si nécessaire, poste un commentaire `@codex review` sur la PR pour relancer la review
+- Tu ne merges JAMAIS la PR toi-même. C'est Julien qui merge sur GitHub.
+
+### Après merge (par Julien sur GitHub)
+Quand Julien dit "merged" ou "PR mergée", tu fais le cleanup:
+1. `git checkout main`
+2. `git pull`
+3. `git branch -d <branch-name>` pour supprimer la branche locale
+
+
 **🎯 STATUT GLOBAL** : SYSTÈME PRODUCTION-READY  
 **📋 PROCHAINES ÉTAPES** : Finitions + tests Kevin + préparation lancement  
 **🔥 NEXT MILESTONE** : Déploiement concierges Invest Malin  
-**📅 DERNIÈRE MÀJ** : 23 septembre 2025
+**📅 DERNIÈRE MÀJ** : 5 mai 2026
