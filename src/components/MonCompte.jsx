@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2, AlertCircle } from 'lucide-react'
+import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2, AlertCircle, Users } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ChangePasswordModal from './ChangePasswordModal'
 import EditProfileModal from './EditProfileModal'
@@ -31,7 +31,7 @@ export default function MonCompte() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('subscription_status, stripe_customer_id, subscription_current_period_end, subscription_trial_end, subscription_cancel_at_period_end, has_used_trial, prenom, nom')
+        .select('subscription_status, stripe_customer_id, subscription_current_period_end, subscription_trial_end, subscription_cancel_at_period_end, has_used_trial, prenom, nom, role')
         .eq('id', userId)
         .single()
   
@@ -536,6 +536,27 @@ export default function MonCompte() {
             </div>
           </div>
         </div>
+
+        {/* Section Espace admin (visible uniquement pour les admins) */}
+        {userProfile?.role === 'admin' && (
+          <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Users className="w-6 h-6 text-[#dbae61]" />
+              <h2 className="text-xl font-bold text-black">Espace admin</h2>
+            </div>
+
+            <p className="text-gray-600 mb-4">
+              Vous avez accès à l'espace administrateur. Gérez les comptes utilisateurs, leurs abonnements et leurs accès.
+            </p>
+
+            <Link
+              to="/admin/users"
+              className="inline-block bg-[#dbae61] hover:bg-[#c49a4f] text-white px-6 py-3 rounded-lg transition-colors text-sm font-medium"
+            >
+              Gérer les utilisateurs
+            </Link>
+          </div>
+        )}
 
         {/* Section RGPD & Données */}
         <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
