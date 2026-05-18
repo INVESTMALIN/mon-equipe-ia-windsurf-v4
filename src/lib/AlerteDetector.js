@@ -1,5 +1,6 @@
 // src/lib/AlerteDetector.js
 // Système de détection des alertes basé sur le mapping Mon Équipe IA
+import { GRILLE_CRITERES, computeGrilleStats, proprietyFromGrilleNote, dangerLabelByKey } from './avisGrilleHelpers'
 
 /**
  * Détecte toutes les alertes dans les données de fiche
@@ -12,8 +13,8 @@ export const detectAlertes = (formData) => {
       elementsAbimes: []
     }
   
-    // 🔴 ALERTES CRITIQUES (5 champs)
-    
+    // 🔴 ALERTES CRITIQUES
+
     // 1. Zone à risques
     if (formData.section_avis?.quartier_securite === 'zone_risques') {
       alertes.critiques.push({
@@ -24,30 +25,33 @@ export const detectAlertes = (formData) => {
         action: 'Refus logement recommandé'
       })
     }
-  
-    // 2 & 3. État du logement
-    const etatLogement = formData.section_avis?.logement_etat_general
-    if (etatLogement === 'etat_degrade') {
+
+    // 2 & 3. État du logement (dérivé des notes individuelles de la grille,
+    // indépendamment du remplissage complet des 9 critères)
+    const grilleNotes = GRILLE_CRITERES
+      .map(({ key }) => formData.section_avis?.[`grille_${key}_note`])
+      .filter((note) => typeof note === 'number')
+    if (grilleNotes.some((note) => note === 2)) {
       alertes.critiques.push({
         type: 'etat_degrade',
         titre: 'État dégradé',
-        message: 'Le logement nécessite des travaux avant mise en location',
+        message: 'Au moins un critère du logement est jugé dégradé',
         icone: '🏠',
         action: 'Pause travaux nécessaire'
       })
     }
-    if (etatLogement === 'tres_mauvais_etat') {
+    if (grilleNotes.some((note) => note === 1)) {
       alertes.critiques.push({
         type: 'tres_mauvais_etat',
         titre: 'Très mauvais état',
-        message: 'Le logement est en très mauvais état général',
+        message: 'Au moins un critère du logement est jugé en mauvais état',
         icone: '💥',
         action: 'Refus logement recommandé'
       })
     }
-  
-    // 4. Propreté
-    if (formData.section_avis?.logement_proprete === 'sale') {
+
+    // 4. Propreté (dérivée de la note grille "Propreté générale")
+    if (proprietyFromGrilleNote(formData.section_avis?.grille_proprete_generale_note) === 'sale') {
       alertes.critiques.push({
         type: 'proprete_sale',
         titre: 'Logement sale',
@@ -56,8 +60,20 @@ export const detectAlertes = (formData) => {
         action: 'Remise en état nécessaire'
       })
     }
-  
-    // 5. WiFi manquant
+
+    // 5. Dangers de sécurité
+    const dangers = formData.section_avis?.securite_dangers || []
+    if (dangers.length > 0) {
+      alertes.critiques.push({
+        type: 'securite_dangers',
+        titre: 'Danger sécurité détecté',
+        message: `Dangers signalés : ${dangers.map(dangerLabelByKey).join(', ')}`,
+        icone: '⚡',
+        action: 'Intervention sécurité nécessaire'
+      })
+    }
+
+    // 6. WiFi manquant
     if (formData.section_equipements?.wifi_statut === 'non') {
       alertes.critiques.push({
         type: 'wifi_manquant',
@@ -243,11 +259,11 @@ export const detectAlertes = (formData) => {
         }
       },
   
-      // Évaluation globale
+      // Évaluation globale (dérivée de la grille d'évaluation objective)
       evaluation: {
         quartier_securite: avis.quartier_securite || 'non_renseigne',
-        logement_etat: avis.logement_etat_general || 'non_renseigne',
-        logement_proprete: avis.logement_proprete || 'non_renseigne'
+        logement_etat: computeGrilleStats(avis).verdict || 'non_renseigne',
+        logement_proprete: proprietyFromGrilleNote(avis.grille_proprete_generale_note) || 'non_renseigne'
       },
   
       // Atouts
