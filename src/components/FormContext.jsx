@@ -95,11 +95,34 @@ const initialFormData = {
     immeuble_accessibilite: "",
     immeuble_niveau_sonore: "",
 
-    // Évaluation logement
-    logement_etat_general: "",
-    logement_etat_details: "",
-    logement_proprete: "",
-    logement_proprete_details: "",
+    // Évaluation logement - grille objective (9 critères x note + observations)
+    grille_proprete_generale_note: null,
+    grille_proprete_generale_obs: "",
+    grille_sols_note: null,
+    grille_sols_obs: "",
+    grille_murs_plafonds_note: null,
+    grille_murs_plafonds_obs: "",
+    grille_cuisine_note: null,
+    grille_cuisine_obs: "",
+    grille_salle_bain_note: null,
+    grille_salle_bain_obs: "",
+    grille_equipements_note: null,
+    grille_equipements_obs: "",
+    grille_menuiseries_note: null,
+    grille_menuiseries_obs: "",
+    grille_odeurs_note: null,
+    grille_odeurs_obs: "",
+    grille_impression_generale_note: null,
+    grille_impression_generale_obs: "",
+
+    // Vérification sécurité
+    securite_dangers: [],
+
+    // Type de 1er passage
+    type_premier_menage: null,
+    type_premiere_maintenance: null,
+
+    // Évaluation logement - ambiance et vis-à-vis
     logement_ambiance: [],
     logement_absence_decoration_details: "",
     logement_decoration_personnalisee_details: "",
@@ -164,7 +187,8 @@ const initialFormData = {
     // Rappels photos (VERSION LITE)
     photos_rappels: {
       video_globale_taken: false,
-      vis_a_vis_taken: false
+      vis_a_vis_taken: false,
+      etat_logement_video_taken: false
     }
   },
 
