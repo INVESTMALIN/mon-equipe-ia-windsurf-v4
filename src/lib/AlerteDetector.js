@@ -1,6 +1,6 @@
 // src/lib/AlerteDetector.js
 // Système de détection des alertes basé sur le mapping Mon Équipe IA
-import { computeGrilleStats, proprietyFromGrilleNote, dangerLabelByKey } from './avisGrilleHelpers'
+import { GRILLE_CRITERES, computeGrilleStats, proprietyFromGrilleNote, dangerLabelByKey } from './avisGrilleHelpers'
 
 /**
  * Détecte toutes les alertes dans les données de fiche
@@ -26,22 +26,25 @@ export const detectAlertes = (formData) => {
       })
     }
 
-    // 2 & 3. État du logement (dérivé de la grille d'évaluation objective)
-    const verdictLogement = computeGrilleStats(formData.section_avis).verdict
-    if (verdictLogement === 'etat_degrade') {
+    // 2 & 3. État du logement (dérivé des notes individuelles de la grille,
+    // indépendamment du remplissage complet des 9 critères)
+    const grilleNotes = GRILLE_CRITERES
+      .map(({ key }) => formData.section_avis?.[`grille_${key}_note`])
+      .filter((note) => typeof note === 'number')
+    if (grilleNotes.some((note) => note === 2)) {
       alertes.critiques.push({
         type: 'etat_degrade',
         titre: 'État dégradé',
-        message: 'Le logement nécessite des travaux avant mise en location',
+        message: 'Au moins un critère du logement est jugé dégradé',
         icone: '🏠',
         action: 'Pause travaux nécessaire'
       })
     }
-    if (verdictLogement === 'tres_mauvais_etat') {
+    if (grilleNotes.some((note) => note === 1)) {
       alertes.critiques.push({
         type: 'tres_mauvais_etat',
         titre: 'Très mauvais état',
-        message: 'Le logement est en très mauvais état général',
+        message: 'Au moins un critère du logement est jugé en mauvais état',
         icone: '💥',
         action: 'Refus logement recommandé'
       })

@@ -50,15 +50,15 @@ const CHECKLIST_MAINTENANCE = [
 const ChecklistColumn = ({ emoji, titre, sections }) => (
   <div>
     <h3 className="text-sm font-semibold text-gray-900 pb-2 mb-1 border-b border-gray-200">{emoji} {titre}</h3>
-    {sections.map((section, idx) => (
-      <div key={idx}>
+    {sections.map((section) => (
+      <div key={section.title}>
         <p className="text-xs font-medium text-gray-700 mt-3 mb-1">
           {section.title}
           {section.subtext && <span className="font-normal text-gray-500"> {section.subtext}</span>}
         </p>
         {section.items && (
           <ul className="ml-5 list-disc text-xs text-gray-600 space-y-0.5">
-            {section.items.map((item, i) => <li key={i}>{item}</li>)}
+            {section.items.map((item) => <li key={item}>{item}</li>)}
           </ul>
         )}
       </div>
