@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { MessageSquare } from 'lucide-react'
+import { GRILLE_CRITERES, SECURITE_DANGERS, TYPES_PASSAGE, computeGrilleStats } from '../../../lib/avisGrilleHelpers'
 
 const StyledCheckboxGrid = ({ options, values, path, onChange }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -23,6 +25,47 @@ const StyledCheckboxGrid = ({ options, values, path, onChange }) => (
   </div>
 )
 
+const CHECKLIST_MENAGE = [
+  { title: 'Logement de manière général' },
+  { title: 'Mobilier', subtext: "(derrière, au-dessus, à l'intérieur si poussière)" },
+  { title: 'Cuisine :', items: ["État de l'évier et robinetterie", 'Four et micro-ondes', 'Hotte et filtre', 'Réfrigérateur / congélateur (moisissures ?)', 'État des placards'] },
+  { title: 'Salle de bain :', items: ['Cuvette des WC stable et fonctionnelle', 'Cabine de douche / carrelage', 'Joints / moisissures', 'Siphons qui évacuent bien'] },
+  { title: 'Linge :', items: ['Draps et serviettes en bon état, non tachés'] },
+  { title: 'Extérieurs :', items: ['Mobilier en bon état'] }
+]
+
+const CHECKLIST_MAINTENANCE = [
+  { title: 'Éclairage : ampoules fonctionnelles' },
+  { title: 'Électricité :', items: ['Prises', 'Interrupteurs', 'Télécommande / TV / Wi-Fi'] },
+  { title: 'Plomberie :', items: ['Fuites sous éviers / WC', "Pression d'eau", 'Eau chaude'] },
+  { title: 'Chauffage / climatisation opérationnels' },
+  { title: 'Fenêtres / volets / rideaux fonctionnels' },
+  { title: 'Électroménager :', items: ['Lave-linge', 'Lave-vaisselle', 'Cafetière, bouilloire, etc.'] },
+  { title: 'Détecteur de fumée présent et fonctionnel' },
+  { title: 'Mobilier :', items: ['Casse', 'Rayures', 'Mal fixé'] },
+  { title: 'Traces de nuisibles :', items: ['Insectes', 'Humidité', 'Moisissures'] },
+  { title: 'Murs et plafonds :', items: ['Tâches', 'Trous', 'Fissures'] }
+]
+
+const ChecklistColumn = ({ emoji, titre, sections }) => (
+  <div>
+    <h3 className="text-sm font-semibold text-gray-900 pb-2 mb-1 border-b border-gray-200">{emoji} {titre}</h3>
+    {sections.map((section, idx) => (
+      <div key={idx}>
+        <p className="text-xs font-medium text-gray-700 mt-3 mb-1">
+          {section.title}
+          {section.subtext && <span className="font-normal text-gray-500"> {section.subtext}</span>}
+        </p>
+        {section.items && (
+          <ul className="ml-5 list-disc text-xs text-gray-600 space-y-0.5">
+            {section.items.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>
+        )}
+      </div>
+    ))}
+  </div>
+)
+
 export default function FicheAvis() {
   const {
     getField,
@@ -32,6 +75,9 @@ export default function FicheAvis() {
   const formData = getField('section_avis')
   const atouts = formData.atouts_logement || {}
   const voyageurs = formData.types_voyageurs || {}
+
+  const [checklistOpen, setChecklistOpen] = useState(false)
+  const grilleStats = computeGrilleStats(formData)
 
   const handleInputChange = (fieldPath, value) => {
     updateField(fieldPath, value)
@@ -361,88 +407,200 @@ export default function FicheAvis() {
               <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Évaluation du logement</h3>
 
-                {/* État général du logement */}
+                {/* Grille d'évaluation objective */}
                 <div className="mb-6">
-                  <label className="block font-medium text-gray-900 mb-3">État général du logement</label>
+                  <h4 className="font-medium text-gray-900 mb-1">Grille d'évaluation objective</h4>
+                  <p className="text-sm text-gray-600 mb-4">Notez chaque critère de 1 (mauvais) à 5 (excellent).</p>
 
-                  <div className="space-y-3">
-                    {[
-                      { value: 'excellent_etat', label: 'Excellent état (récent ou rénové, tout est fonctionnel, pas d\'usure visible)' },
-                      { value: 'bon_etat', label: 'Bon état (quelques signes d\'usure légers)' },
-                      { value: 'etat_moyen', label: 'État moyen (éléments nécessitant des réparations mineures)' },
-                      { value: 'etat_degrade', label: 'État dégradé (meubles, installations détériorés, des travaux sont nécessaires) ⚠️' },
-                      { value: 'tres_mauvais_etat', label: 'Très mauvais état (vétusté générale) ⚠️' }
-                    ].map(({ value, label }) => (
-                      <label key={value} className="flex items-center gap-2 cursor-pointer">
+                  <div className="space-y-6">
+                    {GRILLE_CRITERES.map((critere, index) => {
+                      const noteField = `grille_${critere.key}_note`
+                      const obsField = `grille_${critere.key}_obs`
+                      return (
+                        <div key={critere.key} className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
+                          <label className="block font-medium text-gray-900 mb-3">
+                            {index + 1}. {critere.label}
+                          </label>
+
+                          <div className="space-y-2">
+                            {critere.niveaux.map((niveau) => (
+                              <label key={niveau.val} className="flex items-start gap-2 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name={noteField}
+                                  value={niveau.val}
+                                  checked={formData[noteField] === niveau.val}
+                                  onChange={() => handleInputChange(`section_avis.${noteField}`, niveau.val)}
+                                  className="w-4 h-4 mt-0.5 shrink-0 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
+                                />
+                                <span className="text-sm text-gray-900">
+                                  <span className="font-medium">{niveau.name}</span>
+                                  <span className="block text-xs text-gray-500">{niveau.desc}</span>
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+
+                          <textarea
+                            className="mt-3 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                            rows="2"
+                            placeholder="Observations (optionnel)..."
+                            value={formData[obsField] || ''}
+                            onChange={(e) => handleInputChange(`section_avis.${obsField}`, e.target.value)}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Panneau de score */}
+                  <div
+                    className="mt-6 rounded-xl p-5 text-white"
+                    style={{ background: 'linear-gradient(135deg, #e3bd7a, #c89a4a)' }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold">Score d'évaluation</span>
+                      <span className="text-2xl font-bold">{grilleStats.total} / 45</span>
+                    </div>
+                    <div className="w-full bg-white/30 rounded-full h-2.5 mb-3">
+                      <div
+                        className="bg-white h-2.5 rounded-full transition-all"
+                        style={{ width: `${(grilleStats.total / 45) * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>{grilleStats.filled} / 9 critères évalués</span>
+                      <span className="font-semibold">
+                        {grilleStats.verdictLabel || 'En attente des 9 critères'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vérification sécurité */}
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-1">Vérification sécurité</h4>
+                  <p className="text-sm text-gray-600 mb-3">Cochez tout danger constaté lors de l'inspection.</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {SECURITE_DANGERS.map(({ key, label }) => (
+                      <label
+                        key={key}
+                        className="group relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm hover:border-[#dbae61] hover:bg-[#dbae61]/5"
+                      >
                         <input
-                          type="radio"
-                          name="logement_etat_general"
-                          value={value}
-                          checked={formData.logement_etat_general === value}
-                          onChange={() => handleInputChange('section_avis.logement_etat_general', value)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
+                          type="checkbox"
+                          checked={formData.securite_dangers?.includes(key) || false}
+                          onChange={(e) => {
+                            const current = formData.securite_dangers || []
+                            const next = e.target.checked
+                              ? [...current, key]
+                              : current.filter((d) => d !== key)
+                            handleInputChange('section_avis.securite_dangers', next)
+                          }}
+                          className="h-4 w-4 shrink-0 text-[#dbae61] focus:ring-[#dbae61]"
                         />
-                        <span className="text-sm text-gray-900">{label}</span>
+                        <span className="text-sm text-gray-900 group-hover:text-[#dbae61] transition-colors">
+                          {label}
+                        </span>
                       </label>
                     ))}
                   </div>
 
-                  {/* Champ conditionnel - Détails état dégradé */}
-                  {(formData.logement_etat_general === 'etat_degrade' || formData.logement_etat_general === 'tres_mauvais_etat') && (
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Décrire l'élément vétustes (ex : murs et meubles abimés, sol abîmé, moisissure etc)
-                      </label>
-                      <textarea
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
-                        rows="3"
-                        placeholder="Décrivez les éléments détériorés..."
-                        value={formData.logement_etat_details || ''}
-                        onChange={(e) => handleInputChange('section_avis.logement_etat_details', e.target.value)}
-                      />
+                  {formData.securite_dangers?.length > 0 && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-sm font-semibold text-red-800">⚠️ Danger détecté</p>
+                      <p className="text-sm text-red-700 mt-1">
+                        Un ou plusieurs dangers de sécurité ont été signalés. Ils seront remontés en alerte critique dans la finalisation.
+                      </p>
                     </div>
                   )}
                 </div>
 
-                {/* Propreté et entretien */}
-                <div className="mb-6">
-                  <label className="block font-medium text-gray-900 mb-3">Propreté et entretien</label>
+                {/* Pense-bête - Points sensibles à filmer */}
+                <div className="mb-6 border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setChecklistOpen((open) => !open)}
+                    className="w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="font-medium text-gray-900">Points sensibles à filmer (pense-bête)</span>
+                    <span className={`text-gray-500 transition-transform ${checklistOpen ? 'rotate-180' : ''}`}>▾</span>
+                  </button>
 
-                  <div className="space-y-3">
-                    {[
-                      { value: 'propre', label: 'Propre (logement bien nettoyé, entretien régulier et approfondi du logement)' },
-                      { value: 'correct', label: 'Correct (légères traces d\'usure, entretien basique)' },
-                      { value: 'sale', label: 'Sale (zones visibles non nettoyées, saleté visible et absence ou manque d\'entretien) ⚠️' }
-                    ].map(({ value, label }) => (
-                      <label key={value} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="logement_proprete"
-                          value={value}
-                          checked={formData.logement_proprete === value}
-                          onChange={() => handleInputChange('section_avis.logement_proprete', value)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
-                        />
-                        <span className="text-sm text-gray-900">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Champ conditionnel - Détails éléments sales */}
-                  {formData.logement_proprete === 'sale' && (
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Décrire les éléments sales (ex: murs sales, cafards, odeur)
-                      </label>
-                      <textarea
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
-                        rows="3"
-                        placeholder="Décrivez les problèmes de propreté..."
-                        value={formData.logement_proprete_details || ''}
-                        onChange={(e) => handleInputChange('section_avis.logement_proprete_details', e.target.value)}
-                      />
+                  {checklistOpen && (
+                    <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ChecklistColumn emoji="🧹" titre="Ménage" sections={CHECKLIST_MENAGE} />
+                      <ChecklistColumn emoji="🔧" titre="Maintenance" sections={CHECKLIST_MAINTENANCE} />
                     </div>
                   )}
+                </div>
+
+                {/* Rappel vidéo état du logement */}
+                <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="etat_logement_video_taken"
+                      checked={formData.photos_rappels?.etat_logement_video_taken || false}
+                      onChange={(e) => handleInputChange('section_avis.photos_rappels.etat_logement_video_taken', e.target.checked)}
+                      className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                    />
+                    <label htmlFor="etat_logement_video_taken" className="text-sm text-yellow-800">
+                      📹 Pensez à filmer l'état général du logement (vue d'ensemble, points sensibles, défauts constatés)
+                    </label>
+                  </div>
+                </div>
+
+                {/* Type de 1er passage */}
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-3">Type de 1er passage</h4>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Ménage</label>
+                    <div className="flex flex-wrap gap-2">
+                      {TYPES_PASSAGE.map((option) => {
+                        const active = formData.type_premier_menage === option
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => handleInputChange('section_avis.type_premier_menage', active ? null : option)}
+                            className={`px-4 py-2 rounded-full text-sm border transition-colors ${
+                              active
+                                ? 'bg-[#dbae61] text-white border-[#dbae61]'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-[#dbae61]'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Maintenance</label>
+                    <div className="flex flex-wrap gap-2">
+                      {TYPES_PASSAGE.map((option) => {
+                        const active = formData.type_premiere_maintenance === option
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => handleInputChange('section_avis.type_premiere_maintenance', active ? null : option)}
+                            className={`px-4 py-2 rounded-full text-sm border transition-colors ${
+                              active
+                                ? 'bg-[#dbae61] text-white border-[#dbae61]'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-[#dbae61]'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Ambiance générale du logement */}
