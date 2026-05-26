@@ -1,6 +1,6 @@
 // src/components/fiche/sections/FicheCuisine2.jsx
 import { useState, useRef } from 'react'
-import { Mic, FolderOpen, Diff, CheckCircle, AlertCircle, Loader2, ChevronDown, TriangleAlert, Utensils } from 'lucide-react'
+import { Mic, FolderOpen, Diff, CheckCircle, AlertCircle, Loader2, ChevronDown, TriangleAlert, Utensils, Sparkles, HelpCircle, X } from 'lucide-react'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
@@ -148,7 +148,7 @@ export default function FicheCuisine2() {
 
   // --- Mode state ---
   const [manualExpanded, setManualExpanded] = useState(true)
-  const [vocalExpanded, setVocalExpanded] = useState(false)
+  const [howItWorksExpanded, setHowItWorksExpanded] = useState(false)
 
   // --- Vocal mode state ---
   const [vocalSubMode, setVocalSubMode] = useState('micro') // 'micro' | 'upload'
@@ -158,6 +158,11 @@ export default function FicheCuisine2() {
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
   const [uploadFile, setUploadFile] = useState(null)
+
+  const dismissVocalError = () => {
+    setVocalError(null)
+    setVocalStatus(null)
+  }
 
   // --- Mic handlers ---
   const startRecording = async () => {
@@ -299,31 +304,60 @@ export default function FicheCuisine2() {
               <div className="space-y-8">
 
                 {/* ===================== MODE VOCAL ===================== */}
-                <div className="border border-gray-200 rounded-xl overflow-hidden opacity-70">
-                  <button
-                    type="button"
-                    onClick={() => setVocalExpanded((prev) => !prev)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
+                <div className="border border-blue-200 rounded-xl overflow-hidden">
+                  <div className="bg-blue-50 px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <Mic className="w-4 h-4 text-gray-400" />
-                      <span className="text-base font-semibold text-gray-500">Saisie vocale</span>
-                      <span className="text-xs text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded">En cours de développement</span>
+                      <Mic className="w-4 h-4 text-blue-700 flex-shrink-0" />
+                      <span className="text-base font-semibold text-blue-800">Saisie vocale</span>
                     </div>
-                    <ChevronDown
-                      className={`w-5 h-5 text-gray-400 transition-transform ${vocalExpanded ? 'rotate-180' : ''}`}
-                    />
-                  </button>
+                    <span className="mt-1.5 text-xs font-medium text-green-800 bg-green-100 border border-green-300 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 flex-shrink-0" />
+                      Nouvelle fonctionnalité
+                    </span>
+                  </div>
 
-                  {vocalExpanded && <div className="p-4 space-y-4">
+                  <div className="p-4 space-y-4">
+                    {/* Note DEV discrète */}
+                    <p className="text-xs text-gray-500">
+                      La saisie vocale peut encore avoir de petits bugs. En cas de souci, vous pouvez utiliser la saisie manuelle ci-dessous à tout moment.
+                    </p>
+
+                    {/* Aide "Comment ça marche" — repliable */}
+                    <div className="border border-blue-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setHowItWorksExpanded((prev) => !prev)}
+                        className="w-full flex items-center justify-between px-3 py-2 bg-blue-50 hover:bg-blue-100 transition-colors"
+                        aria-expanded={howItWorksExpanded}
+                      >
+                        <div className="flex items-center gap-2">
+                          <HelpCircle className="w-4 h-4 text-blue-700" />
+                          <span className="text-sm font-semibold text-blue-800">Comment utiliser la saisie vocale</span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-blue-700 transition-transform ${howItWorksExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                      {howItWorksExpanded && (
+                        <div className="px-4 py-3 bg-white space-y-3">
+                          <ul className="space-y-2 text-sm text-gray-700 list-disc list-inside">
+                            <li><strong>Autorisez l'accès au micro</strong> quand votre navigateur le demande, sinon l'enregistrement ne pourra pas démarrer.</li>
+                            <li>Appuyez et <strong>maintenez le bouton enfoncé</strong> pour parler. Relâchez pour envoyer.</li>
+                            <li>Vous pouvez faire l'inventaire <strong>en plusieurs fois</strong>. À chaque enregistrement, les ustensiles détectés s'ajoutent à ceux déjà saisis.</li>
+                            <li>Énumérez naturellement, ex : « j'ai 4 assiettes plates, 2 bols, une cocotte-minute, un économe... ».</li>
+                            <li>Vous pouvez aussi <strong>uploader un fichier audio</strong> au lieu d'enregistrer en direct.</li>
+                            <li>Les ustensiles se mettent à jour automatiquement ci-dessous.</li>
+                            <li>La saisie manuelle ci-dessous reste disponible pour ajuster les quantités après coup.</li>
+                          </ul>
+                          <p className="text-sm text-purple-800 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+                            Cette fonctionnalité est en <strong>version bêta</strong>. Testez-la sans hésiter, vos retours nous sont précieux pour l'améliorer.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
                     {webhookMissing ? (
                       <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
                         <TriangleAlert className="w-4 h-4 mt-0.5 shrink-0" />
-                        <span>
-                          Webhook non configuré — ajoutez{' '}
-                          <code>VITE_WEBHOOK_VOICE_INVENTORY</code> dans votre fichier{' '}
-                          <code>.env</code>.
-                        </span>
+                        <span>Webhook non configuré — ajoutez <code>VITE_WEBHOOK_VOICE_INVENTORY</code> dans votre fichier <code>.env</code>.</span>
                       </div>
                     ) : (
                       <>
@@ -333,21 +367,21 @@ export default function FicheCuisine2() {
                             type="button"
                             onClick={() => setVocalSubMode('micro')}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${vocalSubMode === 'micro'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-600 hover:bg-gray-50'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white text-gray-600 hover:bg-gray-50'
                               }`}
                           >
-                            <Mic className="w-4 h-4 shrink-0" /> Microphone
+                            <Mic className="w-4 h-4 shrink-0" /> Micro
                           </button>
                           <button
                             type="button"
                             onClick={() => setVocalSubMode('upload')}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${vocalSubMode === 'upload'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-600 hover:bg-gray-50'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white text-gray-600 hover:bg-gray-50'
                               }`}
                           >
-                            <FolderOpen className="w-4 h-4 shrink-0" /> Fichier audio
+                            <FolderOpen className="w-4 h-4 shrink-0" /> Fichier
                           </button>
                         </div>
 
@@ -365,10 +399,10 @@ export default function FicheCuisine2() {
                               onTouchEnd={(e) => { e.preventDefault(); stopRecording() }}
                               disabled={vocalStatus === 'processing'}
                               className={`flex items-center justify-center gap-3 w-full py-4 rounded-lg font-medium text-white transition-colors select-none ${isRecording
-                                  ? 'bg-red-500 hover:bg-red-600'
-                                  : vocalStatus === 'processing'
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                                ? 'bg-red-500 hover:bg-red-600'
+                                : vocalStatus === 'processing'
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
                                 }`}
                             >
                               {isRecording && (
@@ -418,7 +452,15 @@ export default function FicheCuisine2() {
                     {vocalStatus === 'error' && (
                       <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
                         <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                        <span>{vocalError}</span>
+                        <span className="flex-1 min-w-0">{vocalError}</span>
+                        <button
+                          type="button"
+                          onClick={dismissVocalError}
+                          className="shrink-0 -mt-1 -mr-1 p-1 rounded text-red-700 hover:bg-red-100 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300"
+                          aria-label="Fermer le message d'erreur"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
                     )}
                     {vocalStatus === 'success' && (
@@ -428,7 +470,6 @@ export default function FicheCuisine2() {
                       </div>
                     )}
                   </div>
-                  }
                 </div>
 
                 {/* ===================== MODE MANUEL ===================== */}
