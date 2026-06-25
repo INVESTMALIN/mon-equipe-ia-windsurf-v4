@@ -115,7 +115,7 @@ Fiche conforme à l'ensemble des règles ci-dessus pour un bien type Invest Mali
 
 ### About the property
 
-> Appartement de 65 m² entièrement rénové en 2024, situé au 4e étage avec ascenseur. Salon lumineux avec baie vitrée orientée mer et canapé-lit deux places. Deux chambres équipées de literie neuve, dont une king-size. Cuisine entièrement équipée avec lave-vaisselle, four et plaque induction. Salle de bain rénovée avec douche italienne et sèche-serviettes. Climatisation réversible dans toutes les pièces. Wi-Fi fibre haut débit. Linge de maison et serviettes fournis. Ménage de fin de séjour inclus. Notre équipe locale est joignable 7 jours sur 7 pour toute question pendant votre séjour.
+> Appartement de 65 m² entièrement rénové en 2024, situé au 4e étage avec ascenseur. Salon lumineux avec baie vitrée orientée mer et canapé-lit deux places. Deux chambres équipées de literie neuve, dont une king-size. Cuisine entièrement équipée avec lave-vaisselle, four et plaque induction. Salle de bain rénovée avec douche italienne. Climatisation réversible dans toutes les pièces. Wi-Fi fibre haut débit. Linge de maison et serviettes fournis. Ménage de fin de séjour inclus. Notre équipe locale est joignable 7 jours sur 7 pour toute question pendant votre séjour.
 
 Couvre les 7 dimensions d'avis :
 

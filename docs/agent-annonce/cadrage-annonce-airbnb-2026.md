@@ -118,7 +118,7 @@ Annonce conforme à l'ensemble des règles ci-dessus pour un bien type Invest Ma
 ### Sous-sections
 
 **Votre logement**
-Salon de 40 m² avec cheminée et baie vitrée orientée sud. Cuisine équipée, plaque induction, lave-vaisselle, cafetière. Trois chambres avec literies neuves. Wi-Fi fibre 300 Mb/s, télévision 50 pouces.
+Salon de 40 m² avec cheminée et baie vitrée orientée sud. Cuisine équipée, plaque induction, lave-vaisselle, machine à café. Trois chambres avec literies neuves. Wi-Fi fibre 300 Mb/s, télévision 50 pouces.
 
 **Accès**
 Arrivée autonome avec boîte à clés sécurisée, accessible 24h/24. Code transmis 48 heures avant l'arrivée. Stationnement gratuit dans la rue, parking public à 100 mètres.
