@@ -114,7 +114,6 @@ export default function FicheAvis() {
     { key: 'accueillant', label: 'Accueillant' },
     { key: 'tranquille', label: 'Tranquille' },
     { key: 'spacieux', label: 'Spacieux' },
-    { key: 'vue_panoramique', label: 'Vue panoramique' },
     { key: 'parking_prive', label: 'Parking privé' },
     { key: 'equipements_haut_gamme', label: 'Équipements haut de gamme' },
     { key: 'billard', label: 'Billard' },
@@ -131,6 +130,27 @@ export default function FicheAvis() {
     { key: 'bandes_amis', label: 'Bandes d\'amis' },
     { key: 'voyageurs_experience', label: "Voyageurs d'expérience" },
     { key: 'autres_voyageurs', label: 'Autre (préciser)' },
+  ]
+
+  // 👁️ Vue depuis le logement — multi-sélection, libellés atomiques réutilisables
+  // tels quels par l'agent annonce. Stockés comme array de clés (section_avis.vue_types).
+  const optionsVue = [
+    { key: 'vue_mer', label: 'Vue mer' },
+    { key: 'vue_lac', label: 'Vue lac' },
+    { key: 'vue_riviere', label: 'Vue rivière' },
+    { key: 'vue_canal', label: 'Vue canal' },
+    { key: 'vue_montagne', label: 'Vue montagne' },
+    { key: 'vue_campagne', label: 'Vue campagne' },
+    { key: 'vue_foret', label: 'Vue forêt' },
+    { key: 'vue_vignoble', label: 'Vue vignoble' },
+    { key: 'vue_port', label: 'Vue sur le port' },
+    { key: 'vue_monument', label: 'Vue sur monument' },
+    { key: 'vue_ville', label: 'Vue sur la ville' },
+    { key: 'vue_toits', label: 'Vue sur les toits' },
+    { key: 'vue_jardin', label: 'Vue sur jardin' },
+    { key: 'vue_cour_interieure', label: 'Vue sur cour intérieure' },
+    { key: 'vue_panoramique', label: 'Vue panoramique' },
+    { key: 'vue_aucune', label: 'Aucune vue particulière à mettre en avant' },
   ]
 
   return (
@@ -740,6 +760,37 @@ export default function FicheAvis() {
                     value={getField('section_avis.autres_caracteristiques') || ''}
                     onChange={(e) => handleInputChange('section_avis.autres_caracteristiques', e.target.value)}
                   />
+                </div>
+              </div>
+
+              {/* 👁️ Vue depuis le logement */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-1 text-gray-900">Vue depuis le logement</h3>
+                <p className="text-sm text-gray-600 mb-4">Section importante pour la rédaction de l'annonce. Sélectionnez tout ce qui s'applique.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {optionsVue.map(({ key, label }) => (
+                    <label
+                      key={key}
+                      className="group relative flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm hover:border-[#dbae61] hover:bg-[#dbae61]/5"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.vue_types?.includes(key) || false}
+                        onChange={(e) => {
+                          const currentVues = formData.vue_types || []
+                          const newVues = e.target.checked
+                            ? [...currentVues, key]
+                            : currentVues.filter(vue => vue !== key)
+                          handleInputChange('section_avis.vue_types', newVues)
+                        }}
+                        className="h-4 w-4 shrink-0 text-[#dbae61] focus:ring-[#dbae61]"
+                      />
+                      <span className="text-sm text-gray-900 group-hover:text-[#dbae61] transition-colors">
+                        {label}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
