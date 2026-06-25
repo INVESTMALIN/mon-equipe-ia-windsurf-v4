@@ -11,8 +11,8 @@ Vérification faite sur le schéma réel : colonnes JSONB de `fiche_lite` lues e
 **Différences Lite confirmées (vs la v3 FL) :**
 
 1. **Vue** (`section_avis.vue_types`) : côté FL, ajoutée par la PR #35 ; côté Lite, **pas encore collectée** → **manque n°1** (cf. §7 et Synthèse).
-2. **DPE** (`section_reglementation.classe_dpe`, `dpe_depenses_min` / `dpe_depenses_max`) : côté FL, ajouté par la PR #36 ; côté Lite, **pas encore collecté** → **manque n°2** (cf. §8 et Synthèse).
-3. **Débit internet** : **collecté** dans Lite via la section télétravail (`speedtest_resultat`, `ethernet_disponible`), créés à la volée — vérifié dans `FicheTeletravail.jsx`.
+2. **DPE** (`section_reglementation.classe_dpe`, `section_reglementation.dpe_depenses_min` / `section_reglementation.dpe_depenses_max`) : côté FL, ajouté par la PR #36 ; côté Lite, **pas encore collecté** → **manque n°2** (cf. §8 et Synthèse).
+3. **Débit internet** : **collecté** dans Lite via la section télétravail (`section_teletravail.speedtest_resultat`, `section_teletravail.ethernet_disponible`), créés à la volée — vérifié dans `FicheTeletravail.jsx`.
 4. **Équipements intérieurs** (`section_equipements`) : Lite ne collecte **pas** `ventilateur` ni `seche_serviettes` (présents côté FL) ; `climatisation_type` / `chauffage_type` sont des sélections **simples**, pas des tableaux ; fêtes / fumeurs / **animaux** vivent dans `section_equipements` (cf. §5 et §10).
 5. **Équipements extérieurs** (`section_equip_spe_exterieur`) : Lite collecte bien sauna, hammam, salle de cinéma, salle de sport, salle de jeux (toggles créés à la volée, vérifiés dans `FicheEquipExterieur.jsx`), mais **pas** de bloc « local à vélo » (cf. §6).
 
@@ -31,7 +31,7 @@ Vérification faite sur le schéma réel : colonnes JSONB de `fiche_lite` lues e
 | Surface m² | ✅ | `section_logement.surface` | Number | Pré-rempli Monday. |
 | Nombre de chambres | 🟡 | `section_visite.nombre_chambres` + `section_chambres.chambre_1..6` | Select + détail | Conditionné au cochage « Chambre » en Visite. Détail par chambre disponible. |
 | Capacité (voyageurs) | ✅ | `section_logement.nombre_personnes_max` | Number | Pré-rempli Monday. |
-| Étage | 🟡 | `section_logement.appartement.etage` / `section_logement.studio.etage` (Appart/Studio) ; `section_logement.maison_niveau` + `maison_nb_etages` (Maison/Villa) | Texte / radio | Éclaté selon le type de bien. |
+| Étage | 🟡 | `section_logement.appartement.etage` / `section_logement.studio.etage` (Appart/Studio) ; `section_logement.maison_niveau` + `section_logement.maison_nb_etages` (Maison/Villa) | Texte / radio | Éclaté selon le type de bien. |
 | Ascenseur | 🟡 | (a) `section_logement.appartement.acces` (RDC/Escalier/Ascenseur) ; (b) `section_equipements.ascenseur` (bool) | Select / checkbox | Deux sources possibles, à réconcilier côté code agent. |
 
 ---
@@ -144,7 +144,7 @@ Tous les blocs `*_entretien_*` (prestataire : fréquence, type, qui), toutes les
 | Atouts logement (liste marketing) | ✅ | `section_avis.atouts_logement` (objet ~35 booléens) + `atouts_logement_autre` (texte libre) | **Liste de mise en avant curatée par le coordinateur, colonne vertébrale de la description et du titre.** Mélange trois natures : adjectifs d'ambiance (lumineux, charmant, cosy, chic, paisible, spacieux…), atouts factuels qui doublonnent des champs structurés (piscine, jacuzzi, jardin, terrasse/balcon, sauna/spa, parking privé, billard, ping-pong, central, proche transports/commerces, familial, rénové), et atouts factuels sans équivalent structuré (équipements haut de gamme, borne de recharge électrique, vidéoprojecteur, jeux d'arcade). **Règle de réconciliation** : pour un atout qui est aussi un fait, la section structurée reste la source de vérité sur le fait ; l'atout coché ne sert que de signal « mettre en avant ». Le modèle ne déduit jamais un équipement d'un atout coché seul. |
 | Vue (mer/lac/montagne/dégagée…) | ❌ | `section_avis.vue_types[]` (**à ajouter**) | **Manque Lite n°1.** Pas encore collectée : `section_avis` n'a pas de clé `vue_types` (vérifié, 0 / 43 fiches en base). À ajouter en miroir de FL PR #35 (section dédiée, 15 types atomiques + « aucune vue »). Aujourd'hui seule la case legacy `atouts_logement.vue_panoramique` existe ; elle sera retirée des atouts quand la section Vue arrivera. À ne pas confondre avec `logement_vis_a_vis` (dégagée / partielle / direct), qui est un signal d'état, pas la vue valorisable. |
 | Rénovation récente (clé de `atouts_logement`) | 🟡 | `section_avis.atouts_logement.renove` (bool) | Booléen seul, **pas d'année** (décision : « récemment »). |
-| Connexion / débit internet | ✅ | `section_teletravail.speedtest_resultat` (texte) + `ethernet_disponible` (bool) | Argument cible nomades. La présence wifi est en §5. |
+| Connexion / débit internet | ✅ | `section_teletravail.speedtest_resultat` (texte) + `section_teletravail.ethernet_disponible` (bool) | Argument cible nomades. La présence wifi est en §5. |
 
 ---
 
@@ -154,7 +154,7 @@ Tous les blocs `*_entretien_*` (prestataire : fréquence, type, qui), toutes les
 |---|---|---|---|
 | Numéro d'enregistrement | 🟡 | `section_reglementation.numero_declaration` | Conditionnel à une liste fermée de communes. Un bien hors liste ne peut pas le renseigner. |
 | Classe DPE | ❌ | `section_reglementation.classe_dpe` (**à ajouter**) | **Manque Lite n°2.** Pas encore collectée (vérifié, 0 / 43 fiches en base). À ajouter en miroir de FL PR #36 : menu A–G + « Non communiqué », facultatif. |
-| Dépenses énergétiques annuelles (F/G) | ❌ | `section_reglementation.dpe_depenses_min` / `dpe_depenses_max` (**à ajouter**) | Suite du manque n°2. Fourchette €/an, visible uniquement si la classe est F ou G. Miroir FL PR #36. |
+| Dépenses énergétiques annuelles (F/G) | ❌ | `section_reglementation.dpe_depenses_min` / `section_reglementation.dpe_depenses_max` (**à ajouter**) | Suite du manque n°2. Fourchette €/an, visible uniquement si la classe est F ou G. Miroir FL PR #36. |
 
 ---
 
@@ -188,9 +188,9 @@ Ces champs alimentent les blocs `note_etat` et `note_quartier` assemblés par le
 | Donnée | Statut | Section / champ |
 |---|---|---|
 | État immeuble / propreté / accessibilité / niveau sonore | ✅ | `section_avis.immeuble_*` |
-| Grille état logement (9 critères notés 1–5) + dangers sécurité | ✅ | `section_avis.grille_*` + `securite_dangers` |
+| Grille état logement (9 critères notés 1–5) + dangers sécurité | ✅ | `section_avis.grille_*` + `section_avis.securite_dangers` |
 | Sécurité du quartier | ✅ | `section_avis.quartier_securite` (Sécurisé / modéré / zone à risques) |
-| Élément perturbateur quartier + détails | ✅ | `section_avis.quartier_perturbations` + `quartier_perturbations_details` |
+| Élément perturbateur quartier + détails | ✅ | `section_avis.quartier_perturbations` + `section_avis.quartier_perturbations_details` |
 | Caractère socio-éco négatif du quartier | ✅ | `section_avis.quartier_types` (valeur « défavorisé ») |
 
 ---
@@ -209,7 +209,7 @@ Ces champs alimentent les blocs `note_etat` et `note_quartier` assemblés par le
 ### Réellement absent dans la fiche — les deux manques à combler (ce pilote)
 
 1. **Vue depuis le logement** (`section_avis.vue_types`) — **manque n°1.** À ajouter en miroir de FL PR #35.
-2. **DPE** : classe (`section_reglementation.classe_dpe`) + dépenses énergétiques F/G (`section_reglementation.dpe_depenses_min` / `dpe_depenses_max`) — **manque n°2.** À ajouter en miroir de FL PR #36.
+2. **DPE** : classe (`section_reglementation.classe_dpe`) + dépenses énergétiques F/G (`section_reglementation.dpe_depenses_min` / `section_reglementation.dpe_depenses_max`) — **manque n°2.** À ajouter en miroir de FL PR #36.
 
 Ces deux manques sont confirmés contre le **schéma réel** de `fiche_lite` (colonnes JSONB) : sur les 43 fiches en base, aucune n'a la clé `vue_types` dans `section_avis`, ni `classe_dpe` / `dpe_depenses_min` dans `section_reglementation`. Tout le reste de ce que l'agent attend est déjà collecté. Ces deux champs se logent dans les colonnes JSONB **existantes** (`section_avis`, `section_reglementation`), donc **sans migration SQL** — c'est l'objet de la PR « champs » de ce pilote.
 

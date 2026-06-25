@@ -23,14 +23,14 @@ Déclencheur : `section_avis.immeuble_*`.
 
 - **Immeuble en mauvais état** : « L'immeuble est ancien, avec son charme et ses petites imperfections. Vous pourriez croiser des murs marqués ou une peinture un peu passée. Ce n'est pas du neuf, mais c'est vivant, simple, et agréable à vivre. On préfère le dire avec honnêteté, pour que vous réserviez avec les bonnes attentes. »
 - **Propreté de l'immeuble sale** : « Même si les espaces communs peuvent manquer de soin, le logement reste agréable et fonctionnel pour votre séjour. » (correction 7755 : « l'appartement » → « le logement » pour rester générique sur tous les types de bien)
-- **Immeuble inaccessible / logement non PMR** : « Le logement n'est pas accessible aux personnes à mobilité réduite. » (point final ajouté post-7755). DÉCIDÉ post-7755 : ce négatif se déclenche **uniquement** via le choix « inaccessible » de la grille Avis (`avis_immeuble_accessibilite`). La case « accessible PMR » des Équipements ne sert qu'au **positif** (zone modèle) et ne déclenche plus aucun négatif — décochée, elle reste à `null` en conditions réelles. Anti-contradiction : si l'immeuble est « inaccessible », la mention positive d'accessibilité n'est pas exposée au modèle (le négatif prime).
+- **Immeuble inaccessible / logement non PMR** : « Le logement n'est pas accessible aux personnes à mobilité réduite. » (point final ajouté post-7755). DÉCIDÉ post-7755 : ce négatif se déclenche **uniquement** via le choix « inaccessible » de la grille Avis (`section_avis.immeuble_accessibilite`). La case « accessible PMR » des Équipements ne sert qu'au **positif** (zone modèle) et ne déclenche plus aucun négatif — décochée, elle reste à `null` en conditions réelles. Anti-contradiction : si l'immeuble est « inaccessible », la mention positive d'accessibilité n'est pas exposée au modèle (le négatif prime).
 - **Niveau sonore très bruyant** : AUCUNE phrase canon dans l'ancien prompt. Décision : on n'invente pas, rien n'est injecté pour ce cas.
 
 ---
 
 ## note_quartier — cas négatifs uniquement
 
-Déclencheur : `section_avis.quartier_securite` / `quartier_perturbations` / `quartier_types` = « défavorisé ». Le quartier positif reste rédigé par le modèle (voir section ton plus bas).
+Déclencheur : `section_avis.quartier_securite` / `section_avis.quartier_perturbations` / `section_avis.quartier_types` = « défavorisé ». Le quartier positif reste rédigé par le modèle (voir section ton plus bas).
 
 - **Quartier défavorisé** (3 variantes au choix du coordinateur) :
   - « Un quartier modeste, avec moins d'infrastructures »
