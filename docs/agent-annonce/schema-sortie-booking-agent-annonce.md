@@ -34,7 +34,7 @@ Distinction fondamentale, comme pour Airbnb : certains champs sont **générés 
 
 | Champ | Source | Notes |
 |---|---|---|
-| `nom` | Généré (modèle) + **sanitisé par le code** | Type + capacité + atout + lieu. 3 à 255 caractères. Charset toléré Booking uniquement (lettres, chiffres et `! # & ' " - ,`), pas de majuscules intégrales, pas plus de 5 chiffres consécutifs. Le modèle vise, le code valide et corrige. |
+| `nom` | Généré (modèle) + **sanitisé par le code** | Type + capacité + atout + lieu. 3 à 255 caractères. Charset toléré Booking uniquement (lettres, chiffres, espaces et `! # & ' " - ,`), pas de majuscules intégrales, pas plus de 5 chiffres consécutifs. Le modèle vise, le code valide et corrige. |
 | `about_property` | Généré (modèle) + scrub interdits | ~2000 caractères (à confirmer dans l'extranet). Couvre les **7 dimensions d'avis** (propreté, confort, emplacement, personnel, équipements, rapport qualité-prix, wifi) en faits concrets, ton hôtelier. Pas de storytelling Airbnb. |
 | `about_neighbourhood` | Généré (modèle) + scrub interdits | Quartier, transports, points d'intérêt à partir des **faits de localisation** (mêmes faits qu'Airbnb), ton positif. Vide si localisation indisponible (dégradation gracieuse). Règle de seuil transports par mode appliquée. |
 | `about_host` | Template conciergerie (code) | Texte constant, identique pour tous les biens. Pas généré. Placeholder en attendant la reformulation en interne. |
