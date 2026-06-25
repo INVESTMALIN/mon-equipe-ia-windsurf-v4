@@ -171,6 +171,10 @@ const initialFormData = {
     atouts_logement_autre: "",
     autres_caracteristiques: "",
 
+    // 👁️ Vue depuis le logement (multi-sélection, clés stables — cf. optionsVue dans FicheAvis)
+    // Array de clés type ["vue_mer", "vue_montagne"]. "vue_aucune" = évalué, rien à valoriser.
+    vue_types: [],
+
     // Types de voyageurs
     types_voyageurs: {
       duo_amoureux: false,
@@ -268,6 +272,12 @@ const initialFormData = {
     date_expiration_changement: "",
     numero_declaration: "",
     details_reglementation: "",
+
+    // 🔋 DPE : "" = non renseigné, "A".."G", "Non communiqué" = réponse explicite
+    classe_dpe: "",
+    // Estimation dépenses énergétiques annuelles (€/an), fourchette — uniquement F/G
+    dpe_depenses_min: "",
+    dpe_depenses_max: "",
 
     // Documents checklist
     documents: {

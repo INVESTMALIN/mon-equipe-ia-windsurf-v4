@@ -426,7 +426,9 @@ const formatFieldValue = (value, fieldKey = '') => {
     // Nettoyage des valeurs forcées
     const cleaned = value.trim()
     if (cleaned.toUpperCase() === 'OUI' || cleaned === 'Oui') return 'Oui'
-    if (cleaned.toUpperCase().startsWith('NON')) return 'Non'
+    // « Non communiqué » (classe DPE) est une valeur d'énumération explicite, pas un
+    // booléen : on ne la réduit pas à « Non », sinon la distinction est perdue au PDF.
+    if (cleaned.toUpperCase().startsWith('NON') && cleaned.toUpperCase() !== 'NON COMMUNIQUÉ') return 'Non'
     
     // Formatage des enums
     if (cleaned.includes('_') && !cleaned.includes(' ')) {
