@@ -66,7 +66,7 @@ Exemple : *"Appartement Vue Mer - 4 pers - Plage 50m - Nice"*
 
 ## 3. Les règles du jeu Booking
 
-- **Nom de l'hébergement : 3 à 255 caractères.** Caractères tolérés uniquement : lettres, chiffres et **! # & ' " - ,**. Pas de majuscules intégrales. Pas plus de 5 chiffres consécutifs (détection numéro de téléphone). Filtre Booking actif sur certains mots, liste volontairement opaque. Source : Booking developers API.
+- **Nom de l'hébergement : 3 à 255 caractères.** Caractères tolérés uniquement : lettres, chiffres et les caractères spéciaux `!` `#` `&` `'` `"` `-` `,` (la virgule en fait partie). Pas de majuscules intégrales. Pas plus de 5 chiffres consécutifs (détection numéro de téléphone). Filtre Booking actif sur certains mots, liste volontairement opaque. Source : Booking developers API.
 - **About the property : environ 2 000 caractères.** Limite indicative remontée par les channel managers (Smily, BookingSync). Le chiffre exact à valider directement dans l'extranet au moment du build.
 - **Description voyageur : auto-générée.** Booking construit le texte affiché à partir des champs structurés, pas d'un bloc texte libre comme sur Airbnb.
 - **Property Page Score : jusqu'à +18 % de réservations.** Booking communique officiellement qu'une fiche complète à 100 % génère jusqu'à 18 % de réservations en plus. C'est un plafond, pas une moyenne. Source : Booking Partner Hub.
