@@ -11,7 +11,7 @@
 Déclencheur : verdict / `section_avis.grille_*`. États positifs (excellent, bon) = aucune injection, le modèle écrit normalement.
 
 - **État moyen** : « Notre logement a traversé le temps, avec quelques petites marques d'usage, mais nous l'avons pensé pour vous offrir un cadre chaleureux et pratique. »
-- **État dégradé** : « Notre logement n'est pas neuf, il a traversé les années, avec du mobilier et des installations marqués par le temps mais ce logement nous est cher et nous sommes convaincus qu'il saura vous plaire. » (correction 7755 : accord « convaincus » + point final)
+- **État dégradé** : « Notre logement n'est pas neuf, il a traversé les années, avec du mobilier et des installations marqués par le temps, mais ce logement nous est cher et nous sommes convaincus qu'il saura vous plaire. » (correction 7755 : accord « convaincus » + point final)
 - **Très mauvais état** : « Ce logement n'est pas tout neuf, mais il a une âme. C'est un vrai lieu de vie, avec quelques traces du temps ici ou là, rien de gênant, juste des marques d'authenticité. Si vous cherchez un endroit impeccable comme un hôtel, ce n'est peut-être pas ce qu'il vous faut. Mais si vous aimez les lieux chaleureux, simples et pleins de caractère, vous vous y sentirez bien. » (DÉCIDÉ post-7755 : les éléments vétustes en texte libre ne sont **pas** intégrés — hors périmètre.)
 - **Propreté sale (logement)** : pas de phrase canon. (DÉCIDÉ post-7755 : les éléments sales décrits en texte libre ne sont **pas** intégrés — hors périmètre.)
 
@@ -23,7 +23,7 @@ Déclencheur : `section_avis.immeuble_*`.
 
 - **Immeuble en mauvais état** : « L'immeuble est ancien, avec son charme et ses petites imperfections. Vous pourriez croiser des murs marqués ou une peinture un peu passée. Ce n'est pas du neuf, mais c'est vivant, simple, et agréable à vivre. On préfère le dire avec honnêteté, pour que vous réserviez avec les bonnes attentes. »
 - **Propreté de l'immeuble sale** : « Même si les espaces communs peuvent manquer de soin, le logement reste agréable et fonctionnel pour votre séjour. » (correction 7755 : « l'appartement » → « le logement » pour rester générique sur tous les types de bien)
-- **Immeuble inaccessible / logement non PMR** : « Le logement n'est pas accessible aux personnes PMR. » (point final ajouté post-7755). DÉCIDÉ post-7755 : ce négatif se déclenche **uniquement** via le choix « inaccessible » de la grille Avis (`avis_immeuble_accessibilite`). La case « accessible PMR » des Équipements ne sert qu'au **positif** (zone modèle) et ne déclenche plus aucun négatif — décochée, elle reste à `null` en conditions réelles. Anti-contradiction : si l'immeuble est « inaccessible », la mention positive d'accessibilité n'est pas exposée au modèle (le négatif prime).
+- **Immeuble inaccessible / logement non PMR** : « Le logement n'est pas accessible aux personnes à mobilité réduite. » (point final ajouté post-7755). DÉCIDÉ post-7755 : ce négatif se déclenche **uniquement** via le choix « inaccessible » de la grille Avis (`avis_immeuble_accessibilite`). La case « accessible PMR » des Équipements ne sert qu'au **positif** (zone modèle) et ne déclenche plus aucun négatif — décochée, elle reste à `null` en conditions réelles. Anti-contradiction : si l'immeuble est « inaccessible », la mention positive d'accessibilité n'est pas exposée au modèle (le négatif prime).
 - **Niveau sonore très bruyant** : AUCUNE phrase canon dans l'ancien prompt. Décision : on n'invente pas, rien n'est injecté pour ce cas.
 
 ---

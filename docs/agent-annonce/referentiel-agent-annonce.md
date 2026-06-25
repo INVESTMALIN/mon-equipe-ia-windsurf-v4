@@ -84,7 +84,7 @@ Une description efficace contient idéalement, dans l'ordre :
 1. **Phrase d'accroche située** : type de logement + ambiance + localisation iconique (ex : "Charming studio located in the heart of the Marais...").
 2. **Description spatiale** : nombre de pièces, taille, équipements principaux (cuisine, salle de bain), couchage.
 3. **Distance / accessibilité** : transports en commun, points d'intérêt à proximité avec distance en minutes.
-4. **Différentiateur** : ce qui rend le logement spécial (terrasse, vue, climatisation, calme, équipement haut de gamme).
+4. **Différenciateur** : ce qui rend le logement spécial (terrasse, vue, climatisation, calme, équipement haut de gamme).
 
 ### 2.4 Bilinguisme
 
@@ -258,7 +258,7 @@ Avant de valider une description, vérifier :
 - [ ] **Phrase d'accroche située** dès la première ligne
 - [ ] **Au moins 2 équipements de niveau 1** mentionnés
 - [ ] **Au moins une distance ou un temps de trajet** vers un POI ou un transport
-- [ ] **Au moins un différentiateur** explicite (vue, terrasse, climatisation, rénovation récente, etc.)
+- [ ] **Au moins un différenciateur** explicite (vue, terrasse, climatisation, rénovation récente, etc.)
 - [ ] Pas de saturation à 500 caractères pile
 - [ ] Pas d'adjectifs vides sans fait derrière
 

@@ -105,9 +105,9 @@ Annonce conforme à l'ensemble des règles ci-dessus pour un bien type Invest Ma
 
 ### Titre
 
-> Maison de charme avec jardin · Village provençal · Piscine
+> Maison de charme · Jardin & piscine privée
 
-*57 caractères. La sortie réelle sera calibrée à 50.*
+*42 caractères. Dans la cible idéale (37-43) et sous la limite stricte de 50.*
 
 ### Résumé (description principale)
 
