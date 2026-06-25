@@ -158,7 +158,7 @@ L'agent doit pousser le concierge à équiper le bien dans cette direction si ce
 |---|---|
 | **Langue titre** | Mélange français / anglais accepté. 10 à 27 % des top titres contiennent "the", "apartment", "with", "heart". |
 | **Mots-clés titre** | `paris` (27 %), `studio` (17 %), `appartement` (14 %), `apartment` (10 %), `marais` (10 %), `eiffel` (9 %), `montmartre` (7 %), `cosy` (8 %) |
-| **Bigrams titre** | `eiffel tower` (131×), `tour eiffel` (102×), `the heart` (78×), `heart paris` (71 ×), `champs elysées` (54×), `saint germain` (40×) |
+| **Bigrams titre** | `eiffel tower` (131×), `tour eiffel` (102×), `the heart` (78×), `heart paris` (71×), `champs elysées` (54×), `saint germain` (40×) |
 | **Lieux iconiques à mobiliser** | Eiffel / Tour Eiffel, Marais, Montmartre, Champs-Élysées, Saint-Germain, Louvre, Tuileries, Notre-Dame |
 | **Formule signature description** | "in the heart of [quartier]" (935 occurrences sur les top) |
 
