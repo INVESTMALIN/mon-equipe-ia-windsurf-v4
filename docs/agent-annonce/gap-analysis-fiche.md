@@ -42,7 +42,7 @@ Vérification faite sur le schéma réel : colonnes JSONB de `fiche_lite` lues e
 |---|---|---|---|
 | Ville | ✅ | `section_proprietaire.adresse.ville` | **Adresse du bien.** Saisie dans la première section du formulaire (la fiche propriétaire), mais c'est bien l'adresse du logement, pas l'adresse perso du propriétaire. Point déjà clarifié et confirmé. |
 | Adresse (rue) | ✅ | `section_proprietaire.adresse.rue` | Adresse du bien. **Sert d'ancre au géocodage côté code, n'est PAS donnée au modèle** (jamais dans une annonce publique). |
-| Type / ambiance de quartier | ✅ | `section_avis.quartier_types` (array, 12 valeurs) | Capture le caractère (central, ancien, balnéaire, résidentiel, défavorisé…), pas le nom. Les valeurs négatives (défavorisé) vont aux disclosures (§11). |
+| Type / ambiance de quartier | ✅ | `section_avis.quartier_types` (array, 9 valeurs) | Capture le caractère (central, ancien, populaire, résidentiel, défavorisé…), pas le nom. Les valeurs négatives (défavorisé) vont aux disclosures (§11). |
 | Nom du quartier (toponyme) | ❌ | — | Pas de « Le Marais », « Chartrons ». Manque pour l'ancrage géo des titres. |
 | POI à proximité (nommés) | ❌ | — | Aucun POI nommé. |
 | Distances vers POI (m / min) | ❌ | — | Aucune notion de distance. |
