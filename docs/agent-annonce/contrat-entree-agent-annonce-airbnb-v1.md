@@ -32,8 +32,8 @@ Le modèle ne voit **jamais** la fiche brute, seulement le contrat propre. Deux 
 | `section_logement.surface` | description (obligatoire), logement |
 | `section_visite.nombre_chambres` + `section_chambres.chambre_1..6` (literie détaillée) | description, logement |
 | `section_logement.nombre_personnes_max` | contexte cible (aussi passthrough code, cf. partie 3) |
-| Étage, **réconcilié en code** (`appartement.etage` / `type_niveau` / `nombre_etages`) | logement, accès |
-| Accès + ascenseur, **réconciliés en code** (`appartement.acces` + `section_equipements.ascenseur`) | logement, accès |
+| Étage, **réconcilié en code** (`section_logement.appartement.etage` / `section_logement.studio.etage` / `section_logement.maison_niveau` / `section_logement.maison_nb_etages`) | logement, accès |
+| Accès + ascenseur, **réconciliés en code** (`section_logement.appartement.acces` + `section_equipements.ascenseur`) | logement, accès |
 
 ### Localisation (titre, quartier, comment se déplacer)
 
@@ -49,9 +49,9 @@ La rue (`section_proprietaire.adresse.rue`) n'est **pas** dans le contrat modèl
 
 | Source | Contenu exploité |
 |---|---|
-| `section_equipements` | climatisation, chauffage, ventilateur, lave-linge, sèche-linge, sèche-serviettes, fer à repasser, étendoir, TV (type + services streaming + consoles), coffre-fort, tourne-disque, piano, compacteur de déchets, accessibilité PMR, présence wifi, parking (type + sous-types) |
+| `section_equipements` | climatisation, chauffage, lave-linge, sèche-linge, fer à repasser, étendoir, TV (type + services streaming + consoles), coffre-fort, tourne-disque, piano, compacteur de déchets, accessibilité PMR, présence wifi, parking (type + sous-types) |
 | Cuisine, bains, linge | `section_cuisine_1/2` (café, four, plaque, micro-ondes, vaisselle), `section_salle_de_bains` (sèche-cheveux), `section_salon_sam` (table à manger), `section_gestion_linge` + `section_chambres` (linge de lit), `section_consommables` (produits toilette + ménage, présence seule) |
-| `section_equip_spe_exterieur` | espace extérieur + description libre, équipements ext (barbecue, plancha, hamac, douche ext…), piscine (+ caractéristiques), jacuzzi, sauna, hammam, cuisine extérieure, salle de sport, salle de cinéma, salle de jeux (billard, baby-foot, ping-pong), local à vélo |
+| `section_equip_spe_exterieur` | espace extérieur + description libre, équipements ext (barbecue, plancha, hamac, douche ext…), piscine (+ caractéristiques), jacuzzi, sauna, hammam, cuisine extérieure, salle de sport, salle de cinéma, salle de jeux (billard, baby-foot, ping-pong) |
 | `section_clefs` | self check-in, **déduit en code** |
 
 ### Atouts et ambiance (description, titre, mon logement)
@@ -75,7 +75,7 @@ La rue (`section_proprietaire.adresse.rue`) n'est **pas** dans le contrat modèl
 
 | Champ fiche | Note |
 |---|---|
-| `section_exigences.animaux_acceptes` (+ commentaire) | accepté ou non |
+| `section_equipements.animaux_acceptes` (+ `animaux_commentaire`) | accepté ou non |
 | Fêtes / fumeurs | **valeur calculée en code** : « non » par défaut, bascule sur « oui » seulement si la fiche l'indique explicitement (`section_equipements.fetes_autorisees` / `fumeurs_acceptes` à true). Le modèle reçoit la valeur finale et l'habille en prose, il ne décide jamais |
 | `section_securite.equipements` **hors caméras** | détecteurs fumée/CO, extincteur, trousse de secours, verrou, alarme, équipements rassurants |
 
@@ -88,9 +88,9 @@ Les horaires de tranquillité (22h-8h) sont une règle constante de la concierge
 | Bloc sortie | Logique |
 |---|---|
 | `nombre_voyageurs` | passthrough de `section_logement.nombre_personnes_max`, recopié tel quel |
-| `mentions_reglementaires` | numéro d'enregistrement (`numero_declaration`) + classe DPE recopiés tels quels ; pour F/G uniquement, mention « Logement à consommation énergétique excessive » + estimation dépenses formatée. Conformité légale, zéro reformulation |
-| `note_etat` | **phrases reprises fidèlement du vieux prompt**, cas négatifs seulement. Sources : `section_avis.immeuble_*` (état, propreté, accessibilité, niveau sonore), `grille_*` (9 critères) + verdict, `securite_dangers`. Déclencheur = un niveau qui a une phrase dans le vieux prompt. Cas positif = rien |
-| `note_quartier` | **phrases reprises fidèlement du vieux prompt**, cas négatifs seulement. Sources : `quartier_securite` (modéré / zone à risques), `quartier_perturbations` + détails (intègre l'élément précis), `quartier_types` valeur « défavorisé ». Cas positif = rien, le modèle garde la prose positive |
+| `mentions_reglementaires` | numéro d'enregistrement (`section_reglementation.numero_declaration`) + classe DPE recopiés tels quels ; pour F/G uniquement, mention « Logement à consommation énergétique excessive » + estimation dépenses formatée. Conformité légale, zéro reformulation |
+| `note_etat` | **phrases reprises fidèlement du vieux prompt**, cas négatifs seulement. Sources : `section_avis.immeuble_*` (état, propreté, accessibilité, niveau sonore), `section_avis.grille_*` (9 critères) + verdict, `section_avis.securite_dangers`. Déclencheur = un niveau qui a une phrase dans le vieux prompt. Cas positif = rien |
+| `note_quartier` | **phrases reprises fidèlement du vieux prompt**, cas négatifs seulement. Sources : `section_avis.quartier_securite` (modéré / zone à risques), `section_avis.quartier_perturbations` + détails (intègre l'élément précis), `section_avis.quartier_types` valeur « défavorisé ». Cas positif = rien, le modèle garde la prose positive |
 | Caméras | 3 cas. **Extérieures** présentes → mention obligatoire déterministe (formulation validée). **Intérieures espaces communs** présentes → jamais mentionnées dans l'annonce Airbnb (catégorie interdite depuis avril 2024) + drapeau de conformité levé. Aucune caméra → rien. Source : `section_securite.equipements` |
 | `echanges_voyageurs` | template conciergerie constant, repris tel quel de l'existant, injecté par le code, pas généré |
 | Horaires de tranquillité | règle constante 22h-8h, reprise telle quelle du vieux prompt, injectée par le code dans les autres remarques |
