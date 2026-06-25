@@ -100,11 +100,11 @@ Ce que couvre chaque bloc :
 - Séjour : capacité de la table, type de télévision et services de streaming, canapé-lit et cheminée si présents.
 - Cuisine : l'électroménager présent (four, plaques, micro-ondes, machine à café, lave-vaisselle, bouilloire, grille-pain...).
 - Chambres : nombre de lits et dimensions, et la localisation de la chambre uniquement si elle est connue et cohérente avec l'accès indiqué.
-- Salle de bain : douche ou baignoire, leur type, privée ou partagée, sèche-cheveux et sèche-serviettes si présents.
+- Salle de bain : douche ou baignoire, leur type, privée ou partagée, sèche-cheveux si présent.
 - Extérieur : type (balcon, terrasse, jardin), privé ou commun, équipements (salon de jardin, barbecue...).
 - Piscine, Jacuzzi, Sauna : pour une piscine, privée ou partagée, et pour une partagée ses horaires et sa disponibilité dans l'année.
 
-Chaque bloc est de la prose fluide et rédigée, jamais une énumération télégraphique. À proscrire : « Douche, sèche-cheveux et sèche-serviettes. » À écrire plutôt : « La salle de bain privative vous offre une belle douche, avec sèche-cheveux et sèche-serviettes pour votre confort. » Garde une touche sensorielle (lumière, ambiance, usage du lieu), sans cliché creux. Longueur indicative autour de 1000 à 1200 caractères, intitulés compris.
+Chaque bloc est de la prose fluide et rédigée, jamais une énumération télégraphique. À proscrire : « Douche et sèche-cheveux. » À écrire plutôt : « La salle de bain privative vous offre une belle douche, avec sèche-cheveux pour votre confort. » Garde une touche sensorielle (lumière, ambiance, usage du lieu), sans cliché creux. Longueur indicative autour de 1000 à 1200 caractères, intitulés compris.
 
 ### Accès des voyageurs
 
