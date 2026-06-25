@@ -779,9 +779,16 @@ export default function FicheAvis() {
                         checked={formData.vue_types?.includes(key) || false}
                         onChange={(e) => {
                           const currentVues = formData.vue_types || []
-                          const newVues = e.target.checked
-                            ? [...currentVues, key]
-                            : currentVues.filter(vue => vue !== key)
+                          let newVues
+                          if (e.target.checked) {
+                            // « Aucune vue » est exclusif : la cocher vide les autres ; cocher une
+                            // vue concrète retire « Aucune vue » (jamais d'état contradictoire envoyé à l'agent).
+                            newVues = key === 'vue_aucune'
+                              ? ['vue_aucune']
+                              : [...currentVues.filter(vue => vue !== 'vue_aucune'), key]
+                          } else {
+                            newVues = currentVues.filter(vue => vue !== key)
+                          }
                           handleInputChange('section_avis.vue_types', newVues)
                         }}
                         className="h-4 w-4 shrink-0 text-[#dbae61] focus:ring-[#dbae61]"
