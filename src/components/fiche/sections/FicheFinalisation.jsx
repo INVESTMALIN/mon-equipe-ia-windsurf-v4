@@ -419,15 +419,20 @@ export default function FicheFinalisation() {
                       <div className="flex flex-wrap gap-3">
                         <button
                           onClick={handleGenerateAgent}
-                          disabled={agentLoading}
+                          disabled={agentLoading || agentFetching}
                           className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                            agentLoading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                            agentLoading || agentFetching ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
                           }`}
                         >
                           {agentLoading ? (
                             <>
                               <RefreshCw className="w-5 h-5 animate-spin" />
                               Génération en cours...
+                            </>
+                          ) : agentFetching ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              Chargement…
                             </>
                           ) : agentOutput ? (
                             <>
