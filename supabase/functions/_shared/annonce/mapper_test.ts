@@ -294,6 +294,35 @@ Deno.test('Vue : vue_types passé tel quel, ventilateur/sèche-serviettes neutre
   assertEquals(c.modele.equipements.seche_serviettes, null)
 })
 
+Deno.test('Vue : le sentinelle vue_aucune n\'est jamais exposé au modèle', () => {
+  // "Aucune vue à mettre en avant" est exclusif côté formulaire → filtré.
+  assertEquals(mapFicheToContrat({ section_avis: { vue_types: ['vue_aucune'] } }).modele.atouts.vue_types, [])
+  // Mélange défensif (ne devrait pas arriver) : on garde les vues concrètes, on jette le sentinelle.
+  assertEquals(
+    mapFicheToContrat({ section_avis: { vue_types: ['vue_mer', 'vue_aucune'] } }).modele.atouts.vue_types,
+    ['vue_mer'],
+  )
+})
+
+Deno.test('Vaisselle complète : le verdict explicite quantite_suffisante prime sur les compteurs', () => {
+  // Insuffisant explicite → jamais "complète", même si des assiettes sont comptées.
+  assertEquals(
+    mapFicheToContrat({ section_cuisine_2: { quantite_suffisante: false, vaisselle_assiettes_plates: 8 } }).modele.equipements.cuisine.vaisselle_complete,
+    false,
+  )
+  // Suffisant explicite → complète, même sans compteur.
+  assertEquals(
+    mapFicheToContrat({ section_cuisine_2: { quantite_suffisante: true } }).modele.equipements.cuisine.vaisselle_complete,
+    true,
+  )
+  // Pas de verdict → repli sur les compteurs (parité FL).
+  assertEquals(
+    mapFicheToContrat({ section_cuisine_2: { couverts_verres_eau: 6 } }).modele.equipements.cuisine.vaisselle_complete,
+    true,
+  )
+  assertEquals(mapFicheToContrat({ section_cuisine_2: {} }).modele.equipements.cuisine.vaisselle_complete, false)
+})
+
 Deno.test('DPE : classe + dépenses lues en zone code (chaînes numériques tolérées)', () => {
   const c = mapFicheToContrat({
     section_reglementation: { classe_dpe: 'F', dpe_depenses_min: '1500', dpe_depenses_max: '2030', numero_declaration: '12345' },

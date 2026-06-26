@@ -218,6 +218,22 @@ const fetesAutorisees = (equipements: Section): boolean => isTrue(equipements, '
 const fumeursAcceptes = (equipements: Section): boolean => isTrue(equipements, 'fumeurs_acceptes')
 
 /**
+ * Vaisselle « complète » (Lite). L'inspecteur répond explicitement
+ * `quantite_suffisante` (vaisselle/couverts suffisants pour le nb max de
+ * voyageurs). Ce verdict prime sur les compteurs : `false` → jamais "complète"
+ * (on ne sur-promet pas un inventaire jugé insuffisant), `true` → complète.
+ * Sans réponse (null/absent) → on retombe sur les compteurs (≥1 assiette plate OU
+ * ≥1 verre à eau), exactement comme FL.
+ */
+function vaisselleComplete(cuisine2: Section): boolean {
+  const suffisant = bool(cuisine2, 'quantite_suffisante')
+  if (suffisant === true) return true
+  if (suffisant === false) return false
+  return (num(cuisine2, 'vaisselle_assiettes_plates') ?? 0) > 0 ||
+    (num(cuisine2, 'couverts_verres_eau') ?? 0) > 0
+}
+
+/**
  * Équipement bébé. La présence vient de la VRAIE source : la case cochée dans le
  * tableau `bebe.equipements`. Les sous-détails (type, dispo, prix) sont optionnels
  * → ne jamais déduire une présence de leur seul remplissage (ex. "Chaise haute"
@@ -313,9 +329,12 @@ function mapEquipements(f: FicheLiteRow): ModeleZone['equipements'] {
       cafetiere_types: scanTrueKeys(cuisine1, 'cafetiere_type_'),
       bouilloire: isTrue(cuisine1, 'equipements_bouilloire'),
       grille_pain: isTrue(cuisine1, 'equipements_grille_pain'),
-      vaisselle_complete:
-        (num(cuisine2, 'vaisselle_assiettes_plates') ?? 0) > 0 ||
-        (num(cuisine2, 'couverts_verres_eau') ?? 0) > 0,
+      // Vaisselle « complète » : on respecte d'abord le verdict explicite de
+      // l'inspecteur (`quantite_suffisante` : suffisante pour le nb max de
+      // voyageurs). false → jamais "complète" (on ne sur-promet pas un inventaire
+      // jugé insuffisant). true → complète. null/absent → on retombe sur les
+      // compteurs (≥1 assiette OU verre à eau), comme FL.
+      vaisselle_complete: vaisselleComplete(cuisine2),
       verres_a_vin: (num(cuisine2, 'couverts_verres_vin') ?? 0) > 0,
       // Équipement cuisine « autre » saisi en libre : exposé seulement si la case
       // est cochée ET le libellé renseigné. Le modèle peut le mentionner (reformulé).
@@ -416,7 +435,11 @@ function mapModele(f: FicheLiteRow): ModeleZone {
       // déduit d'un atout (les faits viennent des sections structurées).
       atouts_logement: trueKeys(atoutsLogement),
       atouts_autre: txt(avis, 'atouts_logement_autre'),
-      vue_types: arr(avis, 'vue_types'),
+      // `vue_aucune` est un SENTINELLE interne (« aucune vue à mettre en avant »),
+      // exclusif dans le formulaire. On le filtre avant la zone modèle : pas de vue
+      // à valoriser = tableau vide, jamais un token interne donné au modèle (même
+      // logique que `quartier_defavorise` côté quartier).
+      vue_types: arr(avis, 'vue_types').filter((v) => v !== 'vue_aucune'),
       exterieur_description: txt(ext, 'exterieur_description_generale'),
       renove: trueKeys(atoutsLogement).includes('renove'),
     },
