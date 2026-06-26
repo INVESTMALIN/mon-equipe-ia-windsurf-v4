@@ -50,6 +50,10 @@ export default function FicheFinalisation() {
       return
     }
     let cancelled = false
+    // Vide la sortie précédente AVANT de charger : si la fiche change sans
+    // remontage du composant (route /fiche?id=… réutilisée), on n'affiche jamais
+    // l'annonce de l'ancienne fiche pendant la requête de la nouvelle.
+    setAgentOutput(null)
     setAgentFetching(true)
     setAgentError('')
     ;(async () => {
