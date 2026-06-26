@@ -60,9 +60,11 @@ export default function FicheFinalisation() {
         .eq('plateforme', agentPlateforme)
         .maybeSingle()
       if (cancelled) return
-      // On n'affiche qu'une annonce VALIDE (statut 'genere' + sortie présente).
-      // Une ligne en 'erreur' ou absente → état "à générer", pas de bruit affiché.
-      if (!error && data && data.statut === 'genere' && data.output_assemble) {
+      // On n'affiche qu'une annonce VALIDE : toute ligne non-'erreur' avec une
+      // sortie présente (donc 'genere' OU 'valide' — la table autorise les deux).
+      // Même prédicat que `annonceValideExistante` côté persistance. Une ligne en
+      // 'erreur' ou absente → état "à générer", pas de bruit affiché.
+      if (!error && data && data.statut !== 'erreur' && data.output_assemble) {
         setAgentOutput(data.output_assemble)
       } else {
         setAgentOutput(null)
