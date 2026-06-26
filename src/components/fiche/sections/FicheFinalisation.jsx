@@ -8,7 +8,7 @@ import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
   CheckCircle, FileText, Save, Sparkles, Wand2, Download, RefreshCw,
-  ChevronDown, Loader2, AlertCircle, Settings, ArrowLeft, Info,
+  ChevronDown, Loader2, AlertCircle, Settings, ArrowLeft, Info, Eye, EyeOff,
 } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 import { generateAnnoncePdf } from '../../../lib/annoncePdf'
@@ -28,7 +28,7 @@ export default function FicheFinalisation() {
   const [agentFetching, setAgentFetching] = useState(false) // chargement depuis agent_outputs
   const [agentOutput, setAgentOutput] = useState(null)
   const [agentError, setAgentError] = useState('')
-  const [annoncePanelOpen, setAnnoncePanelOpen] = useState(false) // panneau replié par défaut
+  const [apercuVisible, setApercuVisible] = useState(false) // aperçu de l'annonce masqué par défaut
   const [howItWorksOpen, setHowItWorksOpen] = useState(false)
 
   const {
@@ -344,187 +344,188 @@ export default function FicheFinalisation() {
                   </button>
                 </div>
 
-                {/* Agent Annonce — panneau pliable (replié par défaut) */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setAnnoncePanelOpen((o) => !o)}
-                    className="w-full flex items-center justify-between gap-3 p-6 text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
-                        <Wand2 className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Agent Annonce — génération automatique</h3>
-                        <p className="text-sm text-gray-600">
-                          {agentFetching
-                            ? "Chargement de l'annonce enregistrée…"
-                            : agentOutput
-                              ? `Annonce ${PLATEFORME_LABEL[agentPlateforme]} prête — dépliez pour voir, régénérer ou télécharger`
-                              : 'Aucune annonce générée pour le moment — dépliez pour générer'}
-                        </p>
-                      </div>
+                {/* Agent Annonce — commandes toujours visibles ; seul l'aperçu se masque */}
+                <div className="border border-gray-200 rounded-lg p-6 space-y-4">
+                  {/* Header (toujours visible) */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
+                      <Wand2 className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${annoncePanelOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Agent Annonce — génération automatique</h3>
+                      <p className="text-sm text-gray-600">
+                        {agentFetching
+                          ? "Chargement de l'annonce enregistrée…"
+                          : agentOutput
+                            ? `Annonce ${PLATEFORME_LABEL[agentPlateforme]} prête`
+                            : 'Aucune annonce générée pour le moment'}
+                      </p>
+                    </div>
+                  </div>
 
-                  {annoncePanelOpen && (
-                    <div className="px-6 pb-6 pt-4 border-t border-gray-100 space-y-4">
-                      {/* Explication "comment ça marche" (dépliable) */}
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => setHowItWorksOpen((o) => !o)}
-                          className="flex items-center gap-1.5 text-sm font-medium text-[#dbae61] hover:text-[#c49a4f] transition-colors"
-                        >
-                          <Info className="w-4 h-4" />
-                          Comment l'annonce est-elle générée ?
-                          <ChevronDown className={`w-4 h-4 transition-transform ${howItWorksOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {howItWorksOpen && (
-                          <div className="mt-2 p-4 bg-[#dbae61]/5 border border-[#dbae61]/20 rounded-lg text-sm text-gray-700 space-y-2">
-                            <p>
-                              L'agent rédige selon les bonnes pratiques 2026, calibrées sur une analyse de 115 597 annonces
-                              dont 3 565 « top performers » (Superhost, note ≥ 4,8/5, occupation élevée) — des seuils observés,
-                              pas inventés.
-                            </p>
-                            <ul className="list-disc list-inside space-y-1">
-                              <li><strong>Titre</strong> : 37–43 caractères (plafond Airbnb 50), structuré <em>typologie + ambiance + ancrage géographique</em>, sans émoji ni majuscules intégrales.</li>
-                              <li><strong>Description</strong> : ~430–450 caractères (plafond 500), avec accroche située, description spatiale, distances/accessibilité, puis le différenciateur du bien.</li>
-                              <li><strong>Ancrage géographique réel</strong> : commerces, transports, plage et points d'intérêt avec leurs distances proviennent de la localisation enrichie de la fiche — jamais inventés.</li>
-                              <li><strong>Équipements hiérarchisés</strong> : on met en avant les différenciateurs (arrivée autonome, consommables fournis, café, linge, cuisine équipée) plutôt que les standards (wifi, cuisine).</li>
-                              <li><strong>Style factuel</strong> : des faits (climatisé, 500 m de la plage, rénové) plutôt que des adjectifs vides.</li>
-                            </ul>
-                            <p>
-                              Les mentions réglementaires (n° d'enregistrement, classe DPE) et les disclosures (état, quartier, caméra)
-                              sont ajoutées automatiquement par le système. Sur <strong>Booking</strong>, la grande description est générée
-                              par la plateforme : l'agent remplit le nom et les champs « à propos » (logement, quartier, hôte).
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Choix plateforme */}
-                      <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
-                        {['airbnb', 'booking'].map((key) => (
-                          <button
-                            key={key}
-                            onClick={() => handleSwitchPlateforme(key)}
-                            disabled={agentLoading}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
-                              agentPlateforme === key ? 'bg-[#dbae61] text-white' : 'text-gray-700 hover:bg-white'
-                            }`}
-                          >
-                            {PLATEFORME_LABEL[key]}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Boutons générer / régénérer / télécharger */}
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          onClick={handleGenerateAgent}
-                          disabled={agentLoading || agentFetching}
-                          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                            agentLoading || agentFetching ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                          }`}
-                        >
-                          {agentLoading ? (
-                            <>
-                              <RefreshCw className="w-5 h-5 animate-spin" />
-                              Génération en cours...
-                            </>
-                          ) : agentFetching ? (
-                            <>
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              Chargement…
-                            </>
-                          ) : agentOutput ? (
-                            <>
-                              <RefreshCw className="w-5 h-5" />
-                              Régénérer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
-                            </>
-                          ) : (
-                            <>
-                              <Wand2 className="w-5 h-5" />
-                              Générer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
-                            </>
-                          )}
-                        </button>
-
-                        {agentOutput && (
-                          <button
-                            onClick={handleDownloadAnnoncePdf}
-                            className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white transition-all"
-                          >
-                            <Download className="w-5 h-5" />
-                            Télécharger le PDF
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Erreur */}
-                      {agentError && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
-                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{agentError}</span>
-                        </div>
-                      )}
-
-                      {/* Chargement de l'annonce enregistrée */}
-                      {agentFetching && !agentOutput && (
-                        <p className="text-sm text-gray-500 flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Chargement de l'annonce enregistrée…
+                  {/* Explication « comment ça marche » (dépliable) */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setHowItWorksOpen((o) => !o)}
+                      className="flex items-center gap-1.5 text-sm font-medium text-[#dbae61] hover:text-[#c49a4f] transition-colors"
+                    >
+                      <Info className="w-4 h-4" />
+                      Comment l'annonce est-elle générée ?
+                      <ChevronDown className={`w-4 h-4 transition-transform ${howItWorksOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {howItWorksOpen && (
+                      <div className="mt-2 p-4 bg-[#dbae61]/5 border border-[#dbae61]/20 rounded-lg text-sm text-gray-700 space-y-2">
+                        <p>
+                          L'agent rédige selon les bonnes pratiques 2026, calibrées sur une analyse de 115 597 annonces
+                          dont 3 565 « top performers » (Superhost, note ≥ 4,8/5, occupation élevée) — des seuils observés,
+                          pas inventés.
                         </p>
-                      )}
+                        <ul className="list-disc list-inside space-y-1">
+                          <li><strong>Titre</strong> : 37–43 caractères (plafond Airbnb 50), structuré <em>typologie + ambiance + ancrage géographique</em>, sans émoji ni majuscules intégrales.</li>
+                          <li><strong>Description</strong> : ~430–450 caractères (plafond 500), avec accroche située, description spatiale, distances/accessibilité, puis le différenciateur du bien.</li>
+                          <li><strong>Ancrage géographique réel</strong> : commerces, transports, plage et points d'intérêt avec leurs distances proviennent de la localisation enrichie de la fiche — jamais inventés.</li>
+                          <li><strong>Équipements hiérarchisés</strong> : on met en avant les différenciateurs (arrivée autonome, consommables fournis, café, linge, cuisine équipée) plutôt que les standards (wifi, cuisine).</li>
+                          <li><strong>Style factuel</strong> : des faits (climatisé, 500 m de la plage, rénové) plutôt que des adjectifs vides.</li>
+                        </ul>
+                        <p>
+                          Les mentions réglementaires (n° d'enregistrement, classe DPE) et les disclosures (état, quartier, caméra)
+                          sont ajoutées automatiquement par le système. Sur <strong>Booking</strong>, la grande description est générée
+                          par la plateforme : l'agent remplit le nom et les champs « à propos » (logement, quartier, hôte).
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
-                      {/* Aperçu de la sortie */}
-                      {agentOutput && (
-                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 space-y-3">
-                          {agentPlateforme === 'airbnb' ? (
-                            <>
-                              {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.length > 0 && (
-                                <div>
-                                  <p className="font-semibold text-gray-900 mb-1">Titres proposés</p>
-                                  <ol className="list-decimal list-inside space-y-0.5">
-                                    {agentOutput.airbnb.titres.map((t, i) => <li key={i}>{t}</li>)}
-                                  </ol>
-                                </div>
-                              )}
-                              <div>
-                                <p className="font-semibold text-gray-900 mb-1">Description</p>
-                                <p className="whitespace-pre-wrap">{agentOutput.airbnb?.description}</p>
-                              </div>
-                              {agentOutput.airbnb?.quartier && (
-                                <div>
-                                  <p className="font-semibold text-gray-900 mb-1">Le quartier</p>
-                                  <p className="whitespace-pre-wrap">{agentOutput.airbnb.quartier}</p>
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <div>
-                                <p className="font-semibold text-gray-900 mb-1">Nom de l'hébergement</p>
-                                <p>{agentOutput.booking?.nom}</p>
-                              </div>
-                              <div>
-                                <p className="font-semibold text-gray-900 mb-1">À propos du logement</p>
-                                <p className="whitespace-pre-wrap">{agentOutput.booking?.about_property}</p>
-                              </div>
-                              {agentOutput.booking?.about_neighbourhood && (
-                                <div>
-                                  <p className="font-semibold text-gray-900 mb-1">À propos du quartier</p>
-                                  <p className="whitespace-pre-wrap">{agentOutput.booking.about_neighbourhood}</p>
-                                </div>
-                              )}
-                            </>
-                          )}
-                          <p className="text-xs text-gray-500 pt-1 border-t border-gray-200">
-                            Aperçu partiel — le PDF contient l'annonce complète (mentions réglementaires, notes, etc.).
-                          </p>
-                        </div>
+                  {/* Choix plateforme */}
+                  <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+                    {['airbnb', 'booking'].map((key) => (
+                      <button
+                        key={key}
+                        onClick={() => handleSwitchPlateforme(key)}
+                        disabled={agentLoading}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
+                          agentPlateforme === key ? 'bg-[#dbae61] text-white' : 'text-gray-700 hover:bg-white'
+                        }`}
+                      >
+                        {PLATEFORME_LABEL[key]}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Commandes : générer/régénérer · afficher/masquer · télécharger (toujours visibles) */}
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={handleGenerateAgent}
+                      disabled={agentLoading || agentFetching}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                        agentLoading || agentFetching ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                      }`}
+                    >
+                      {agentLoading ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 animate-spin" />
+                          Génération en cours...
+                        </>
+                      ) : agentFetching ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Chargement…
+                        </>
+                      ) : agentOutput ? (
+                        <>
+                          <RefreshCw className="w-5 h-5" />
+                          Régénérer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-5 h-5" />
+                          Générer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
+                        </>
                       )}
+                    </button>
+
+                    {agentOutput && (
+                      <button
+                        type="button"
+                        onClick={() => setApercuVisible((v) => !v)}
+                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
+                      >
+                        {apercuVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {apercuVisible ? "Masquer l'annonce" : "Afficher l'annonce"}
+                      </button>
+                    )}
+
+                    {agentOutput && (
+                      <button
+                        onClick={handleDownloadAnnoncePdf}
+                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white transition-all"
+                      >
+                        <Download className="w-5 h-5" />
+                        Télécharger le PDF
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Erreur */}
+                  {agentError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{agentError}</span>
+                    </div>
+                  )}
+
+                  {/* Chargement de l'annonce enregistrée */}
+                  {agentFetching && !agentOutput && (
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Chargement de l'annonce enregistrée…
+                    </p>
+                  )}
+
+                  {/* Aperçu de la sortie — masqué par défaut, basculé par « Afficher / Masquer l'annonce » */}
+                  {agentOutput && apercuVisible && (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 space-y-3">
+                      {agentPlateforme === 'airbnb' ? (
+                        <>
+                          {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.length > 0 && (
+                            <div>
+                              <p className="font-semibold text-gray-900 mb-1">Titres proposés</p>
+                              <ol className="list-decimal list-inside space-y-0.5">
+                                {agentOutput.airbnb.titres.map((t, i) => <li key={i}>{t}</li>)}
+                              </ol>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-1">Description</p>
+                            <p className="whitespace-pre-wrap">{agentOutput.airbnb?.description}</p>
+                          </div>
+                          {agentOutput.airbnb?.quartier && (
+                            <div>
+                              <p className="font-semibold text-gray-900 mb-1">Le quartier</p>
+                              <p className="whitespace-pre-wrap">{agentOutput.airbnb.quartier}</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-1">Nom de l'hébergement</p>
+                            <p>{agentOutput.booking?.nom}</p>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-1">À propos du logement</p>
+                            <p className="whitespace-pre-wrap">{agentOutput.booking?.about_property}</p>
+                          </div>
+                          {agentOutput.booking?.about_neighbourhood && (
+                            <div>
+                              <p className="font-semibold text-gray-900 mb-1">À propos du quartier</p>
+                              <p className="whitespace-pre-wrap">{agentOutput.booking.about_neighbourhood}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      <p className="text-xs text-gray-500 pt-1 border-t border-gray-200">
+                        Aperçu partiel — le PDF contient l'annonce complète (mentions réglementaires, notes, etc.).
+                      </p>
                     </div>
                   )}
                 </div>
