@@ -225,8 +225,8 @@ export const detectAlertes = (formData) => {
   
     // Atouts sélectionnés
     const atouts = Object.entries(avis.atouts_logement || {})
-      .filter(([_, isSelected]) => isSelected)
-      .map(([atout, _]) => formatAtoutName(atout))
+      .filter(([, isSelected]) => isSelected)
+      .map(([atout]) => formatAtoutName(atout))
       .slice(0, 5) // Top 5
   
     return {
@@ -247,15 +247,15 @@ export const detectAlertes = (formData) => {
         wifi: {
           disponible: equipements.wifi_statut === 'oui',
           statut: equipements.wifi_statut || 'non_renseigne',
-          texte: equipements.wifi_statut === 'oui' ? '✅ WiFi disponible' : 
-                 equipements.wifi_statut === 'en_cours' ? '🔄 Installation en cours' :
-                 equipements.wifi_statut === 'non' ? '❌ Pas de WiFi' : '❓ Non renseigné'
+          texte: equipements.wifi_statut === 'oui' ? 'WiFi disponible' :
+                 equipements.wifi_statut === 'en_cours' ? 'Installation en cours' :
+                 equipements.wifi_statut === 'non' ? 'Pas de WiFi' : 'Non renseigné'
         },
         parking: {
           type: equipements.parking_type || 'non_renseigne',
-          texte: equipements.parking_type === 'rue' ? '🚗 Parking dans la rue' :
-                 equipements.parking_type === 'sur_place' ? '🅿️ Parking sur place' :
-                 equipements.parking_type === 'payant' ? '💳 Parking payant' : '❓ Non renseigné'
+          texte: equipements.parking_type === 'rue' ? 'Parking dans la rue' :
+                 equipements.parking_type === 'sur_place' ? 'Parking sur place' :
+                 equipements.parking_type === 'payant' ? 'Parking payant' : 'Non renseigné'
         }
       },
   

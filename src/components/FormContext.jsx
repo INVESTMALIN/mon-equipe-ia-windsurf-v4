@@ -29,7 +29,7 @@ const sections = [
   "Bébé",
   "Guide Accès",
   "Sécurité",
-  "✨ Finalisation"
+  "Finalisation"
 ]
 
 const initialFormData = {
