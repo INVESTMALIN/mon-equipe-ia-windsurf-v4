@@ -7,8 +7,10 @@ import MiniDashboard from '../MiniDashboard'
 import { useForm } from '../../FormContext'
 import { cleanFormData, extractSummary, validateDataConsistency } from '../../../lib/DataProcessor'
 import { formatForPdf, prepareForN8nWebhook, generatePdfTitle } from '../../../lib/PdfFormatter'
-import { CheckCircle, FileText, PenTool, MessageSquare, Send, Copy, Sparkles, Bot, Save } from 'lucide-react'
+import { CheckCircle, FileText, PenTool, MessageSquare, Send, Copy, Sparkles, Bot, Save, Wand2, Download, RefreshCw } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
+import { generateAnnoncePdf } from '../../../lib/annoncePdf'
+import { supabase } from '../../../supabaseClient'
 import useProgressiveLoading from '../../../hooks/useProgressiveLoading'
 
 export default function FicheFinalisation() {
@@ -24,6 +26,14 @@ export default function FicheFinalisation() {
   const [chatMessages, setChatMessages] = useState([])
   const [currentInput, setCurrentInput] = useState('')
   const { currentMessage, currentIcon: LoadingIcon, dots } = useProgressiveLoading(annonceLoading, false)
+
+  // ─── Agent annonce (moteur Edge Function annonce-generate) ───
+  // Génération + régénération + PDF. Distinct de l'assistant n8n ci-dessous
+  // (conservé en parallèle). Sortie assemblée stockée par plateforme.
+  const [agentPlateforme, setAgentPlateforme] = useState('airbnb')
+  const [agentLoading, setAgentLoading] = useState(false)
+  const [agentOutput, setAgentOutput] = useState(null)
+  const [agentError, setAgentError] = useState('')
 
   const quickPrompts = [
     {
@@ -61,6 +71,65 @@ export default function FicheFinalisation() {
     updateField,
     finaliserFiche
   } = useForm()
+
+  // Génère (ou régénère) l'annonce via l'Edge Function annonce-generate.
+  // Le bouton est désactivé pendant l'appel → pas de double-clic (évite la
+  // concurrence sur la même fiche × plateforme).
+  const handleGenerateAgent = async () => {
+    if (agentLoading) return
+    const ficheId = formData?.id
+    if (!ficheId) {
+      setAgentError("Enregistrez d'abord la fiche avant de générer l'annonce.")
+      return
+    }
+    setAgentLoading(true)
+    setAgentError('')
+    try {
+      // On sauvegarde d'abord : le moteur lit la fiche_lite côté serveur.
+      await handleSave()
+
+      const { data, error } = await supabase.functions.invoke('annonce-generate', {
+        body: { ficheId, plateforme: agentPlateforme },
+      })
+
+      if (error) {
+        // FunctionsHttpError : le corps porte le message métier (502 = modèle, etc.).
+        let message = error.message || 'Échec de la génération.'
+        try {
+          const body = await error.context?.json?.()
+          if (body?.message || body?.error) message = body.message || body.error
+        } catch { /* corps illisible : on garde le message générique */ }
+        setAgentError(message)
+        return
+      }
+      if (!data?.success || !data?.output_assemble) {
+        setAgentError(data?.message || "La génération n'a pas produit de sortie exploitable.")
+        return
+      }
+      setAgentOutput(data.output_assemble)
+    } catch (e) {
+      setAgentError(e?.message || 'Erreur réseau pendant la génération.')
+    } finally {
+      setAgentLoading(false)
+    }
+  }
+
+  // Change de plateforme : la sortie est propre à une plateforme → on la vide.
+  const handleSwitchPlateforme = (p) => {
+    if (p === agentPlateforme) return
+    setAgentPlateforme(p)
+    setAgentOutput(null)
+    setAgentError('')
+  }
+
+  const handleDownloadAnnoncePdf = () => {
+    if (!agentOutput) return
+    try {
+      generateAnnoncePdf(agentOutput, agentPlateforme, formData?.nom)
+    } catch (e) {
+      setAgentError(e?.message || 'Erreur lors de la génération du PDF.')
+    }
+  }
 
   const handleGeneratePDF = async () => {
     try {
@@ -330,6 +399,131 @@ export default function FicheFinalisation() {
                     <FileText className="w-5 h-5" />
                     {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré ✓' : 'Générer la Fiche Logement (PDF)'}
                   </button>
+                </div>
+
+                {/* Agent Annonce — moteur automatique (Edge Function) */}
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
+                      <Wand2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Agent Annonce — génération automatique</h3>
+                      <p className="text-sm text-gray-600">Génère l'annonce à partir de la fiche, puis téléchargez le PDF</p>
+                    </div>
+                  </div>
+
+                  {/* Choix plateforme */}
+                  <div className="inline-flex rounded-lg border border-gray-200 p-1 mb-4 bg-gray-50">
+                    {[
+                      { key: 'airbnb', label: 'Airbnb' },
+                      { key: 'booking', label: 'Booking' },
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => handleSwitchPlateforme(key)}
+                        disabled={agentLoading}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
+                          agentPlateforme === key ? 'bg-[#dbae61] text-white' : 'text-gray-700 hover:bg-white'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Boutons générer / télécharger */}
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={handleGenerateAgent}
+                      disabled={agentLoading}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                        agentLoading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                      }`}
+                    >
+                      {agentLoading ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 animate-spin" />
+                          Génération en cours...
+                        </>
+                      ) : agentOutput ? (
+                        <>
+                          <RefreshCw className="w-5 h-5" />
+                          Régénérer l'annonce {agentPlateforme === 'airbnb' ? 'Airbnb' : 'Booking'}
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-5 h-5" />
+                          Générer l'annonce {agentPlateforme === 'airbnb' ? 'Airbnb' : 'Booking'}
+                        </>
+                      )}
+                    </button>
+
+                    {agentOutput && (
+                      <button
+                        onClick={handleDownloadAnnoncePdf}
+                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white transition-all"
+                      >
+                        <Download className="w-5 h-5" />
+                        Télécharger le PDF
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Erreur */}
+                  {agentError && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                      ❌ {agentError}
+                    </div>
+                  )}
+
+                  {/* Aperçu de la sortie */}
+                  {agentOutput && (
+                    <div className="mt-5 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 space-y-3">
+                      {agentPlateforme === 'airbnb' ? (
+                        <>
+                          {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.length > 0 && (
+                            <div>
+                              <p className="font-semibold text-gray-900 mb-1">Titres proposés</p>
+                              <ol className="list-decimal list-inside space-y-0.5">
+                                {agentOutput.airbnb.titres.map((t, i) => <li key={i}>{t}</li>)}
+                              </ol>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-1">Description</p>
+                            <p className="whitespace-pre-wrap">{agentOutput.airbnb?.description}</p>
+                          </div>
+                          {agentOutput.airbnb?.quartier && (
+                            <div>
+                              <p className="font-semibold text-gray-900 mb-1">Le quartier</p>
+                              <p className="whitespace-pre-wrap">{agentOutput.airbnb.quartier}</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-1">Nom de l'hébergement</p>
+                            <p>{agentOutput.booking?.nom}</p>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-1">À propos du logement</p>
+                            <p className="whitespace-pre-wrap">{agentOutput.booking?.about_property}</p>
+                          </div>
+                          {agentOutput.booking?.about_neighbourhood && (
+                            <div>
+                              <p className="font-semibold text-gray-900 mb-1">À propos du quartier</p>
+                              <p className="whitespace-pre-wrap">{agentOutput.booking.about_neighbourhood}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      <p className="text-xs text-gray-500 pt-1 border-t border-gray-200">
+                        Aperçu partiel — le PDF contient l'annonce complète (mentions réglementaires, notes, etc.).
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Assistant Annonce */}
