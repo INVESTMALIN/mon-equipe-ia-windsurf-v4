@@ -86,7 +86,14 @@ export default function FicheFinalisation() {
     setAgentError('')
     try {
       // On sauvegarde d'abord : le moteur lit la fiche_lite côté serveur.
-      await handleSave()
+      // handleSave() ne lève pas, il renvoie { success }. Si la sauvegarde
+      // échoue, on ANNULE : sinon le moteur générerait depuis une fiche périmée
+      // (ancienne ligne encore lisible) tout en affichant le résultat comme à jour.
+      const saveRes = await handleSave()
+      if (!saveRes?.success) {
+        setAgentError(`Sauvegarde de la fiche échouée (${saveRes?.error || 'erreur inconnue'}). Génération annulée.`)
+        return
+      }
 
       const { data, error } = await supabase.functions.invoke('annonce-generate', {
         body: { ficheId, plateforme: agentPlateforme },
