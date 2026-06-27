@@ -26,6 +26,10 @@ import TestStripe from './components/TestStripe'
 import FicheWizard from './components/fiche/FicheWizard'
 import { FormProvider } from './components/FormContext'
 
+import FicheLogementLanding from './components/FicheLogementLanding'
+import InscriptionFicheLite from './components/InscriptionFicheLite'
+import MesCredits from './components/MesCredits'
+
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminUsersList from './components/admin/AdminUsersList'
@@ -62,6 +66,10 @@ function AppWrapper() {
           <Route path="/nouveau-mot-de-passe" element={<NouveauMotDePasse />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
           <Route path="/support" element={<Support />} />
+
+          {/* Landing produit Fiche Logement (public, lien ThriveCart) + son inscription dédiée */}
+          <Route path="/fiche-logement" element={<FicheLogementLanding />} />
+          <Route path="/inscription-fiche-logement" element={<InscriptionFicheLite />} />
 
           
           {/* Pages légales - publiques */}
@@ -128,14 +136,23 @@ function AppWrapper() {
             } 
           />
 
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard"
             element={
-              <ProtectedRoute requirePremium={true}>
+              <ProtectedRoute requirePremium={true} allowRoles={['fiche_lite']}>
                 <Dashboard />
               </ProtectedRoute>
-            } 
-          />       
+            }
+          />
+
+          <Route
+            path="/mes-credits"
+            element={
+              <ProtectedRoute requirePremium={true} allowRoles={['fiche_lite']}>
+                <MesCredits />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/annonce"
@@ -185,33 +202,33 @@ function AppWrapper() {
           <Route
             path="/assistant-communication"
             element={
-              <ProtectedRoute requiresPremium>
+              <ProtectedRoute requirePremium={true}>
                 <AssistantCommunication />
               </ProtectedRoute>
             }
           />
 
-          <Route 
-            path="/fiche" 
+          <Route
+            path="/fiche"
             element={
-              <ProtectedRoute requirePremium={true}>
+              <ProtectedRoute requirePremium={true} allowRoles={['fiche_lite']}>
                 <FormProvider>
                   <FicheWizard />
                 </FormProvider>
               </ProtectedRoute>
-            } 
+            }
           />
 
           {/* 🔥 OPTION : Redirection de l'ancienne route vers la nouvelle */}
-          <Route 
-            path="/nouvelle-fiche" 
+          <Route
+            path="/nouvelle-fiche"
             element={
-              <ProtectedRoute requirePremium={true}>
+              <ProtectedRoute requirePremium={true} allowRoles={['fiche_lite']}>
                 <FormProvider>
                   <FicheWizard />
                 </FormProvider>
               </ProtectedRoute>
-            } 
+            }
           />
 
           <Route

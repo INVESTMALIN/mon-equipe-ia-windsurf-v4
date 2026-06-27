@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
-export default function ProtectedRoute({ children, requirePremium = false }) {
+export default function ProtectedRoute({ children, requirePremium = false, allowRoles = [] }) {
   const [loading, setLoading] = useState(true)
   const [isAllowed, setIsAllowed] = useState(false)
   const navigate = useNavigate()
+
+  // Clé stable pour les deps de l'effet (allowRoles est un tableau recréé à chaque render)
+  const allowRolesKey = allowRoles.join(',')
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -30,10 +33,10 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
           return
         }
 
-        // 3. Si premium requis, récupérer profil utilisateur + DATES
+        // 3. Si premium requis, récupérer profil utilisateur + DATES + ROLE
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('subscription_status, subscription_trial_end, subscription_current_period_end')
+          .select('subscription_status, subscription_trial_end, subscription_current_period_end, role')
           .eq('id', session.user.id)
           .single()
 
@@ -44,20 +47,34 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
         }
 
         const status = profile.subscription_status
+        const role = profile.role
         const now = new Date()
+
+        // 3b. Rôles explicitement autorisés sur cette route (ex: fiche_lite sur
+        // la Fiche Logement et son dashboard). Court-circuite le check premium
+        // SANS toucher au parcours concierge (allowRoles vide => comportement
+        // d'origine).
+        if (allowRoles.includes(role)) {
+          setIsAllowed(true)
+          return
+        }
+
+        // Cible de redirection en cas de refus : un fiche_lite n'a rien à faire
+        // sur /upgrade (offre premium concierge), on le renvoie à son dashboard.
+        const deniedRedirect = role === 'fiche_lite' ? '/dashboard' : '/upgrade'
 
         // 4. Vérifier expiration TRIAL
         if (status === 'trial') {
           if (!profile.subscription_trial_end) {
             console.log('Trial sans date de fin, accès refusé')
-            navigate('/upgrade', { replace: true })
+            navigate(deniedRedirect, { replace: true })
             return
           }
 
           const trialEnd = new Date(profile.subscription_trial_end)
           if (trialEnd < now) {
             console.log(`Trial expiré (${trialEnd.toISOString()})`)
-            navigate('/upgrade', { replace: true })
+            navigate(deniedRedirect, { replace: true })
             return
           }
 
@@ -70,14 +87,14 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
         if (status === 'premium') {
           if (!profile.subscription_current_period_end) {
             console.log('Premium sans date de fin, accès refusé')
-            navigate('/upgrade', { replace: true })
+            navigate(deniedRedirect, { replace: true })
             return
           }
 
           const periodEnd = new Date(profile.subscription_current_period_end)
           if (periodEnd < now) {
             console.log(`Premium expiré (${periodEnd.toISOString()})`)
-            navigate('/upgrade', { replace: true })
+            navigate(deniedRedirect, { replace: true })
             return
           }
 
@@ -88,7 +105,7 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
 
         // 6. Statut non autorisé (free, expired, autre)
         console.log(`Accès premium refusé. Statut actuel: ${status}`)
-        navigate('/upgrade', { replace: true })
+        navigate(deniedRedirect, { replace: true })
 
       } catch (error) {
         console.error('Erreur générale checkAccess:', error)
@@ -114,7 +131,7 @@ export default function ProtectedRoute({ children, requirePremium = false }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [navigate, requirePremium])
+  }, [navigate, requirePremium, allowRolesKey])
 
   // Affichage pendant la vérification
   if (loading) {

@@ -25,9 +25,25 @@ export default function Login() {
       return
     }
 
-    // Si succès
+    // Si succès : router selon le rôle.
+    // Un fiche_lite (accès ThriveCart) atterrit sur son dashboard ;
+    // tous les autres gardent leur destination d'origine (/assistants).
+    let destination = '/assistants'
+    try {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+      if (profile?.role === 'fiche_lite') {
+        destination = '/dashboard'
+      }
+    } catch (profileError) {
+      console.error('Erreur lecture rôle post-login:', profileError)
+    }
+
     console.log('Login réussi:', data)
-    window.location.href = '/assistants'
+    window.location.href = destination
   }
 
   return (

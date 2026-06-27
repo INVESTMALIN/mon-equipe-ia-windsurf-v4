@@ -13,7 +13,8 @@ import {
   Trash2,
   MoreVertical,
   Calendar,
-  Clock
+  Clock,
+  CreditCard
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -52,9 +53,14 @@ export default function Dashboard() {
         console.error('Erreur récupération profil:', profileError)
       } else {
         setUserProfile(profile)
-        
-        // Charger les fiches si premium
-        if (profile?.subscription_status === 'premium' || profile?.subscription_status === 'trial') {
+
+        // Charger les fiches si l'utilisateur a accès (premium/trial concierge
+        // OU rôle fiche_lite issu de la landing ThriveCart)
+        if (
+          profile?.subscription_status === 'premium' ||
+          profile?.subscription_status === 'trial' ||
+          profile?.role === 'fiche_lite'
+        ) {
           await loadUserFiches(user.id)
         }
       }
@@ -106,10 +112,16 @@ export default function Dashboard() {
     )
   }
 
-  const isPremium = userProfile?.subscription_status === 'premium' ||
-  userProfile?.subscription_status === 'trial'
+  const isFicheLite = userProfile?.role === 'fiche_lite'
+  const hasAccess =
+    userProfile?.subscription_status === 'premium' ||
+    userProfile?.subscription_status === 'trial' ||
+    isFicheLite
 
-  if (!isPremium) {
+  // Placeholder crédits (réservation partie 2 : la vraie donnée viendra du ledger)
+  const creditsBalance = 0
+
+  if (!hasAccess) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="max-w-md mx-auto text-center">
@@ -182,11 +194,20 @@ export default function Dashboard() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Mes Fiches Logement</h1>
               <p className="text-gray-600 mt-1">
-                {filteredFiches.length} fiche{filteredFiches.length > 1 ? 's' : ''} • Premium actif
+                {filteredFiches.length} fiche{filteredFiches.length > 1 ? 's' : ''}
+                {!isFicheLite && ' • Premium actif'}
               </p>
             </div>
-            
-            <div className="flex gap-3">
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Solde de crédits (placeholder partie 2) — fiche_lite uniquement */}
+              {isFicheLite && (
+                <div className="flex items-center gap-2 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] text-[#a07c32] font-semibold px-4 py-2 rounded-xl">
+                  <CreditCard className="w-4 h-4" />
+                  <span>{creditsBalance} crédit{creditsBalance > 1 ? 's' : ''}</span>
+                </div>
+              )}
+
               <button
                 onClick={() => navigate('/fiche')}
                 className="bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-6 py-3 rounded-xl transition-colors"
@@ -194,14 +215,25 @@ export default function Dashboard() {
                 <FileText className="w-4 h-4 mr-2 inline" />
                 Nouvelle Fiche
               </button>
-              
-              <button
-                onClick={() => navigate('/assistants')}
-                className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2 inline" />
-                Retour
-              </button>
+
+              {/* fiche_lite : accès à la page crédits. Concierge : retour assistants. */}
+              {isFicheLite ? (
+                <button
+                  onClick={() => navigate('/mes-credits')}
+                  className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors"
+                >
+                  <CreditCard className="w-4 h-4 mr-2 inline" />
+                  Mes crédits
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/assistants')}
+                  className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2 inline" />
+                  Retour
+                </button>
+              )}
             </div>
           </div>
         </div>
