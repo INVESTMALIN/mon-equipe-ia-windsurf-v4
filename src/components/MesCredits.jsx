@@ -33,15 +33,23 @@ export default function MesCredits() {
   const fetchSolde = useCallback(async () => {
     setLoading(true)
     setError(false)
-    // Sans argument : le défaut auth.uid() côté fonction renvoie le solde du user connecté.
-    const { data, error: rpcError } = await supabase.rpc('get_credit_balance')
-    if (rpcError) {
+    try {
+      // Sans argument : le défaut auth.uid() côté fonction renvoie le solde du user connecté.
+      const { data, error: rpcError } = await supabase.rpc('get_credit_balance')
+      if (rpcError) {
+        setError(true)
+        setSolde(null)
+      } else {
+        setSolde(data ?? 0)
+      }
+    } catch (err) {
+      // Rejet brut de la promesse (réseau coupé, client injoignable…) : Supabase ne
+      // renvoie pas toujours l'erreur dans rpcError, on couvre aussi ce cas.
       setError(true)
       setSolde(null)
-    } else {
-      setSolde(data ?? 0)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [])
 
   useEffect(() => {
