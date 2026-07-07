@@ -16,6 +16,40 @@ import { supabase } from '../../../supabaseClient'
 
 const PLATEFORME_LABEL = { airbnb: 'Airbnb', booking: 'Booking' }
 
+// ─── Aperçu de l'annonce : miroirs écran de contenuAirbnb()/contenuBooking()
+// (src/lib/annoncePdf.js). Même règle que le PDF : une section vide est masquée.
+
+/** Équivalent écran de bloc() : titre + corps, rien si le corps est vide. */
+function SectionApercu({ titre, texte }) {
+  const contenu = (texte == null ? '' : String(texte)).trim()
+  if (!contenu) return null
+  return (
+    <div>
+      <p className="font-semibold text-gray-900 mb-1">{titre}</p>
+      <p className="whitespace-pre-wrap">{contenu}</p>
+    </div>
+  )
+}
+
+/** Équivalent écran de blocReglementation() : seulement les lignes renseignées. */
+function MentionsReglementairesApercu({ mentions }) {
+  if (!mentions) return null
+  const lignes = []
+  if (mentions.numero_enregistrement) lignes.push(`Numéro d'enregistrement : ${mentions.numero_enregistrement}`)
+  if (mentions.dpe_classe) lignes.push(`Classe DPE : ${mentions.dpe_classe}`)
+  if (mentions.mention_consommation_excessive) lignes.push(mentions.mention_consommation_excessive)
+  if (mentions.estimation_depenses_annuelles) lignes.push(mentions.estimation_depenses_annuelles)
+  if (!lignes.length) return null
+  return (
+    <div>
+      <p className="font-semibold text-gray-900 mb-1">Mentions réglementaires</p>
+      <ul className="list-disc list-inside space-y-0.5">
+        {lignes.map((l, i) => <li key={i}>{l}</li>)}
+      </ul>
+    </div>
+  )
+}
+
 export default function FicheFinalisation() {
   const navigate = useNavigate()
   const [showFinalModal, setShowFinalModal] = useState(false)
@@ -493,46 +527,42 @@ export default function FicheFinalisation() {
                     <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 space-y-3">
                       {agentPlateforme === 'airbnb' ? (
                         <>
-                          {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.length > 0 && (
+                          {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.filter(Boolean).length > 0 && (
                             <div>
                               <p className="font-semibold text-gray-900 mb-1">Titres proposés</p>
                               <ol className="list-decimal list-inside space-y-0.5">
-                                {agentOutput.airbnb.titres.map((t, i) => <li key={i}>{t}</li>)}
+                                {agentOutput.airbnb.titres.filter(Boolean).map((t, i) => <li key={i}>{t}</li>)}
                               </ol>
                             </div>
                           )}
-                          <div>
-                            <p className="font-semibold text-gray-900 mb-1">Description</p>
-                            <p className="whitespace-pre-wrap">{agentOutput.airbnb?.description}</p>
-                          </div>
-                          {agentOutput.airbnb?.quartier && (
-                            <div>
-                              <p className="font-semibold text-gray-900 mb-1">Le quartier</p>
-                              <p className="whitespace-pre-wrap">{agentOutput.airbnb.quartier}</p>
-                            </div>
+                          {agentOutput.airbnb?.nombre_voyageurs != null && (
+                            <p className="text-xs italic text-gray-500">
+                              Nombre de voyageurs : {agentOutput.airbnb.nombre_voyageurs}
+                            </p>
                           )}
+                          <SectionApercu titre="Description" texte={agentOutput.airbnb?.description} />
+                          <SectionApercu titre="Le logement" texte={agentOutput.airbnb?.logement} />
+                          <SectionApercu titre="Accès des voyageurs" texte={agentOutput.airbnb?.acces_voyageurs} />
+                          <SectionApercu titre="Échanges avec les voyageurs" texte={agentOutput.airbnb?.echanges_voyageurs} />
+                          <SectionApercu titre="Le quartier" texte={agentOutput.airbnb?.quartier} />
+                          <SectionApercu titre="Comment se déplacer" texte={agentOutput.airbnb?.comment_se_deplacer} />
+                          <SectionApercu titre="Autres remarques" texte={agentOutput.airbnb?.autres_remarques} />
+                          <MentionsReglementairesApercu mentions={agentOutput.airbnb?.mentions_reglementaires} />
+                          <SectionApercu titre="Note sur l'état" texte={agentOutput.airbnb?.note_etat} />
+                          <SectionApercu titre="Note sur le quartier" texte={agentOutput.airbnb?.note_quartier} />
                         </>
                       ) : (
                         <>
-                          <div>
-                            <p className="font-semibold text-gray-900 mb-1">Nom de l'hébergement</p>
-                            <p>{agentOutput.booking?.nom}</p>
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 mb-1">À propos du logement</p>
-                            <p className="whitespace-pre-wrap">{agentOutput.booking?.about_property}</p>
-                          </div>
-                          {agentOutput.booking?.about_neighbourhood && (
-                            <div>
-                              <p className="font-semibold text-gray-900 mb-1">À propos du quartier</p>
-                              <p className="whitespace-pre-wrap">{agentOutput.booking.about_neighbourhood}</p>
-                            </div>
-                          )}
+                          <SectionApercu titre="Nom de l'hébergement" texte={agentOutput.booking?.nom} />
+                          <SectionApercu titre="À propos du logement" texte={agentOutput.booking?.about_property} />
+                          <SectionApercu titre="À propos du quartier" texte={agentOutput.booking?.about_neighbourhood} />
+                          <SectionApercu titre="À propos de l'hôte" texte={agentOutput.booking?.about_host} />
+                          <MentionsReglementairesApercu mentions={agentOutput.booking?.mentions_reglementaires} />
+                          <SectionApercu titre="Note sur l'état" texte={agentOutput.booking?.note_etat} />
+                          <SectionApercu titre="Note sur le quartier" texte={agentOutput.booking?.note_quartier} />
+                          <SectionApercu titre="Caméra de surveillance" texte={agentOutput.booking?.note_camera} />
                         </>
                       )}
-                      <p className="text-xs text-gray-500 pt-1 border-t border-gray-200">
-                        Aperçu partiel — le PDF contient l'annonce complète (mentions réglementaires, notes, etc.).
-                      </p>
                     </div>
                   )}
                 </div>
