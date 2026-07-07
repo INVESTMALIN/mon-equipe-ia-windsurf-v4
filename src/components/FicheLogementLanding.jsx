@@ -58,52 +58,61 @@ const steps = [
 ]
 
 export default function FicheLogementLanding() {
+  // La 7e feature (le livrable final) est mise en avant en pleine largeur pour éviter
+  // l'orphelin d'une grille de 3 colonnes, et parce que c'est le point d'orgue du parcours.
+  const gridBenefits = benefits.slice(0, 6)
+  const highlight = benefits[6]
+  const HighlightIcon = highlight.icon
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Barre haut */}
-      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src="/images/invest-malin-logo.png" alt="Invest Malin" className="h-8" />
-          <span className="text-lg font-bold tracking-wide">FICHE LOGEMENT</span>
-        </div>
-        <Link
-          to="/connexion"
-          className="text-sm text-gray-300 hover:text-white transition-colors"
-        >
-          Se connecter
-        </Link>
-      </header>
-
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 pt-12 pb-20 text-center">
-        <h1 className="text-4xl md:text-6xl font-extrabold leading-tight max-w-4xl mx-auto">
-          Inspectez vos logements comme un pro.{' '}
-          <span style={{ color: GOLD }}>Sans rien oublier.</span>
-        </h1>
-        <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-          L'outil d'inspection tout-en-un pensé pour les conciergeries. Vous parcourez le
-          logement section par section, l'outil structure tout, du réglementaire à la
-          sécurité, et vous repartez avec une fiche complète et un PDF carré, prêt à partager.
-        </p>
-        <div className="mt-10">
+    <div className="min-h-screen bg-white text-gray-900">
+      {/* Bloc sombre : header + hero (signature de la marque) */}
+      <div className="bg-black text-white">
+        {/* Barre haut */}
+        <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/images/invest-malin-logo.png" alt="Invest Malin" className="h-8" />
+            <span className="text-lg font-bold tracking-wide">FICHE LOGEMENT</span>
+          </div>
           <Link
-            to="/inscription-fiche-logement"
-            className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold text-lg px-8 py-4 rounded-xl transition-colors"
+            to="/connexion"
+            className="text-sm text-gray-300 hover:text-white transition-colors"
           >
-            Créer mon compte
-            <ArrowRight className="w-5 h-5" />
+            Se connecter
           </Link>
-        </div>
-      </section>
+        </header>
 
-      {/* Ce que l'outil fait */}
-      <section className="bg-neutral-950 border-t border-neutral-800">
+        {/* Hero */}
+        <section className="max-w-6xl mx-auto px-6 pt-12 pb-24 text-center">
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight max-w-4xl mx-auto">
+            Inspectez vos logements comme un pro.{' '}
+            <span style={{ color: GOLD }}>Sans rien oublier.</span>
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
+            L'outil d'inspection tout-en-un pensé pour les conciergeries. Vous parcourez le
+            logement section par section, l'outil structure tout, du réglementaire à la
+            sécurité, et vous repartez avec une fiche complète et un PDF carré, prêt à partager.
+          </p>
+          <div className="mt-10">
+            <Link
+              to="/inscription-fiche-logement"
+              className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold text-lg px-8 py-4 rounded-xl transition-colors"
+            >
+              Créer mon compte
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </section>
+      </div>
+
+      {/* Ce que l'outil fait — clair */}
+      <section className="bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 py-20">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
               Tout ce qu'il faut pour inspecter un logement. Au même endroit.
             </h2>
-            <p className="mt-5 text-gray-300 text-lg">
+            <p className="mt-5 text-gray-600 text-lg">
               De l'état des lieux à l'annonce, Fiche Logement couvre chaque étape de
               l'inspection. Vous avancez section par section, l'outil structure, vérifie
               et n'oublie rien.
@@ -111,10 +120,10 @@ export default function FicheLogementLanding() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {benefits.map(({ icon: Icon, title, text }) => (
+            {gridBenefits.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
-                className="bg-black border border-neutral-800 rounded-2xl p-6 hover:border-[#dbae61] transition-colors"
+                className="bg-white border border-gray-200 rounded-2xl p-6 hover:border-[#dbae61] hover:shadow-md transition-all"
               >
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
@@ -122,18 +131,35 @@ export default function FicheLogementLanding() {
                 >
                   <Icon className="w-6 h-6" style={{ color: GOLD }} />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{text}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{text}</p>
               </div>
             ))}
+          </div>
+
+          {/* Livrable final mis en avant en pleine largeur */}
+          <div
+            className="mt-6 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-5 border border-[#dbae61]/40"
+            style={{ backgroundColor: 'rgba(219,174,97,0.06)' }}
+          >
+            <div
+              className="w-14 h-14 shrink-0 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(219,174,97,0.18)' }}
+            >
+              <HighlightIcon className="w-7 h-7" style={{ color: GOLD }} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{highlight.title}</h3>
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed">{highlight.text}</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Comment ça marche */}
-      <section className="border-t border-neutral-800">
+      {/* Comment ça marche — clair */}
+      <section className="bg-white border-t border-gray-100">
         <div className="max-w-5xl mx-auto px-6 py-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-14">
             Une fiche complète en trois étapes.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -145,20 +171,20 @@ export default function FicheLogementLanding() {
                 >
                   {i + 1}
                 </div>
-                <p className="text-gray-300 leading-relaxed">{step}</p>
+                <p className="text-gray-600 leading-relaxed">{step}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Tarif (sans aucun montant) */}
-      <section className="bg-neutral-950 border-t border-neutral-800">
+      {/* Tarif (sans aucun montant) — clair teinté */}
+      <section className="bg-gray-50 border-t border-gray-100">
         <div className="max-w-3xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-5">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">
             Vous payez à la fiche. Rien d'autre.
           </h2>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-600 text-lg">
             Pas d'abonnement, pas d'engagement. Vous achetez des crédits, un crédit égale
             une fiche complète. Plus vous prenez de crédits, moins la fiche vous coûte.
           </p>
@@ -168,7 +194,7 @@ export default function FicheLogementLanding() {
               'Un crédit = une fiche complète',
               'Plus de crédits, moins cher la fiche'
             ].map((line) => (
-              <div key={line} className="flex items-center gap-3 text-gray-200">
+              <div key={line} className="flex items-center gap-3 text-gray-700">
                 <Check className="w-5 h-5 flex-shrink-0" style={{ color: GOLD }} />
                 <span>{line}</span>
               </div>
@@ -177,8 +203,8 @@ export default function FicheLogementLanding() {
         </div>
       </section>
 
-      {/* CTA final */}
-      <section className="border-t border-neutral-800">
+      {/* CTA final — sombre (referme sur la signature) */}
+      <section className="bg-black text-white">
         <div className="max-w-4xl mx-auto px-6 py-24 text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-8">
             Prêt à inspecter votre premier logement ?
@@ -193,8 +219,8 @@ export default function FicheLogementLanding() {
         </div>
       </section>
 
-      {/* Pied de page */}
-      <footer className="border-t border-neutral-800">
+      {/* Pied de page — sombre, dans la continuité du CTA */}
+      <footer className="bg-black border-t border-neutral-800">
         <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
           <span>© {new Date().getFullYear()} Invest Malin · Fiche Logement</span>
           <div className="flex gap-6">
