@@ -58,8 +58,9 @@ const steps = [
 ]
 
 export default function FicheLogementLanding() {
-  // La 7e feature (le livrable final) est mise en avant en pleine largeur pour éviter
-  // l'orphelin d'une grille de 3 colonnes, et parce que c'est le point d'orgue du parcours.
+  // Les 6 premières features composent la grille (3×2 pile). La 7e (le livrable
+  // final, la fiche PDF) est sortie de la grille et racontée dans une section
+  // dédiée avec visuel — plus d'orphelin, et le livrable devient un vrai chapitre.
   const gridBenefits = benefits.slice(0, 6)
   const highlight = benefits[6]
   const HighlightIcon = highlight.icon
@@ -82,25 +83,43 @@ export default function FicheLogementLanding() {
           </Link>
         </header>
 
-        {/* Hero */}
-        <section className="max-w-6xl mx-auto px-6 pt-12 pb-24 text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight max-w-4xl mx-auto">
-            Inspectez vos logements comme un pro.{' '}
-            <span style={{ color: GOLD }}>Sans rien oublier.</span>
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-            L'outil d'inspection tout-en-un pensé pour les conciergeries. Vous parcourez le
-            logement section par section, l'outil structure tout, du réglementaire à la
-            sécurité, et vous repartez avec une fiche complète et un PDF carré, prêt à partager.
-          </p>
-          <div className="mt-10">
-            <Link
-              to="/inscription-fiche-logement"
-              className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold text-lg px-8 py-4 rounded-xl transition-colors"
-            >
-              Créer mon compte
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+        {/* Hero — texte + visuel d'accompagnement */}
+        <section className="max-w-6xl mx-auto px-6 pt-8 pb-20 lg:pt-12 lg:pb-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-tight">
+                Inspectez vos logements comme un pro.{' '}
+                <span style={{ color: GOLD }}>Sans rien oublier.</span>
+              </h1>
+              <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-xl mx-auto lg:mx-0">
+                L'outil d'inspection tout-en-un pensé pour les conciergeries. Vous parcourez le
+                logement section par section, l'outil structure tout, du réglementaire à la
+                sécurité, et vous repartez avec une fiche complète et un PDF carré, prêt à partager.
+              </p>
+              <div className="mt-10">
+                <Link
+                  to="/inscription-fiche-logement"
+                  className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-black font-semibold text-lg px-8 py-4 rounded-xl transition-colors"
+                >
+                  Créer mon compte
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative">
+              {/* Halo doré derrière le visuel */}
+              <div
+                className="absolute -inset-4 rounded-3xl blur-2xl opacity-30"
+                style={{ backgroundColor: GOLD }}
+                aria-hidden="true"
+              />
+              <img
+                src="/images/hero-image.png"
+                alt="Deux professionnels analysant un logement avec l'outil Fiche Logement"
+                className="relative w-full rounded-2xl shadow-2xl ring-1 ring-white/10"
+              />
+            </div>
           </div>
         </section>
       </div>
@@ -136,21 +155,38 @@ export default function FicheLogementLanding() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Livrable final mis en avant en pleine largeur */}
-          <div
-            className="mt-6 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-5 border border-[#dbae61]/40"
-            style={{ backgroundColor: 'rgba(219,174,97,0.06)' }}
-          >
-            <div
-              className="w-14 h-14 shrink-0 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(219,174,97,0.18)' }}
-            >
-              <HighlightIcon className="w-7 h-7" style={{ color: GOLD }} />
+      {/* Le livrable (7e contenu) — section dédiée avec visuel */}
+      <section className="bg-white border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="relative">
+              {/* Halo doré derrière le visuel */}
+              <div
+                className="absolute -inset-3 rounded-3xl blur-2xl opacity-20"
+                style={{ backgroundColor: GOLD }}
+                aria-hidden="true"
+              />
+              <img
+                src="/images/pourquoi-image.png"
+                alt="Récapitulatif structuré d'une fiche logement prêt à partager"
+                className="relative w-full rounded-2xl shadow-xl ring-1 ring-gray-200"
+              />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{highlight.title}</h3>
-              <p className="text-gray-600 text-sm md:text-base leading-relaxed">{highlight.text}</p>
+            <div className="text-center lg:text-left">
+              <span
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide"
+                style={{ color: GOLD }}
+              >
+                <HighlightIcon className="w-4 h-4" />
+                Le livrable
+              </span>
+              <h2 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900">{highlight.title}</h2>
+              <p className="mt-4 text-gray-600 text-lg leading-relaxed max-w-xl mx-auto lg:mx-0">
+                {highlight.text}
+              </p>
             </div>
           </div>
         </div>
@@ -178,27 +214,32 @@ export default function FicheLogementLanding() {
         </div>
       </section>
 
-      {/* Tarif (sans aucun montant) — clair teinté */}
+      {/* Tarif (sans aucun montant) — panneau doré qui ressort */}
       <section className="bg-gray-50 border-t border-gray-100">
-        <div className="max-w-3xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">
-            Vous payez à la fiche. Rien d'autre.
-          </h2>
-          <p className="text-gray-600 text-lg">
-            Pas d'abonnement, pas d'engagement. Vous achetez des crédits, un crédit égale
-            une fiche complète. Plus vous prenez de crédits, moins la fiche vous coûte.
-          </p>
-          <div className="mt-8 inline-flex flex-col gap-3 text-left">
-            {[
-              'Sans abonnement ni engagement',
-              'Un crédit = une fiche complète',
-              'Plus de crédits, moins cher la fiche'
-            ].map((line) => (
-              <div key={line} className="flex items-center gap-3 text-gray-700">
-                <Check className="w-5 h-5 flex-shrink-0" style={{ color: GOLD }} />
-                <span>{line}</span>
-              </div>
-            ))}
+        <div className="max-w-4xl mx-auto px-6 py-20">
+          <div
+            className="rounded-3xl p-8 md:p-12 text-center border border-[#dbae61]/40 shadow-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(219,174,97,0.12), rgba(219,174,97,0.03))' }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">
+              Vous payez à la fiche. Rien d'autre.
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Pas d'abonnement, pas d'engagement. Vous achetez des crédits, un crédit égale
+              une fiche complète. Plus vous prenez de crédits, moins la fiche vous coûte.
+            </p>
+            <div className="mt-8 inline-flex flex-col gap-3 text-left">
+              {[
+                'Sans abonnement ni engagement',
+                'Un crédit = une fiche complète',
+                'Plus de crédits, moins cher la fiche'
+              ].map((line) => (
+                <div key={line} className="flex items-center gap-3 text-gray-700">
+                  <Check className="w-5 h-5 flex-shrink-0" style={{ color: GOLD }} />
+                  <span>{line}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
