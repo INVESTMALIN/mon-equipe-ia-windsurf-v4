@@ -467,6 +467,13 @@ export default function FicheFinalisation() {
                     )}
                   </div>
 
+                  {/* Message d'attente pendant la génération */}
+                  {agentLoading && (
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> La génération prend généralement 20 à 30 secondes, merci de patienter.
+                    </p>
+                  )}
+
                   {/* Erreur */}
                   {agentError && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
