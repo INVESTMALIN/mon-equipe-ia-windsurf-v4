@@ -15,6 +15,12 @@ const supabase = createClient(
 // (résolution par lookup_key ci-dessous) — ici on ne fait que borner les valeurs acceptées.
 const ALLOWED_PACKS = ['pack_1', 'pack_10', 'pack_20', 'pack_50']
 
+// 🔒 Rôles autorisés à acheter des crédits. SOURCE DE VÉRITÉ UNIQUE de l'éligibilité :
+// l'achat de crédits est réservé à Fiche Logement Lite (miroir du gating front
+// `allowRoles={['fiche_lite']}` sur /mes-credits). Pour ouvrir la feature à un autre
+// rôle un jour, on modifie CETTE ligne, nulle part ailleurs.
+const CREDIT_ELIGIBLE_ROLES = ['fiche_lite']
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -38,7 +44,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Pack invalide' })
     }
 
-    // 3️⃣ Résolution du Price par lookup_key. AUCUN price_id en dur → passage en live
+    // 3️⃣ Éligibilité : l'achat de crédits est réservé aux rôles autorisés. On lit le
+    //    profil (rôle + customer Stripe) en UN seul SELECT, réutilisé plus bas. Rejet
+    //    AVANT tout appel Stripe. Ligne users introuvable = refus (jamais un laisser-passer).
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('stripe_customer_id, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!existingUser || !CREDIT_ELIGIBLE_ROLES.includes(existingUser.role)) {
+      return res.status(403).json({ error: 'Accès non autorisé' })
+    }
+
+    // 4️⃣ Résolution du Price par lookup_key. AUCUN price_id en dur → passage en live
     //    sans changer une ligne (il suffit que les mêmes lookup_keys existent en live).
     const prices = await stripe.prices.list({
       lookup_keys: [pack],
@@ -61,7 +80,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Pack invalide' })
     }
 
-    // 4️⃣ Le nombre de crédits est lu depuis metadata.credits du Price, CÔTÉ SERVEUR.
+    // 5️⃣ Le nombre de crédits est lu depuis metadata.credits du Price, CÔTÉ SERVEUR.
     //    Jamais transmis par le navigateur.
     const credits = parseInt(price.metadata?.credits, 10)
     if (!Number.isInteger(credits) || credits <= 0) {
@@ -69,15 +88,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Configuration du pack invalide' })
     }
 
-    // 5️⃣ Customer Stripe : réutiliser celui de l'utilisateur s'il existe, sinon le créer.
-    //    (miroir de create-checkout-session.js — utile pour la traçabilité et les litiges)
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('stripe_customer_id')
-      .eq('id', user.id)
-      .single()
-
-    let customerId = existingUser?.stripe_customer_id
+    // 6️⃣ Customer Stripe : réutiliser celui de l'utilisateur s'il existe, sinon le créer.
+    //    (on réutilise le profil déjà chargé à l'étape 3 — un seul SELECT sur users)
+    let customerId = existingUser.stripe_customer_id
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
@@ -94,7 +107,7 @@ export default async function handler(req, res) {
       console.log('👤 Nouveau customer Stripe créé (crédits):', customerId)
     }
 
-    // 6️⃣ Checkout Session en mode PAYMENT (paiement unique), surtout PAS subscription.
+    // 7️⃣ Checkout Session en mode PAYMENT (paiement unique), surtout PAS subscription.
     //    Les metadata servent au webhook : `kind` = marqueur explicite d'achat de crédits,
     //    `credits`/`pack` = source de vérité posée par le serveur (jamais par le navigateur).
     const origin = req.headers.origin || 'https://www.mon-equipe-ia.com'
