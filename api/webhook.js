@@ -118,63 +118,83 @@ export default async function handler(req, res) {
         //   - metadata.kind === 'credit_purchase'  (marqueur posé par notre endpoint)
         // Sinon → on tombe dans la logique abonnement ci-dessous, strictement inchangée.
         if (session.mode === 'payment' && session.metadata?.kind === 'credit_purchase') {
-          console.log('🪙 Achat de crédits:', session.id)
+          // Toute la branche crédits est enveloppée : un échec RÉEL doit produire une
+          // réponse NON-2xx (jamais un 200 silencieux sur un paiement encaissé) pour que
+          // Stripe rejoue. Seuls le no-op idempotent et le succès répondent 200. Aucun
+          // markEventAsProcessed n'est appelé sur un chemin d'échec → le rejeu Stripe n'est
+          // pas écarté par le filtre stripe_events en amont. Contrat de la branche
+          // abonnement (plus bas) strictement inchangé : elle garde son 200 via le catch externe.
+          try {
+            console.log('🪙 Achat de crédits:', session.id)
 
-          // On ne crédite QUE si le paiement est réellement encaissé.
-          if (session.payment_status !== 'paid') {
-            console.log(`⏭️ Session ${session.id} non payée (payment_status=${session.payment_status}), pas de crédit`)
-            await markEventAsProcessed()
-            break
-          }
-
-          // user_id / credits / pack sont posés par NOTRE serveur dans la session,
-          // jamais par le navigateur. On les relit ici (défensivement).
-          const creditUserId = session.metadata.user_id
-          const credits = parseInt(session.metadata.credits, 10)
-          const pack = session.metadata.pack
-
-          if (!creditUserId || !Number.isInteger(credits) || credits <= 0) {
-            console.error('❌ Metadata achat crédits invalides:', session.metadata)
-            throw new Error('Invalid credit purchase metadata')
-          }
-
-          // Écriture ledger en service_role (bypass RLS), type 'achat', montant positif.
-          // IDEMPOTENCE : l'index unique sur metadata->>'stripe_session_id' garantit AU
-          // PLUS une ligne par session. Un rejeu / une livraison concurrente échoue en
-          // 23505 → on traite ce conflit comme un no-op. Trace de l'origine (session,
-          // event, payment_intent, pack) conservée pour un litige ultérieur.
-          const { error: ledgerError } = await supabase
-            .from('credit_ledger')
-            .insert({
-              user_id: creditUserId,
-              amount: credits,
-              type: 'achat',
-              metadata: {
-                stripe_session_id: session.id,
-                stripe_event_id: event.id,
-                stripe_payment_intent: session.payment_intent,
-                pack
-              },
-              description: `Achat ${pack} — ${credits} crédit(s)`
-            })
-
-          if (ledgerError) {
-            // 23505 = unique_violation : session déjà créditée. No-op idempotent.
-            if (ledgerError.code === '23505') {
-              console.log(`⏭️ Session ${session.id} déjà créditée (index unique), no-op`)
+            // On ne crédite QUE si le paiement est réellement encaissé.
+            if (session.payment_status !== 'paid') {
+              console.log(`⏭️ Session ${session.id} non payée (payment_status=${session.payment_status}), pas de crédit`)
               await markEventAsProcessed()
               break
             }
-            console.error('❌ Erreur insertion credit_ledger:', ledgerError)
-            throw ledgerError
+
+            // user_id / credits / pack sont posés par NOTRE serveur dans la session,
+            // jamais par le navigateur. On les relit ici (défensivement).
+            const creditUserId = session.metadata.user_id
+            const credits = parseInt(session.metadata.credits, 10)
+            const pack = session.metadata.pack
+
+            if (!creditUserId || !Number.isInteger(credits) || credits <= 0) {
+              // Metadata absente/incohérente (bug de création de session) : on ne peut pas
+              // créditer un paiement encaissé. Non-2xx → échec visible/rejoué, jamais un 200.
+              console.error('❌ Metadata achat crédits invalides:', session.metadata)
+              return res.status(400).json({ received: false, error: 'invalid credit purchase metadata' })
+            }
+
+            // Écriture ledger en service_role (bypass RLS), type 'achat', montant positif.
+            // IDEMPOTENCE : l'index unique sur metadata->>'stripe_session_id' garantit AU
+            // PLUS une ligne par session. Un rejeu / une livraison concurrente échoue en
+            // 23505 → on traite ce conflit comme un no-op. Trace de l'origine (session,
+            // event, payment_intent, pack) conservée pour un litige ultérieur.
+            const { error: ledgerError } = await supabase
+              .from('credit_ledger')
+              .insert({
+                user_id: creditUserId,
+                amount: credits,
+                type: 'achat',
+                metadata: {
+                  stripe_session_id: session.id,
+                  stripe_event_id: event.id,
+                  stripe_payment_intent: session.payment_intent,
+                  pack
+                },
+                description: `Achat ${pack} — ${credits} crédit(s)`
+              })
+
+            if (ledgerError) {
+              // 23505 = unique_violation : session déjà créditée. No-op idempotent = SUCCÈS (200).
+              if (ledgerError.code === '23505') {
+                console.log(`⏭️ Session ${session.id} déjà créditée (index unique), no-op`)
+                await markEventAsProcessed()
+                break
+              }
+              // Tout autre échec (outage transitoire, FK user manquant 23503, contrainte…) :
+              // le client a PAYÉ mais n'est pas crédité. Non-2xx → Stripe rejoue ; event NON
+              // marqué traité → le rejeu n'est pas écarté par le filtre stripe_events. Le client
+              // finit crédité au rejeu, ou l'échec devient visible dans le dashboard Stripe.
+              console.error('❌ Erreur insertion credit_ledger (réponse 500, Stripe rejouera):', ledgerError)
+              return res.status(500).json({ received: false, error: 'credit_ledger insert failed', code: ledgerError.code })
+            }
+
+            console.log(`✅ ${credits} crédit(s) accordés à ${creditUserId} (session ${session.id})`)
+
+            // Marquer l'event comme traité APRÈS le crédit (jamais avant : un échec réel
+            // doit laisser Stripe retenter, l'index unique empêchant le double-crédit).
+            await markEventAsProcessed()
+            break
+          } catch (creditErr) {
+            // Erreur inattendue sur le chemin crédit (ex. rejet réseau du client Supabase,
+            // pas un simple objet { error }) : non-2xx pour rejeu Stripe, jamais un 200
+            // silencieux. Event NON marqué traité (le mark n'a lieu qu'après succès/no-op).
+            console.error('❌ Échec inattendu branche crédits (réponse 500, Stripe rejouera):', creditErr)
+            return res.status(500).json({ received: false, error: 'credit purchase failed', message: creditErr.message })
           }
-
-          console.log(`✅ ${credits} crédit(s) accordés à ${creditUserId} (session ${session.id})`)
-
-          // Marquer l'event comme traité APRÈS le crédit (jamais avant : un échec réel
-          // doit laisser Stripe retenter, l'index unique empêchant le double-crédit).
-          await markEventAsProcessed()
-          break
         }
         // ═══════════════ Abonnement Mon Équipe IA (INCHANGÉ) ═══════════════
 
