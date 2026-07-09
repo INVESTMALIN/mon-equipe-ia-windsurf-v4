@@ -24,6 +24,12 @@ function isMonEquipeIAEvent(event) {
   if (eventType === 'checkout.session.completed') {
     const session = event.data.object
     const metadata = session.metadata || {}
+    // Achat de crédits Fiche Logement Lite : mode paiement unique + marqueur explicite
+    // posé par notre endpoint. Les deux doivent être vrais (cf. handler ci-dessous).
+    if (session.mode === 'payment' && metadata.kind === 'credit_purchase') {
+      return true
+    }
+    // Abonnement Mon Équipe IA (comportement existant, inchangé).
     return metadata.product === MON_EQUIPE_IA_PRODUCT_ID && metadata.price === MON_EQUIPE_IA_PRICE_ID
   }
   
@@ -105,8 +111,75 @@ export default async function handler(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
+
+        // ═══════════════ Achat de crédits Fiche Logement Lite ═══════════════
+        // Distinction DURE vs abonnement : les DEUX conditions doivent être vraies.
+        //   - mode === 'payment'          (Stripe le garantit ; un abonnement = 'subscription')
+        //   - metadata.kind === 'credit_purchase'  (marqueur posé par notre endpoint)
+        // Sinon → on tombe dans la logique abonnement ci-dessous, strictement inchangée.
+        if (session.mode === 'payment' && session.metadata?.kind === 'credit_purchase') {
+          console.log('🪙 Achat de crédits:', session.id)
+
+          // On ne crédite QUE si le paiement est réellement encaissé.
+          if (session.payment_status !== 'paid') {
+            console.log(`⏭️ Session ${session.id} non payée (payment_status=${session.payment_status}), pas de crédit`)
+            await markEventAsProcessed()
+            break
+          }
+
+          // user_id / credits / pack sont posés par NOTRE serveur dans la session,
+          // jamais par le navigateur. On les relit ici (défensivement).
+          const creditUserId = session.metadata.user_id
+          const credits = parseInt(session.metadata.credits, 10)
+          const pack = session.metadata.pack
+
+          if (!creditUserId || !Number.isInteger(credits) || credits <= 0) {
+            console.error('❌ Metadata achat crédits invalides:', session.metadata)
+            throw new Error('Invalid credit purchase metadata')
+          }
+
+          // Écriture ledger en service_role (bypass RLS), type 'achat', montant positif.
+          // IDEMPOTENCE : l'index unique sur metadata->>'stripe_session_id' garantit AU
+          // PLUS une ligne par session. Un rejeu / une livraison concurrente échoue en
+          // 23505 → on traite ce conflit comme un no-op. Trace de l'origine (session,
+          // event, payment_intent, pack) conservée pour un litige ultérieur.
+          const { error: ledgerError } = await supabase
+            .from('credit_ledger')
+            .insert({
+              user_id: creditUserId,
+              amount: credits,
+              type: 'achat',
+              metadata: {
+                stripe_session_id: session.id,
+                stripe_event_id: event.id,
+                stripe_payment_intent: session.payment_intent,
+                pack
+              },
+              description: `Achat ${pack} — ${credits} crédit(s)`
+            })
+
+          if (ledgerError) {
+            // 23505 = unique_violation : session déjà créditée. No-op idempotent.
+            if (ledgerError.code === '23505') {
+              console.log(`⏭️ Session ${session.id} déjà créditée (index unique), no-op`)
+              await markEventAsProcessed()
+              break
+            }
+            console.error('❌ Erreur insertion credit_ledger:', ledgerError)
+            throw ledgerError
+          }
+
+          console.log(`✅ ${credits} crédit(s) accordés à ${creditUserId} (session ${session.id})`)
+
+          // Marquer l'event comme traité APRÈS le crédit (jamais avant : un échec réel
+          // doit laisser Stripe retenter, l'index unique empêchant le double-crédit).
+          await markEventAsProcessed()
+          break
+        }
+        // ═══════════════ Abonnement Mon Équipe IA (INCHANGÉ) ═══════════════
+
         console.log('🛒 Checkout session completed:', session.id)
-      
+
         // Récupérer user_id depuis metadata (priorité) ou client_reference_id (fallback)
         const userId = session.metadata?.user_id || session.client_reference_id
         
