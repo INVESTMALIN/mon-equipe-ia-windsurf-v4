@@ -1269,6 +1269,41 @@ const initialFormData = {
   rappels_photos: []
 }
 
+// Fusionne les données chargées PAR-DESSUS `initialFormData`. Les valeurs présentes dans
+// la fiche gagnent ; les clés/sous-structures absentes ou vides sont remplies depuis le
+// modèle par défaut. But : une fiche à sections vides (ou à qui manque un champ ajouté
+// depuis sa création) se rouvre sans planter — les composants de section supposent la
+// structure imbriquée complète (ex. section_proprietaire.adresse.rue). Toujours des objets
+// frais, aucune référence partagée avec `initialFormData`. Pour une fiche déjà complète,
+// c'est un no-op (les valeurs chargées priment) → aucune régression.
+function isPlainObject(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v)
+}
+
+function mergeWithDefaults(defaults, loaded) {
+  if (Array.isArray(defaults)) {
+    return loaded === undefined ? [...defaults] : loaded
+  }
+  if (!isPlainObject(defaults)) {
+    // Défaut scalaire ou null : la valeur chargée gagne si elle existe.
+    return loaded === undefined ? defaults : loaded
+  }
+  if (!isPlainObject(loaded)) {
+    // Un objet est attendu ici : si le chargé est absent/null, on reconstruit la structure
+    // par défaut (copie fraîche) ; sinon (valeur incompatible) on respecte le chargé.
+    return (loaded === undefined || loaded === null) ? mergeWithDefaults(defaults, {}) : loaded
+  }
+  const out = {}
+  for (const key of Object.keys(defaults)) {
+    out[key] = mergeWithDefaults(defaults[key], loaded[key])
+  }
+  // Clés présentes uniquement dans la fiche chargée (données historiques) : on les conserve.
+  for (const key of Object.keys(loaded)) {
+    if (!(key in defaults)) out[key] = loaded[key]
+  }
+  return out
+}
+
 export function FormProvider({ children }) {
   const [user, setUser] = useState(null)
   const [formData, setFormData] = useState(initialFormData)
@@ -1438,7 +1473,9 @@ export function FormProvider({ children }) {
       const result = await loadFiche(ficheId)
 
       if (result.success) {
-        setFormData(result.data)
+        // Fusion par-dessus les valeurs par défaut : une fiche à sections vides ou à qui
+        // manque un champ récent se rouvre sans planter, une fiche complète est inchangée.
+        setFormData(mergeWithDefaults(initialFormData, result.data))
         setSaveStatus({ saving: false, saved: true, error: null });
         setTimeout(() => {
           setSaveStatus(prev => ({ ...prev, saved: false }))
