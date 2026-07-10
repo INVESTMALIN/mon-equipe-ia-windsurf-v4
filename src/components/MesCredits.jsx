@@ -233,7 +233,10 @@ export default function MesCredits() {
           <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl">
             <Clock className="w-5 h-5 shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium">Paiement bien reçu. Vos crédits arrivent.</p>
+              {/* Copie NEUTRE et conditionnelle : la ligne du ledger n'est pas encore là, on */}
+              {/* n'affirme pas le paiement (URL forgeable). Jamais "erreur" ni "échec". */}
+              <p className="font-medium">Validation de votre paiement en cours.</p>
+              <p className="text-blue-700">Si votre paiement a bien été confirmé, vos crédits apparaîtront ici sous peu.</p>
               <button onClick={retryConfirm} className="mt-1 inline-flex items-center gap-1.5 font-semibold underline hover:no-underline">
                 <RefreshCw className="w-3.5 h-3.5" />
                 Actualiser le solde
@@ -252,13 +255,15 @@ export default function MesCredits() {
         {/* ─── Bloc solde ─── */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           {confirming ? (
-            // Retour de paiement : on NE montre aucun chiffre tant que le crédit n'est pas
-            // confirmé (jamais l'ancien solde présenté comme final).
+            // Retour de paiement : aucun chiffre tant que le crédit n'est pas confirmé
+            // (jamais l'ancien solde présenté comme final). Copie NEUTRE : on n'affirme PAS
+            // qu'un paiement a été reçu tant que la ligne du ledger ne le prouve pas — le
+            // query param `checkout=success` est forgeable/partageable.
             <div className="flex items-center gap-3 text-[#a07c32]">
               <Loader2 className="w-6 h-6 shrink-0 animate-spin" />
               <div>
-                <p className="font-semibold text-gray-900">Paiement reçu — validation en cours</p>
-                <p className="text-sm text-gray-500">Nous créditons votre compte, un instant…</p>
+                <p className="font-semibold text-gray-900">Validation de votre paiement…</p>
+                <p className="text-sm text-gray-500">Vos crédits apparaîtront ici dès confirmation.</p>
               </div>
             </div>
           ) : loading ? (
