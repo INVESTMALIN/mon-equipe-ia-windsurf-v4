@@ -212,21 +212,53 @@ export const updateFicheStatut = async (ficheId, newStatut) => {
       message: `Fiche mise à jour avec succès`
     }
   } catch (e) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: e.message,
       message: 'Erreur de connexion'
     }
   }
 }
-  
+
+// 📦 Archiver / désarchiver une fiche (réversible).
+//
+// On pose (ou retire) un horodatage dans `archived_at` ; le `statut` d'origine
+// (Brouillon / Complété) n'est JAMAIS touché, c'est ce qui permet à la fiche de
+// retrouver sa place exacte au désarchivage.
+//
+// `updated_at` n'est volontairement PAS bumpé : ranger une fiche n'est pas la modifier,
+// et la liste est triée par `updated_at` — archiver ne doit pas la faire remonter.
+export const setFicheArchived = async (ficheId, archived) => {
+  try {
+    const { error } = await supabase
+      .from('fiche_lite')
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq('id', ficheId)
+
+    if (error) throw error
+
+    return {
+      success: true,
+      message: archived ? 'Fiche archivée' : 'Fiche désarchivée'
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'archivage:', error)
+    return {
+      success: false,
+      error: error.message,
+      message: archived ? 'Impossible d\'archiver la fiche' : 'Impossible de désarchiver la fiche'
+    }
+  }
+}
+
   // 📋 Récupérer toutes les fiches d'un utilisateur
   export const getUserFiches = async (userId) => {
     try {
       const result = await safeSupabaseQuery(
         supabase
           .from('fiche_lite')
-          .select('id, nom, statut, created_at, updated_at')
+          // archived_at : NULL = fiche active, non NULL = fiche archivée (filtre « Archivé »).
+          .select('id, nom, statut, created_at, updated_at, archived_at')
           .eq('user_id', userId)
           .order('updated_at', { ascending: false })
       )

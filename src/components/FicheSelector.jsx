@@ -19,6 +19,8 @@ export default function FicheSelector({ userId, onSelect, onClose }) {
           .from('fiche_lite')
           .select('id, nom, created_at, statut')
           .eq('user_id', userId)
+          // Une fiche archivée est rangée : elle ne doit pas être proposée ici non plus.
+          .is('archived_at', null)
           .order('created_at', { ascending: false })
 
         if (error) throw error

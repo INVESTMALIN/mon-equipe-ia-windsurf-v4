@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import { getUserFiches } from '../lib/supabaseHelpers'
+import { getUserFiches, setFicheArchived } from '../lib/supabaseHelpers'
+import { FICHE_STATUS_FILTERS, matchesFicheFilter } from '../lib/ficheFilters'
 import { useCreditBalance } from '../hooks/useCreditBalance'
 import { 
   FileText, 
@@ -9,8 +10,9 @@ import {
   Search, 
   Grid3X3, 
   List, 
-  Edit, 
-  Archive, 
+  Edit,
+  Archive,
+  ArchiveRestore,
   Trash2,
   MoreVertical,
   Calendar,
@@ -99,13 +101,25 @@ export default function Dashboard() {
     }
   }
 
+  // Archiver / désarchiver : bascule l'horodatage `archived_at`. Le `statut` d'origine
+  // (Brouillon / Complété) n'est jamais touché, la fiche reprend donc exactement sa place
+  // au désarchivage. Réversible : pas de modale de confirmation.
+  const handleToggleArchive = async (fiche) => {
+    const result = await setFicheArchived(fiche.id, !fiche.archived_at)
+    if (!result.success) {
+      console.error('Erreur archivage:', result.error)
+      return
+    }
+    if (user?.id) await loadUserFiches(user.id)
+  }
+
   const handleMenuAction = (action, fiche) => {
     switch (action) {
       case 'edit':
         navigate(`/fiche?id=${fiche.id}`)
         break
       case 'archive':
-        console.log('Archiver fiche:', fiche.nom)
+        handleToggleArchive(fiche)
         break
       case 'delete':
         setFicheToDelete(fiche)
@@ -171,12 +185,11 @@ export default function Dashboard() {
     )
   }
 
-  // Filtrage
-  const statusFilters = ["Tous", "Complété", "Brouillon"]
+  // Filtrage (prédicat partagé avec les compteurs, cf. src/lib/ficheFilters.js)
+  const statusFilters = FICHE_STATUS_FILTERS
   const filteredFiches = fiches.filter(fiche => {
     const matchesSearch = fiche.nom.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = activeFilter === "Tous" || fiche.statut === activeFilter
-    return matchesSearch && matchesStatus
+    return matchesSearch && matchesFicheFilter(fiche, activeFilter)
   })
 
   // Couleurs des statuts
@@ -188,12 +201,9 @@ export default function Dashboard() {
     }
   }
 
-  // Compter les fiches par filtre
-  const getFilterCount = (filter) => {
-    return filter === "Tous" 
-      ? fiches.length
-      : fiches.filter(f => f.statut === filter).length
-  }
+  // Compteur de chaque onglet : EXACTEMENT le même prédicat que l'affichage, donc
+  // « Tous » exclut les archivées et le compteur reste cohérent avec ce qui est listé.
+  const getFilterCount = (filter) => fiches.filter(f => matchesFicheFilter(f, filter)).length
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -350,8 +360,8 @@ export default function Dashboard() {
                             onClick={() => handleMenuAction('archive', fiche)}
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <Archive size={16} />
-                            Archiver
+                            {fiche.archived_at ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                            {fiche.archived_at ? 'Désarchiver' : 'Archiver'}
                           </button>
                           <button
                             onClick={() => handleMenuAction('delete', fiche)}
@@ -438,8 +448,8 @@ export default function Dashboard() {
                           onClick={() => handleMenuAction('archive', fiche)}
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Archive size={16} />
-                          Archiver
+                          {fiche.archived_at ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                          {fiche.archived_at ? 'Désarchiver' : 'Archiver'}
                         </button>
                         <button
                           onClick={() => handleMenuAction('delete', fiche)}
