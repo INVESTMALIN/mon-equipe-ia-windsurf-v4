@@ -59,12 +59,17 @@ export default function MesCredits() {
 
   const fetchHistory = useCallback(async () => {
     setHistoryLoading(true)
-    // Limite : on ne charge jamais tout le ledger. RLS = filtrage par utilisateur.
+    // Scope EXPLICITE au user courant : ne PAS dépendre de la seule RLS. La policy
+    // admin (credit_ledger_select_admin) laisse un admin lire TOUTES les lignes ; sans
+    // ce filtre, un compte admin verrait ici l'historique de tous les utilisateurs.
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setHistory([]); setHistoryLoading(false); return }
     const { data, error: histError } = await supabase
       .from('credit_ledger')
       .select('id, amount, type, description, created_at')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(20) // on ne charge jamais tout le ledger
     if (!histError) setHistory(data || [])
     setHistoryLoading(false)
   }, [])
@@ -72,6 +77,21 @@ export default function MesCredits() {
   useEffect(() => {
     fetchHistory()
   }, [fetchHistory])
+
+  // Cherche la ligne de crédit de CETTE session pour le user courant. Scope explicite
+  // par user_id (pas seulement la RLS, cf. policy admin). Renvoie la ligne ou null.
+  const findSessionCredit = useCallback(async (sessionId) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data } = await supabase
+      .from('credit_ledger')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('metadata->>stripe_session_id', sessionId)
+      .limit(1)
+      .maybeSingle()
+    return data || null
+  }, [])
 
   // 1) Lecture du query param au montage, puis nettoyage immédiat (replace, sans reload).
   useEffect(() => {
@@ -96,18 +116,13 @@ export default function MesCredits() {
 
     const tick = async () => {
       attempts += 1
-      // Condition déterministe : la ligne existe (sous RLS, donc forcément la nôtre).
-      const { data, error: pollError } = await supabase
-        .from('credit_ledger')
-        .select('amount')
-        .eq('metadata->>stripe_session_id', sessionId)
-        .limit(1)
-        .maybeSingle()
+      // Condition déterministe : la ligne de CE user pour CETTE session existe.
+      const row = await findSessionCredit(sessionId)
 
       if (cancelled) return
 
-      if (!pollError && data) {
-        setCreditedAmount(data.amount)
+      if (row) {
+        setCreditedAmount(row.amount)
         setConfirmOutcome('credited')
         setConfirming(false)
         await refresh()
@@ -130,6 +145,20 @@ export default function MesCredits() {
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkoutReturn])
+
+  // Bouton "Actualiser" de l'état "en attente" : ré-interroge la session. Si le webhook
+  // est arrivé après le plafond, on bascule en "confirmé" (bandeau + montant), et dans
+  // tous les cas on rafraîchit solde ET historique — pas seulement le solde.
+  const retryConfirm = useCallback(async () => {
+    const sessionId = checkoutReturn?.sessionId
+    const row = sessionId ? await findSessionCredit(sessionId) : null
+    if (row) {
+      setCreditedAmount(row.amount)
+      setConfirmOutcome('credited')
+    }
+    await refresh()
+    await fetchHistory()
+  }, [checkoutReturn, findSessionCredit, refresh, fetchHistory])
 
   const handlePurchase = async (pack) => {
     if (purchasingPack) return // anti double-clic : une seule session à la fois
@@ -205,7 +234,7 @@ export default function MesCredits() {
             <Clock className="w-5 h-5 shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-medium">Paiement bien reçu. Vos crédits arrivent.</p>
-              <button onClick={refresh} className="mt-1 inline-flex items-center gap-1.5 font-semibold underline hover:no-underline">
+              <button onClick={retryConfirm} className="mt-1 inline-flex items-center gap-1.5 font-semibold underline hover:no-underline">
                 <RefreshCw className="w-3.5 h-3.5" />
                 Actualiser le solde
               </button>
