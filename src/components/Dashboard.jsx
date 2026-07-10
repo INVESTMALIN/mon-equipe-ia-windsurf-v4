@@ -15,8 +15,11 @@ import {
   MoreVertical,
   Calendar,
   Clock,
-  CreditCard
+  CreditCard,
+  Coins
 } from 'lucide-react'
+import CreateFicheModal from './fiche/CreateFicheModal'
+import DeleteFicheModal from './fiche/DeleteFicheModal'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -29,10 +32,14 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState('grid') // 'grid' ou 'list'
   const [showDropdown, setShowDropdown] = useState(null)
 
+  // Modales crédits (fiche_lite) : création payante + suppression.
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [ficheToDelete, setFicheToDelete] = useState(null)
+
   // Solde de crédits réel (hook partagé avec /mes-credits). Fetch uniquement pour un
   // rôle fiche_lite — le rôle n'est connu qu'après chargement du profil, l'appel se
   // déclenche donc quand `enabled` passe à true.
-  const { balance: creditsBalance } = useCreditBalance(userProfile?.role === 'fiche_lite')
+  const { balance: creditsBalance, refresh: refreshCredits } = useCreditBalance(userProfile?.role === 'fiche_lite')
 
   useEffect(() => {
     checkUserAndPremium()
@@ -101,7 +108,7 @@ export default function Dashboard() {
         console.log('Archiver fiche:', fiche.nom)
         break
       case 'delete':
-        console.log('Supprimer fiche:', fiche.nom)
+        setFicheToDelete(fiche)
         break
     }
     setShowDropdown(null)
@@ -212,11 +219,20 @@ export default function Dashboard() {
               )}
 
               <button
-                onClick={() => navigate('/fiche')}
-                className="bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+                onClick={() => (isFicheLite ? setShowCreateModal(true) : navigate('/fiche'))}
+                className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-6 py-3 rounded-xl transition-colors"
               >
-                <FileText className="w-4 h-4 mr-2 inline" />
+                <FileText className="w-4 h-4" />
                 Nouvelle Fiche
+                {isFicheLite && (
+                  <span
+                    className="inline-flex items-center gap-1 text-xs font-medium bg-white bg-opacity-20 px-2 py-0.5 rounded-full"
+                    title="Créer une fiche coûte 1 crédit"
+                  >
+                    <Coins className="w-3.5 h-3.5" />
+                    1
+                  </span>
+                )}
               </button>
 
               {/* fiche_lite : accès à la page crédits. Concierge : retour assistants. */}
@@ -462,6 +478,23 @@ export default function Dashboard() {
           onClick={() => setShowDropdown(null)}
         />
       )}
+
+      {/* Modale de création payante (fiche_lite) — création + débit atomiques via RPC */}
+      <CreateFicheModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        balance={creditsBalance}
+        onDebited={refreshCredits}
+      />
+
+      {/* Modale de suppression — ne touche jamais au ledger (aucun remboursement) */}
+      <DeleteFicheModal
+        isOpen={!!ficheToDelete}
+        fiche={ficheToDelete}
+        showCreditWarning={isFicheLite}
+        onClose={() => setFicheToDelete(null)}
+        onDeleted={() => { if (user?.id) loadUserFiches(user.id) }}
+      />
     </div>
   )
 }

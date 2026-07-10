@@ -1,7 +1,8 @@
 // src/components/fiche/FicheWizard.jsx
 import { useForm } from '../FormContext'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
+import { supabase } from '../../supabaseClient'
 
 // Import des sections (pour l'instant juste la première)
 import FicheForm from './sections/FicheForm'
@@ -121,16 +122,41 @@ export default function FicheWizard() {
   const { currentStep, sections, loadFicheData } = useForm()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   // 🔥 Chargement des données si ID présent
   useEffect(() => {
     const ficheId = id || searchParams.get('id')
-    
+
     if (ficheId) {
       console.log('FicheWizard - Chargement fiche ID:', ficheId)
       loadFicheData(ficheId)
     }
   }, [id, searchParams, loadFicheData])
+
+  // Garde création : sans id (= création directe), un utilisateur fiche_lite doit passer
+  // par la modale payante du Dashboard, pas par le wizard vide (l'INSERT direct lui est
+  // d'ailleurs refusé par la RLS). On le renvoie au Dashboard. Les autres rôles (concierges)
+  // gardent la création directe gratuite.
+  useEffect(() => {
+    const ficheId = id || searchParams.get('id')
+    if (ficheId) return
+
+    let active = true
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || !active) return
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      if (active && profile?.role === 'fiche_lite') {
+        navigate('/dashboard', { replace: true })
+      }
+    })()
+    return () => { active = false }
+  }, [id, searchParams, navigate])
 
   const steps = [
     <FicheForm key="proprietaire" />,
