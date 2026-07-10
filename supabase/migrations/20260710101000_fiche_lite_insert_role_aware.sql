@@ -24,3 +24,17 @@ create policy fiche_lite_insert_policy on public.fiche_lite
     auth.uid() = user_id
     and (select u.role from public.users u where u.id = auth.uid()) is distinct from 'fiche_lite'
   );
+
+-- FILET restrictif — la garantie ne doit PAS reposer sur l'absence d'autres policies
+-- permissives. Les policies permissives se combinent en OU : si quelqu'un ajoutait plus
+-- tard une permissive « allow all » sur l'INSERT, un `fiche_lite` repasserait par elle et
+-- contournerait le débit, en silence. Une policy RESTRICTIVE se combine en ET : elle
+-- s'applique à TOUT INSERT et ne peut être annulée par l'ajout d'une permissive. Elle
+-- (re)bloque donc les `fiche_lite` quoi qu'il arrive côté permissif — le seul chemin de
+-- création pour eux reste la RPC create_fiche_lite_with_debit (SECURITY DEFINER).
+create policy fiche_lite_insert_not_lite on public.fiche_lite
+  as restrictive
+  for insert
+  with check (
+    (select u.role from public.users u where u.id = auth.uid()) is distinct from 'fiche_lite'
+  );

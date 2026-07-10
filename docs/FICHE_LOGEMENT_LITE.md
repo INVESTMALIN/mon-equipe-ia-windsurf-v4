@@ -72,10 +72,12 @@ fiche_lite (
   rappels_photos TEXT[] -- ["Pensez à photographier la cuisine", "..."]
 )
 
--- RLS Policies
+-- RLS Policies (proposition initiale — voir plus bas la version RÉELLE en base :
+-- 4 policies séparées fiche_lite_*_policy, PAS de policy FOR ALL. L'INSERT est en outre
+-- role-aware + protégé par une policy restrictive depuis le système de crédits.)
 ALTER TABLE fiche_lite ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can only see their own fiches" ON fiche_lite
-  FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "fiche_lite_all_policy" ON fiche_lite
+  FOR ALL USING (auth.uid() = user_id); -- ⚠️ non appliqué tel quel ; remplacé par 4 policies par commande
 ```
 
 ## 🔧 Configuration Backend Critique
