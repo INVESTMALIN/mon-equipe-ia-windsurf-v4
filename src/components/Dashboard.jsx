@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { getUserFiches } from '../lib/supabaseHelpers'
+import { useCreditBalance } from '../hooks/useCreditBalance'
 import { 
   FileText, 
   ArrowLeft, 
@@ -27,6 +28,11 @@ export default function Dashboard() {
   const [activeFilter, setActiveFilter] = useState("Tous")
   const [viewMode, setViewMode] = useState('grid') // 'grid' ou 'list'
   const [showDropdown, setShowDropdown] = useState(null)
+
+  // Solde de crédits réel (hook partagé avec /mes-credits). Fetch uniquement pour un
+  // rôle fiche_lite — le rôle n'est connu qu'après chargement du profil, l'appel se
+  // déclenche donc quand `enabled` passe à true.
+  const { balance: creditsBalance } = useCreditBalance(userProfile?.role === 'fiche_lite')
 
   useEffect(() => {
     checkUserAndPremium()
@@ -118,9 +124,6 @@ export default function Dashboard() {
     userProfile?.subscription_status === 'trial' ||
     isFicheLite
 
-  // Placeholder crédits (réservation partie 2 : la vraie donnée viendra du ledger)
-  const creditsBalance = 0
-
   if (!hasAccess) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
@@ -204,7 +207,7 @@ export default function Dashboard() {
               {isFicheLite && (
                 <div className="flex items-center gap-2 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] text-[#a07c32] font-semibold px-4 py-2 rounded-xl">
                   <CreditCard className="w-4 h-4" />
-                  <span>{creditsBalance} crédit{creditsBalance > 1 ? 's' : ''}</span>
+                  <span>{creditsBalance ?? '—'} crédit{creditsBalance > 1 ? 's' : ''}</span>
                 </div>
               )}
 
