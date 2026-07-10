@@ -27,6 +27,10 @@ export default function DeleteFicheModal({ isOpen, onClose, fiche, onDeleted, sh
       return
     }
     onDeleted?.()
+    // Reset AVANT de fermer : la modale reste montée dans le Dashboard (seul isOpen bascule) ;
+    // sans ce reset, la suppression suivante rouvrirait avec les contrôles gelés (bouton
+    // bloqué sur « Suppression… »).
+    setDeleting(false)
     onClose()
   }
 

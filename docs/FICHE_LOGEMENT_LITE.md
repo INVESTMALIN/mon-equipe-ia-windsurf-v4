@@ -112,19 +112,23 @@ CREATE TABLE fiche_lite (
   rappels_photos TEXT[] DEFAULT ARRAY[]::TEXT[]
 );
 
--- 2. RLS Policies
+-- 2. RLS Policies (noms réels en base : préfixe fiche_lite_)
 ALTER TABLE fiche_lite ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "fiche_select_policy" ON fiche_lite
+CREATE POLICY "fiche_lite_select_policy" ON fiche_lite
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "fiche_insert_policy" ON fiche_lite
+-- ⚠️ Depuis le système de crédits (débit à la création), l'INSERT est role-aware :
+-- un utilisateur `fiche_lite` ne peut PAS insérer en direct (il passe par la RPC
+-- create_fiche_lite_with_debit qui débite 1 crédit) ; les autres rôles insèrent comme avant.
+-- Version réelle : voir migration 20260710101000_fiche_lite_insert_role_aware.sql.
+CREATE POLICY "fiche_lite_insert_policy" ON fiche_lite
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "fiche_update_policy" ON fiche_lite
+CREATE POLICY "fiche_lite_update_policy" ON fiche_lite
   FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "fiche_delete_policy" ON fiche_lite
+CREATE POLICY "fiche_lite_delete_policy" ON fiche_lite
   FOR DELETE USING (auth.uid() = user_id);
 
 -- 3. Trigger auto-update updated_at
