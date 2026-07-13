@@ -38,11 +38,19 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
   const allowRolesKey = allowRoles.join(',')
 
   useEffect(() => {
+    // Sentinel d'annulation propre à CE run de l'effet. Le cleanup le passe à
+    // true AVANT que le run suivant démarre : une promesse dont le path est
+    // devenu obsolète ne doit plus toucher au state ni rediriger (sinon elle
+    // écraserait le reset et pourrait laisser monter une route interdite). On
+    // vérifie `cancelled` après chaque await et avant chaque navigate/setState.
+    let cancelled = false
+
     const checkAccess = async () => {
       try {
         // 1. Vérifier si utilisateur connecté
         const { data: { session }, error } = await supabase.auth.getSession()
-        
+        if (cancelled) return
+
         if (error) {
           console.error('Erreur vérification session:', error)
           navigate('/connexion', { replace: true })
@@ -62,6 +70,7 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
           .select('subscription_status, subscription_trial_end, subscription_current_period_end, role')
           .eq('id', session.user.id)
           .single()
+        if (cancelled) return
 
         // 2b. Gating Fiche Logement Lite : un user `fiche_lite` ne peut accéder
         // QU'AUX routes de son parcours (cf. FICHE_LITE_ALLOWED_PATHS). Toute
@@ -153,10 +162,11 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
         navigate(deniedRedirect, { replace: true })
 
       } catch (error) {
+        if (cancelled) return
         console.error('Erreur générale checkAccess:', error)
         navigate('/connexion', { replace: true })
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
@@ -165,6 +175,7 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
     // 7. Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (cancelled) return
         if (event === 'SIGNED_OUT' || !session) {
           setIsAllowed(false)
           navigate('/connexion', { replace: true })
@@ -175,7 +186,10 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
   }, [navigate, requirePremium, allowRolesKey, location.pathname])
 
   // Affichage pendant la vérification
