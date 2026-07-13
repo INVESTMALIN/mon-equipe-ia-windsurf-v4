@@ -15,7 +15,7 @@
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
 import { formatForPdf } from './PdfFormatter'
-import { initialFormData } from '../components/FormContext'
+import { initialFormData } from './formDefaults'
 import pdfMake from 'pdfmake/build/pdfmake.js'
 import pdfFonts from 'pdfmake/build/vfs_fonts.js'
 import { createElement } from 'react'
