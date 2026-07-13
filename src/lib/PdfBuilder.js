@@ -152,8 +152,11 @@ function buildSectionNodes(sectionKey, donnees) {
     // Éléments abîmés : regroupés dans un bloc dédié en fin de section.
     if (field.includes('elements_abimes')) {
       if (value === true || value === 'Oui' || value === 'oui') {
-        const loc = formatGenericKey(field.replace(/_?elements_abimes/g, '').replace(/_/g, ' ').trim())
-        if (loc) damaged.push(loc)
+        // Champ préfixé (ex. salon_elements_abimes) → on garde le lieu. Champ « nu »
+        // (elements_abimes, ex. radio de Cuisine 1) → le strip donne '' : on retombe
+        // sur le titre de la section pour NE PAS perdre l'info signalée.
+        const stripped = field.replace(/_?elements_abimes/g, '').replace(/_/g, ' ').trim()
+        damaged.push(stripped ? formatGenericKey(stripped) : humanizeSectionTitle(sectionKey))
       } else if (typeof value === 'object' && !Array.isArray(value)) {
         Object.entries(value)
           .filter(([, v]) => v === true || v === 'Oui' || v === 'oui')
