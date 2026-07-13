@@ -20,6 +20,20 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Reset SYNCHRONE de l'état à chaque changement de path. React réutilise la
+  // même instance de ProtectedRoute d'une route à l'autre (même type, même
+  // position sous <Routes>) : sans ce reset, `isAllowed`/`loading` de la route
+  // précédente resteraient valides et les enfants de la nouvelle route
+  // (potentiellement interdite au rôle) se monteraient le temps que le check
+  // async se termine. En posant l'état pendant le rendu, React relance le rendu
+  // AVANT de monter les enfants → aucun contenu interdit n'est jamais rendu.
+  const [checkedPath, setCheckedPath] = useState(location.pathname)
+  if (checkedPath !== location.pathname) {
+    setCheckedPath(location.pathname)
+    setLoading(true)
+    setIsAllowed(false)
+  }
+
   // Clé stable pour les deps de l'effet (allowRoles est un tableau recréé à chaque render)
   const allowRolesKey = allowRoles.join(',')
 
