@@ -48,7 +48,11 @@ export const mapSupabaseToFormData = (supabaseData) => {
     nom: supabaseData.nom,
     statut: supabaseData.statut,
     created_at: supabaseData.created_at,
-    updated_at: supabaseData.updated_at, 
+    updated_at: supabaseData.updated_at,
+    // Verrou d'identité du bien (posé après la 1re génération de PDF, rôle fiche_lite).
+    // LECTURE seule ici : jamais réécrit par mapFormDataToSupabase / saveFiche — il
+    // n'est posé que par l'update dédié `lockFiche` (ou l'admin en service_role).
+    fields_locked: supabaseData.fields_locked ?? false,
     
     // Sections JSONB (directement)
     section_proprietaire: supabaseData.section_proprietaire || {},

@@ -1,25 +1,25 @@
 // src/components/fiche/sections/FicheForm.jsx - ADAPTER AU LAYOUT WIZARD
-import { ArrowLeft, Save, ArrowRight, FileText, User, MapPin, Mail, Phone } from 'lucide-react'
+import { ArrowLeft, Save, ArrowRight, FileText, User, MapPin, Mail, Phone, Lock } from 'lucide-react'
 import { useForm } from '../../FormContext'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 
+const BASE_INPUT = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+
 export default function FicheForm() {
-  const { formData, updateField, handleSave, saveStatus, next, back, currentStep, totalSteps } = useForm()
+  const { formData, updateField, isFieldLocked, isFicheLocked } = useForm()
 
   const handleInputChange = (path, value) => {
     updateField(path, value)
   }
 
-  const handleSaveClick = async () => {
-    const result = await handleSave()
-    if (result.success) {
-      console.log('Fiche sauvegardée:', result.data)
-    } else {
-      console.error('Erreur sauvegarde:', result.error)
-    }
-  }
+  // Champs d'identité du bien : grisés + non éditables une fois la fiche verrouillée
+  // (après 1re génération de PDF). Les autres champs restent normaux.
+  const fieldCls = (path) =>
+    isFieldLocked(path) ? `${BASE_INPUT} bg-gray-100 text-gray-400 cursor-not-allowed` : BASE_INPUT
+  const lockExtra = (path) =>
+    isFieldLocked(path) ? { disabled: true, title: 'Champ verrouillé après génération du PDF' } : {}
 
   return (
     <div className="flex min-h-screen">
@@ -49,6 +49,15 @@ export default function FicheForm() {
                 </div>
               </div>
 
+              {isFicheLocked && (
+                <div className="mb-6 flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-600">
+                  <Lock className="w-4 h-4 mt-0.5 shrink-0 text-gray-400" />
+                  <span>
+                    Le PDF a été généré : les champs qui identifient le bien (nom du propriétaire, adresse) sont verrouillés. Les autres champs restent modifiables.
+                  </span>
+                </div>
+              )}
+
               <div className="space-y-6">
                 {/* Nom de la fiche */}
                 <div>
@@ -74,14 +83,16 @@ export default function FicheForm() {
                     <input
                       type="text"
                       placeholder="Prénom"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                      className={fieldCls('section_proprietaire.prenom')}
+                      {...lockExtra('section_proprietaire.prenom')}
                       value={formData.section_proprietaire.prenom}
                       onChange={(e) => handleInputChange('section_proprietaire.prenom', e.target.value)}
                     />
                     <input
                       type="text"
                       placeholder="Nom de famille"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                      className={fieldCls('section_proprietaire.nom')}
+                      {...lockExtra('section_proprietaire.nom')}
                       value={formData.section_proprietaire.nom}
                       onChange={(e) => handleInputChange('section_proprietaire.nom', e.target.value)}
                     />
@@ -128,14 +139,16 @@ export default function FicheForm() {
                     <input
                       type="text"
                       placeholder="Numéro et nom de rue"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                      className={fieldCls('section_proprietaire.adresse.rue')}
+                      {...lockExtra('section_proprietaire.adresse.rue')}
                       value={formData.section_proprietaire.adresse.rue}
                       onChange={(e) => handleInputChange('section_proprietaire.adresse.rue', e.target.value)}
                     />
                     <input
                       type="text"
                       placeholder="Complément d'adresse (optionnel)"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                      className={fieldCls('section_proprietaire.adresse.complement')}
+                      {...lockExtra('section_proprietaire.adresse.complement')}
                       value={formData.section_proprietaire.adresse.complement}
                       onChange={(e) => handleInputChange('section_proprietaire.adresse.complement', e.target.value)}
                     />
@@ -143,14 +156,16 @@ export default function FicheForm() {
                       <input
                         type="text"
                         placeholder="Ville"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        className={fieldCls('section_proprietaire.adresse.ville')}
+                        {...lockExtra('section_proprietaire.adresse.ville')}
                         value={formData.section_proprietaire.adresse.ville}
                         onChange={(e) => handleInputChange('section_proprietaire.adresse.ville', e.target.value)}
                       />
                       <input
                         type="text"
                         placeholder="Code postal"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        className={fieldCls('section_proprietaire.adresse.codePostal')}
+                        {...lockExtra('section_proprietaire.adresse.codePostal')}
                         value={formData.section_proprietaire.adresse.codePostal}
                         onChange={(e) => handleInputChange('section_proprietaire.adresse.codePostal', e.target.value)}
                       />

@@ -8,7 +8,7 @@ import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
   CheckCircle, FileText, Save, Sparkles, Wand2, Download, RefreshCw,
-  ChevronDown, Loader2, AlertCircle, Settings, ArrowLeft, Info, Eye, EyeOff,
+  ChevronDown, Loader2, AlertCircle, Settings, ArrowLeft, Info, Eye, EyeOff, Lock,
 } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 import { generateAnnoncePdf } from '../../../lib/annoncePdf'
@@ -70,8 +70,39 @@ export default function FicheFinalisation() {
     handleSave,
     saveStatus,
     back,
-    finaliserFiche
+    finaliserFiche,
+    isFicheLocked,
+    lockFiche
   } = useForm()
+
+  // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
+  // Pour tout autre rôle (premium/trial/admin), le comportement est strictement inchangé.
+  const [userRole, setUserRole] = useState(null)
+  const [roleLoaded, setRoleLoaded] = useState(false)
+  const [showLockModal, setShowLockModal] = useState(false)
+
+  // Le rôle conditionne le verrou : tant qu'il n'est pas résolu, on NE génère PAS de
+  // PDF (bouton désactivé). Sinon un fiche_lite qui clique pendant le chargement (ou si
+  // la requête échoue et laisse userRole=null) obtiendrait un 1er PDF SANS verrou → trou
+  // de recyclage rouvert. Retry léger pour ne pas rester bloqué sur un aléa réseau.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || cancelled) return
+        const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single()
+        if (cancelled) return
+        if (!error && data) {
+          setUserRole(data.role ?? null)
+          setRoleLoaded(true)
+          return
+        }
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   // Charge l'annonce DÉJÀ persistée (agent_outputs) pour la fiche + plateforme
   // courantes, au montage et à chaque changement de plateforme. AUCUNE génération
@@ -179,24 +210,55 @@ export default function FicheFinalisation() {
     }
   }
 
-  const handleGeneratePDF = async () => {
+  // Clic sur « Générer PDF » : un fiche_lite dont la fiche n'est pas encore verrouillée
+  // est averti AVANT (le PDF va figer l'identité du bien). Sinon (premium, ou fiche déjà
+  // verrouillée = générations suivantes) → génération directe, comportement inchangé.
+  const handleGeneratePDF = () => {
+    // Rôle pas encore résolu : on ne génère pas (le bouton est déjà désactivé). Garde
+    // défensive pour ne jamais produire un PDF sans avoir pu décider du verrou.
+    if (!roleLoaded) return
+    if (userRole === 'fiche_lite' && !isFicheLocked) {
+      setShowLockModal(true)
+      return
+    }
+    runGeneratePDF({ withLock: false })
+  }
+
+  // Génération effective. Ordre voulu : PDF D'ABORD (client-side, synchrone), PUIS le
+  // verrou — on ne verrouille JAMAIS sans avoir délivré le PDF. Si le lock échoue après
+  // coup, la fiche reste déverrouillée (le pop-up réapparaîtra), pas de lock-sans-PDF.
+  const runGeneratePDF = async ({ withLock }) => {
     try {
       setPdfLoading(true)
 
-      // Sauvegarder avant génération
-      await handleSave()
+      // La sauvegarde ne LÈVE PAS en cas d'échec (retourne { success:false }). Si elle
+      // échoue, on interrompt TOUT : pas de PDF (il serait généré depuis des données
+      // non persistées) et surtout pas de verrou (sinon la fiche serait figée sur les
+      // anciennes valeurs, incohérentes avec le PDF). L'utilisateur réessaie.
+      const saveRes = await handleSave()
+      if (!saveRes?.success) {
+        alert("La sauvegarde de la fiche a échoué : vos dernières modifications ne sont pas enregistrées. Réessayez avant de générer le PDF.")
+        return
+      }
 
-      // Générer le PDF côté client
+      // PDF D'ABORD (client-side, synchrone), PUIS le verrou — jamais de lock sans PDF.
       generatePdfClientSide(formData)
-
       setPdfGenerated(true)
-
+      if (withLock) {
+        const res = await lockFiche()
+        if (!res?.success) console.error('Verrouillage de la fiche échoué (PDF déjà généré) :', res?.error)
+      }
     } catch (error) {
       console.error('Erreur génération PDF:', error)
       alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
     } finally {
       setPdfLoading(false)
     }
+  }
+
+  const handleConfirmLock = () => {
+    setShowLockModal(false)
+    runGeneratePDF({ withLock: true })
   }
 
   // Finaliser la fiche
@@ -365,16 +427,16 @@ export default function FicheFinalisation() {
 
                   <button
                     onClick={handleGeneratePDF}
-                    disabled={pdfGenerated || pdfLoading}
+                    disabled={pdfGenerated || pdfLoading || !roleLoaded}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
                         ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                        : pdfLoading
+                        : (pdfLoading || !roleLoaded)
                           ? 'bg-gray-400 text-white cursor-not-allowed'
                           : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
                       }`}
                   >
                     {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : 'Générer la Fiche Logement (PDF)'}
+                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
                   </button>
                 </div>
 
@@ -672,6 +734,47 @@ export default function FicheFinalisation() {
                 className="px-6 py-3 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg font-medium transition-all"
               >
                 Continuer l'édition
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pop-up d'avertissement AVANT la 1re génération de PDF (fiche_lite uniquement) :
+          confirmer fige l'identité du bien puis génère ; annuler ne fait rien. */}
+      {showLockModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-8 max-w-lg w-full">
+            <div className="mb-5 flex items-start gap-3">
+              <div className="w-11 h-11 shrink-0 bg-[#dbae61] bg-opacity-15 rounded-full flex items-center justify-center">
+                <Lock className="w-5 h-5 text-[#dbae61]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Avant de générer le PDF</h2>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Une fois le PDF généré, vous ne pourrez plus modifier les informations qui
+                  identifient votre bien : <strong>nom du propriétaire, adresse, type de propriété,
+                  surface, typologie, type de niveau</strong>, et le cas échéant nom de résidence,
+                  bâtiment, étage et numéro de porte. Les autres champs (contact, capacité,
+                  précisions, équipements…) restent modifiables.
+                </p>
+                <p className="text-gray-500 text-sm mt-3">
+                  Pour établir une fiche sur un autre bien, créez une nouvelle fiche.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+              <button
+                onClick={() => setShowLockModal(false)}
+                className="px-5 py-2.5 text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmLock}
+                className="px-5 py-2.5 bg-[#dbae61] hover:bg-[#c49a4f] text-white rounded-lg font-semibold transition-colors"
+              >
+                Générer le PDF
               </button>
             </div>
           </div>
