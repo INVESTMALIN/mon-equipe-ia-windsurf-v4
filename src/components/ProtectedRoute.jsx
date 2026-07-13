@@ -1,11 +1,24 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+
+// Parcours Fiche Logement Lite : un user `fiche_lite` ne peut accéder QU'À ces
+// routes. Toute autre route protégée de Mon Équipe IA le renvoie à son dashboard
+// (produit standalone, indépendant de Mon Équipe IA). Pour rouvrir une route en
+// bonus (ex: '/assistant-invest-malin'), il suffit d'ajouter son path ici.
+export const FICHE_LITE_ALLOWED_PATHS = [
+  '/dashboard',      // tableau de bord fiches
+  '/fiche',          // création / édition d'une fiche (?id=... = query, pathname = /fiche)
+  '/nouvelle-fiche', // alias création
+  '/mes-credits',    // solde + achat de crédits + retour Stripe (?checkout=success)
+  '/mon-compte',     // page compte
+]
 
 export default function ProtectedRoute({ children, requirePremium = false, allowRoles = [] }) {
   const [loading, setLoading] = useState(true)
   const [isAllowed, setIsAllowed] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   // Clé stable pour les deps de l'effet (allowRoles est un tableau recréé à chaque render)
   const allowRolesKey = allowRoles.join(',')
@@ -27,19 +40,37 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
           return
         }
 
-        // 2. Si pas besoin de premium, utilisateur connecté suffit
-        if (!requirePremium) {
-          setIsAllowed(true)
-          return
-        }
-
-        // 3. Si premium requis, récupérer profil utilisateur + DATES + ROLE
+        // 2. Récupérer le profil (rôle + infos premium). Le rôle est requis sur
+        // TOUTES les routes protégées pour le gating fiche_lite ci-dessous, pas
+        // seulement sur les routes premium.
         const { data: profile, error: profileError } = await supabase
           .from('users')
           .select('subscription_status, subscription_trial_end, subscription_current_period_end, role')
           .eq('id', session.user.id)
           .single()
 
+        // 2b. Gating Fiche Logement Lite : un user `fiche_lite` ne peut accéder
+        // QU'AUX routes de son parcours (cf. FICHE_LITE_ALLOWED_PATHS). Toute
+        // autre route le renvoie à son dashboard. N'affecte AUCUN autre rôle
+        // (premium/admin/free). Fail-open si le profil est illisible : on ne
+        // bloque pas les autres rôles sur une erreur transitoire (le check
+        // premium ci-dessous, lui, refuse déjà l'accès sans profil valide).
+        if (
+          !profileError &&
+          profile?.role === 'fiche_lite' &&
+          !FICHE_LITE_ALLOWED_PATHS.includes(location.pathname)
+        ) {
+          navigate('/dashboard', { replace: true })
+          return
+        }
+
+        // 3. Si pas besoin de premium, utilisateur connecté suffit
+        if (!requirePremium) {
+          setIsAllowed(true)
+          return
+        }
+
+        // 4. Premium requis : à partir d'ici le profil doit être lisible
         if (profileError) {
           console.error('Erreur récupération profil:', profileError)
           navigate('/connexion', { replace: true })
@@ -131,7 +162,7 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
     )
 
     return () => subscription.unsubscribe()
-  }, [navigate, requirePremium, allowRolesKey])
+  }, [navigate, requirePremium, allowRolesKey, location.pathname])
 
   // Affichage pendant la vérification
   if (loading) {
