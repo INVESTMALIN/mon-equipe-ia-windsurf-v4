@@ -147,6 +147,21 @@ export default async function handler(req, res) {
               return res.status(400).json({ received: false, error: 'invalid credit purchase metadata' })
             }
 
+            // Facture Stripe générée par invoice_creation (cf. create-credit-checkout-session).
+            // `session.invoice` est normalement présent sur l'event ; fallback via retrieve
+            // si jamais l'event précède l'attache de l'invoice. Best-effort STRICT : un échec
+            // de résolution ne doit JAMAIS empêcher le crédit d'un paiement encaissé — on
+            // stocke null et /mes-credits affichera « facture non disponible ».
+            let stripeInvoiceId = typeof session.invoice === 'string' ? session.invoice : (session.invoice?.id || null)
+            if (!stripeInvoiceId) {
+              try {
+                const fullSession = await stripe.checkout.sessions.retrieve(session.id)
+                stripeInvoiceId = typeof fullSession.invoice === 'string' ? fullSession.invoice : (fullSession.invoice?.id || null)
+              } catch (invoiceErr) {
+                console.warn(`⚠️ Résolution invoice impossible pour session ${session.id} (non bloquant):`, invoiceErr.message)
+              }
+            }
+
             // Écriture ledger en service_role (bypass RLS), type 'achat', montant positif.
             // IDEMPOTENCE : l'index unique sur metadata->>'stripe_session_id' garantit AU
             // PLUS une ligne par session. Un rejeu / une livraison concurrente échoue en
@@ -162,6 +177,7 @@ export default async function handler(req, res) {
                   stripe_session_id: session.id,
                   stripe_event_id: event.id,
                   stripe_payment_intent: session.payment_intent,
+                  stripe_invoice_id: stripeInvoiceId,
                   pack
                 },
                 description: `Achat ${pack} — ${credits} crédit(s)`
