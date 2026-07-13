@@ -78,15 +78,28 @@ export default function FicheFinalisation() {
   // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
   // Pour tout autre rôle (premium/trial/admin), le comportement est strictement inchangé.
   const [userRole, setUserRole] = useState(null)
+  const [roleLoaded, setRoleLoaded] = useState(false)
   const [showLockModal, setShowLockModal] = useState(false)
 
+  // Le rôle conditionne le verrou : tant qu'il n'est pas résolu, on NE génère PAS de
+  // PDF (bouton désactivé). Sinon un fiche_lite qui clique pendant le chargement (ou si
+  // la requête échoue et laisse userRole=null) obtiendrait un 1er PDF SANS verrou → trou
+  // de recyclage rouvert. Retry léger pour ne pas rester bloqué sur un aléa réseau.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user || cancelled) return
-      const { data } = await supabase.from('users').select('role').eq('id', user.id).single()
-      if (!cancelled) setUserRole(data?.role ?? null)
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || cancelled) return
+        const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single()
+        if (cancelled) return
+        if (!error && data) {
+          setUserRole(data.role ?? null)
+          setRoleLoaded(true)
+          return
+        }
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+      }
     })()
     return () => { cancelled = true }
   }, [])
@@ -201,6 +214,9 @@ export default function FicheFinalisation() {
   // est averti AVANT (le PDF va figer l'identité du bien). Sinon (premium, ou fiche déjà
   // verrouillée = générations suivantes) → génération directe, comportement inchangé.
   const handleGeneratePDF = () => {
+    // Rôle pas encore résolu : on ne génère pas (le bouton est déjà désactivé). Garde
+    // défensive pour ne jamais produire un PDF sans avoir pu décider du verrou.
+    if (!roleLoaded) return
     if (userRole === 'fiche_lite' && !isFicheLocked) {
       setShowLockModal(true)
       return
@@ -214,7 +230,18 @@ export default function FicheFinalisation() {
   const runGeneratePDF = async ({ withLock }) => {
     try {
       setPdfLoading(true)
-      await handleSave()
+
+      // La sauvegarde ne LÈVE PAS en cas d'échec (retourne { success:false }). Si elle
+      // échoue, on interrompt TOUT : pas de PDF (il serait généré depuis des données
+      // non persistées) et surtout pas de verrou (sinon la fiche serait figée sur les
+      // anciennes valeurs, incohérentes avec le PDF). L'utilisateur réessaie.
+      const saveRes = await handleSave()
+      if (!saveRes?.success) {
+        alert("La sauvegarde de la fiche a échoué : vos dernières modifications ne sont pas enregistrées. Réessayez avant de générer le PDF.")
+        return
+      }
+
+      // PDF D'ABORD (client-side, synchrone), PUIS le verrou — jamais de lock sans PDF.
       generatePdfClientSide(formData)
       setPdfGenerated(true)
       if (withLock) {
@@ -400,16 +427,16 @@ export default function FicheFinalisation() {
 
                   <button
                     onClick={handleGeneratePDF}
-                    disabled={pdfGenerated || pdfLoading}
+                    disabled={pdfGenerated || pdfLoading || !roleLoaded}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
                         ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                        : pdfLoading
+                        : (pdfLoading || !roleLoaded)
                           ? 'bg-gray-400 text-white cursor-not-allowed'
                           : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
                       }`}
                   >
                     {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : 'Générer la Fiche Logement (PDF)'}
+                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
                   </button>
                 </div>
 
