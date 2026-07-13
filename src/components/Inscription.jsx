@@ -155,7 +155,7 @@ export default function Inscription() {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#dbae61] transition-colors"
                 placeholder="Entrez votre email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setEmailExists(false) }}
                 required
               />
             </div>
