@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { signupIndicatesExistingEmail } from '../lib/authHelpers'
+import AccountExistsNotice from './AccountExistsNotice'
 
 // Inscription dédiée à la landing /fiche-logement (public ThriveCart).
 // Identique dans l'esprit à Inscription.jsx, mais pose le rôle `fiche_lite`
@@ -14,12 +16,14 @@ export default function InscriptionFicheLite() {
   const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [emailExists, setEmailExists] = useState(false)
   const navigate = useNavigate()
 
   const handleSignup = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setEmailExists(false)
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -30,6 +34,15 @@ export default function InscriptionFicheLite() {
         data: { role: 'fiche_lite' }
       }
     })
+
+    // Email déjà en base : Supabase ne lève pas d'erreur (anti-énumération), on
+    // le détecte via la réponse et on affiche un message actionnable au lieu de
+    // filer silencieusement vers /compte-cree.
+    if (signupIndicatesExistingEmail(data, error)) {
+      setEmailExists(true)
+      setLoading(false)
+      return
+    }
 
     if (error) {
       setError(error.message)
@@ -168,6 +181,8 @@ export default function InscriptionFicheLite() {
                 Minimum 6 caractères recommandés
               </p>
             </div>
+
+            {emailExists && <AccountExistsNotice />}
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">

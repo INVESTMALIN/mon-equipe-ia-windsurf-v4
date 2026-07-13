@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { signupIndicatesExistingEmail } from '../lib/authHelpers'
+import AccountExistsNotice from './AccountExistsNotice'
 
 export default function Inscription() {
   const [email, setEmail] = useState('')
@@ -9,13 +11,15 @@ export default function Inscription() {
   const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [emailExists, setEmailExists] = useState(false)
   const navigate = useNavigate()
 
   const handleSignup = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
-  
+    setEmailExists(false)
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -23,7 +27,16 @@ export default function Inscription() {
         emailRedirectTo: `${window.location.origin}/email-confirmation`
       }
     })
-  
+
+    // Email déjà en base : Supabase ne lève pas d'erreur (anti-énumération), on
+    // le détecte via la réponse et on affiche un message actionnable au lieu de
+    // filer silencieusement vers /compte-cree.
+    if (signupIndicatesExistingEmail(data, error)) {
+      setEmailExists(true)
+      setLoading(false)
+      return
+    }
+
     if (error) {
       setError(error.message)
       setLoading(false)
@@ -164,6 +177,8 @@ export default function Inscription() {
                 Minimum 6 caractères recommandés
               </p>
             </div>
+
+            {emailExists && <AccountExistsNotice />}
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
