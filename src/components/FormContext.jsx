@@ -32,7 +32,7 @@ const sections = [
   "Finalisation"
 ]
 
-const initialFormData = {
+export const initialFormData = {
   id: null,
   user_id: null,
   created_at: null,

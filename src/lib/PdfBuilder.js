@@ -15,6 +15,7 @@
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
 import { formatForPdf } from './PdfFormatter'
+import { initialFormData } from '../components/FormContext'
 import pdfMake from 'pdfmake/build/pdfmake.js'
 import pdfFonts from 'pdfmake/build/vfs_fonts.js'
 import { createElement } from 'react'
@@ -132,6 +133,27 @@ const META_LAYOUT = {
 const isEmptyValue = (v) =>
   v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)
 
+// Distingue une valeur SAISIE d'une valeur laissée au défaut de FormContext.
+// FormContext initialise chaque champ (checkbox → false, texte → '', nombre → 0,
+// radio Oui/Non tri-state → null). Ces défauts ne doivent PAS être rendus : sinon
+// une fiche vierge afficherait « Non » partout ET un faux taux de complétion.
+// Règle : valeur ÉGALE à son défaut → non renseignée (ignorée) ; différente →
+// saisie (rendue). Ça sépare une checkbox non cochée (défaut false, valeur false
+// → ignorée) d'un radio répondu « Non » (défaut null, valeur false → conservé).
+const isSameAsDefault = (a, b) => {
+  if (a === b) return true
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    return JSON.stringify(a) === JSON.stringify(b)
+  }
+  return false
+}
+
+const isDefaultValue = (sectionKey, field, value) => {
+  const sectionDefaults = initialFormData?.[sectionKey]
+  if (!sectionDefaults || !(field in sectionDefaults)) return false
+  return isSameAsDefault(value, sectionDefaults[field])
+}
+
 /**
  * Transforme les champs d'une section en nœuds pdfmake :
  *  - scalaires → un tableau 2 colonnes label/valeur
@@ -148,6 +170,9 @@ function buildSectionNodes(sectionKey, donnees) {
 
   for (const [field, value] of Object.entries(donnees)) {
     if (isEmptyValue(value)) continue
+    // Valeur laissée au défaut FormContext (checkbox false, nombre 0, etc.) → non
+    // renseignée, on ne la rend pas (cf. isDefaultValue).
+    if (isDefaultValue(sectionKey, field, value)) continue
 
     // Éléments abîmés : regroupés dans un bloc dédié en fin de section.
     if (field.includes('elements_abimes')) {
@@ -267,17 +292,15 @@ function buildSectionNodes(sectionKey, donnees) {
   return nodes
 }
 
-function metaBox(nomBien, dateStr, meta) {
+function metaBox(nomBien, dateStr, filledCount, totalSections) {
   const rows = [
     [{ text: 'Bien', style: 'metaKey' }, { text: nomBien, style: 'metaVal' }],
     [{ text: 'Généré le', style: 'metaKey' }, { text: dateStr, style: 'metaVal' }],
-  ]
-  if (meta && typeof meta.sections_completees === 'number') {
-    rows.push([
+    [
       { text: 'Complétion', style: 'metaKey' },
-      { text: `${meta.sections_completees}/${meta.total_sections || 23} sections renseignées`, style: 'metaVal' },
-    ])
-  }
+      { text: `${filledCount}/${totalSections} sections renseignées`, style: 'metaVal' },
+    ],
+  ]
   return {
     table: { widths: ['auto', '*'], body: rows },
     layout: META_LAYOUT,
@@ -291,12 +314,25 @@ function metaBox(nomBien, dateStr, meta) {
  */
 export const buildDocDefinition = (formData) => {
   const pdfData = formatForPdf(formData)
-  const meta = pdfData.metadata
   const nomBien =
     (formData?.nom || pdfData.sections?.section_logement?.donnees?.nom_logement || '')
       .toString()
       .trim() || 'Fiche logement'
   const dateStr = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  // On construit d'abord les sections et on ne garde que celles qui produisent
+  // RÉELLEMENT du contenu (après filtrage des défauts). Le taux de complétion
+  // dérive de ce résultat — cohérent avec ce qui est rendu — et non du count brut
+  // de metadata (qui compte toute section ayant des clés, donc 23/23 sur une fiche
+  // vierge puisque FormContext initialise chaque section).
+  const renderedSections = []
+  Object.entries(pdfData.sections).forEach(([key, section]) => {
+    if (section?.meta_section?.vide) return
+    const nodes = buildSectionNodes(key, section.donnees || {})
+    if (nodes.length) renderedSections.push(...nodes)
+  })
+  const filledCount = renderedSections.filter((n) => n.headlineLevel === 1).length
+  const totalSections = pdfData.metadata?.total_sections || 23
 
   const content = []
 
@@ -323,21 +359,13 @@ export const buildDocDefinition = (formData) => {
     margin: [0, 0, 0, 12],
   })
 
-  // Bloc meta
-  content.push(metaBox(nomBien, dateStr, meta))
+  // Bloc meta (complétion = nombre de sections réellement rendues)
+  content.push(metaBox(nomBien, dateStr, filledCount, totalSections))
 
-  // Sections
-  let anySection = false
-  Object.entries(pdfData.sections).forEach(([key, section]) => {
-    if (section?.meta_section?.vide) return
-    const nodes = buildSectionNodes(key, section.donnees || {})
-    if (nodes.length) {
-      content.push(...nodes)
-      anySection = true
-    }
-  })
-
-  if (!anySection) {
+  // Sections (ou état vide si aucune donnée réelle)
+  if (renderedSections.length) {
+    content.push(...renderedSections)
+  } else {
     content.push({ text: 'Aucune donnée saisie pour le moment.', style: 'empty', margin: [0, 24, 0, 0] })
   }
 
