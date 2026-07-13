@@ -154,6 +154,39 @@ const isDefaultValue = (sectionKey, field, value) => {
   return isSameAsDefault(value, sectionDefaults[field])
 }
 
+// Aplati un objet imbriqué (sous-formulaire type chambre_1, ou checklist) en puces
+// lisibles, en gardant TOUS les champs saisis (pas seulement les booléens cochés) :
+//   - booléen true / 'Oui'          → le libellé seul (style checklist)
+//   - booléen false / 'Non' non-défaut → « Libellé : Non » (radio répondu « Non »)
+//   - tableau                        → « Libellé : a, b, c »
+//   - objet imbriqué                 → récursion, préfixée du libellé parent
+//   - scalaire (string/number)       → « Libellé : valeur »
+// Les valeurs vides ou égales au défaut FormContext (`defaults[k]`) sont ignorées.
+// Sans ça, une chambre remplie uniquement de scalaires (nom, nb de lits) donnerait
+// une liste vide → section Chambres omise et complétion sous-comptée (cf. round 4).
+const flattenObjectToItems = (obj, defaults, isPhoto) => {
+  const items = []
+  for (const [k, v] of Object.entries(obj)) {
+    if (isEmptyValue(v)) continue
+    if (isSameAsDefault(v, defaults ? defaults[k] : undefined)) continue
+
+    if (v === true || v === 'Oui' || v === 'oui') {
+      items.push(isPhoto ? cleanPhotoKey(k) : formatEnumValue(humanizeKey(k)))
+    } else if (v === false || v === 'Non' || v === 'non') {
+      items.push(`${humanizeKey(k)} : Non`)
+    } else if (Array.isArray(v)) {
+      const joined = v.map((it) => (typeof it === 'string' ? formatEnumValue(it) : String(it))).join(', ')
+      items.push(`${humanizeKey(k)} : ${joined}`)
+    } else if (typeof v === 'object') {
+      const sub = flattenObjectToItems(v, defaults ? defaults[k] : undefined, k.includes('photo'))
+      sub.forEach((s) => items.push(`${humanizeKey(k)} — ${s}`))
+    } else {
+      items.push(`${humanizeKey(k)} : ${formatFieldValue(v, k)}`)
+    }
+  }
+  return items
+}
+
 /**
  * Transforme les champs d'une section en nœuds pdfmake :
  *  - scalaires → un tableau 2 colonnes label/valeur
@@ -215,11 +248,11 @@ function buildSectionNodes(sectionKey, donnees) {
           .map(([k, v]) => `${humanizeKey(k)} : ${v}`)
         if (items.length) bulletBlocks.push({ label, items })
       } else {
-        // Checklist : on ne garde que les entrées cochées.
-        const isPhoto = field.includes('photo')
-        const items = Object.entries(value)
-          .filter(([, v]) => v === true || v === 'Oui' || v === 'oui')
-          .map(([k]) => (isPhoto ? cleanPhotoKey(k) : formatEnumValue(humanizeKey(k))))
+        // Objet générique : checklist plate (booléens) OU sous-formulaire imbriqué
+        // (ex. chambre_1 avec des scalaires). On aplati en gardant TOUS les champs
+        // saisis, pas seulement les booléens cochés (cf. flattenObjectToItems).
+        const subDefaults = initialFormData?.[sectionKey]?.[field]
+        const items = flattenObjectToItems(value, subDefaults, field.includes('photo'))
         if (items.length) bulletBlocks.push({ label, items })
       }
     }
