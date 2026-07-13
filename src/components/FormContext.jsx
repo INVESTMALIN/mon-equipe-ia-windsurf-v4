@@ -2,6 +2,7 @@ import { supabase } from '../supabaseClient'
 import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { initialFormData } from '../lib/formDefaults'
+import { LOCKED_FIELD_PATHS, isLockedFieldPath } from '../lib/lockedFields'
 
 const FormContext = createContext()
 
@@ -86,6 +87,13 @@ export function FormProvider({ children }) {
   const isUserChangeRef = useRef(false)
   const lastSaveRef = useRef(0)
 
+  // Miroir de formData.fields_locked pour garder updateField stable (deps []) tout en
+  // pouvant refuser une écriture sur un champ verrouillé sans lire un formData périmé.
+  const fieldsLockedRef = useRef(false)
+  useEffect(() => {
+    fieldsLockedRef.current = !!formData.fields_locked
+  }, [formData.fields_locked])
+
   // Récupération utilisateur
   useEffect(() => {
     const getUser = async () => {
@@ -96,6 +104,10 @@ export function FormProvider({ children }) {
   }, [])
 
   const updateField = useCallback((fieldPath, value) => {
+    // Garde défensive : si la fiche est verrouillée, on ignore toute écriture sur un
+    // champ d'identité du bien (en plus du `disabled` des inputs et du trigger DB).
+    if (fieldsLockedRef.current && isLockedFieldPath(fieldPath)) return
+
     isUserChangeRef.current = true
 
     setFormData(prev => {
@@ -284,6 +296,30 @@ export function FormProvider({ children }) {
     }
   }, [formData])
 
+  // ── Verrou d'identité du bien (cf. lib/lockedFields + trigger DB) ──────────────
+  const isFicheLocked = !!formData.fields_locked
+
+  const isFieldLocked = useCallback(
+    (path) => !!formData.fields_locked && isLockedFieldPath(path),
+    [formData.fields_locked]
+  )
+
+  // Pose le verrou en base APRÈS une génération de PDF réussie (parcours fiche_lite).
+  // Update dédié : ne touche QUE `fields_locked`. Le trigger l'autorise (OLD.fields_locked
+  // encore false au moment où on le pose). `fields_locked` n'est jamais réécrit par saveFiche.
+  const lockFiche = useCallback(async () => {
+    if (!formData.id) return { success: false, error: 'Fiche non enregistrée' }
+    const { error } = await supabase
+      .from('fiche_lite')
+      .update({ fields_locked: true })
+      .eq('id', formData.id)
+    if (error) return { success: false, error: error.message }
+    // MàJ locale sans déclencher d'auto-save (ce n'est pas une saisie utilisateur).
+    isUserChangeRef.current = false
+    setFormData(prev => ({ ...prev, fields_locked: true }))
+    return { success: true }
+  }, [formData.id])
+
   return (
     <FormContext.Provider value={{
       // Données
@@ -291,6 +327,12 @@ export function FormProvider({ children }) {
       updateField,
       updateSection,
       getField,
+
+      // Verrou d'identité du bien
+      isFicheLocked,
+      isFieldLocked,
+      lockFiche,
+      LOCKED_FIELD_PATHS,
 
       // Persistance
       handleSave,

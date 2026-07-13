@@ -11,6 +11,8 @@ export const initialFormData = {
   updated_at: null,
   nom: "Nouvelle fiche",
   statut: "Brouillon",
+  // Verrou d'identité du bien (posé après la 1re génération de PDF pour un fiche_lite).
+  fields_locked: false,
 
   section_proprietaire: {
     prenom: "",

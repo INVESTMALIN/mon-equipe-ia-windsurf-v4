@@ -1,7 +1,7 @@
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import { useForm } from '../../FormContext'
-import { Home } from 'lucide-react'
+import { Home, Lock } from 'lucide-react'
 import NavigationButtons from '../NavigationButtons'
 
 // ─── Constantes de style ───────────────────────────────────────────────────
@@ -13,8 +13,9 @@ const EMPTY_ACCES = { nom_residence: "", batiment: "", acces: "", etage: "", num
 const EMPTY_MAISON = { maison_niveau: "", maison_nb_etages: "" }
 
 // ─── Composant AccesLogementSection sorti du parent pour éviter la perte de focus ───
-function AccesLogementSection({ prefix, titre, getField, handleInputChange }) {
+function AccesLogementSection({ prefix, titre, getField, handleInputChange, fieldCls, lockExtra }) {
   const prefixLabel = prefix === 'appartement' ? 'Appartement' : 'Studio'
+  const p = (k) => `section_logement.${prefix}.${k}`
 
   return (
     <div className="mt-8 pt-8 border-t border-gray-200">
@@ -30,9 +31,10 @@ function AccesLogementSection({ prefix, titre, getField, handleInputChange }) {
             <input
               type="text"
               placeholder="Indiquez le nom de la résidence (ex. : Les Jardins)"
-              className={inputClass}
-              value={getField(`section_logement.${prefix}.nom_residence`)}
-              onChange={(e) => handleInputChange(`section_logement.${prefix}.nom_residence`, e.target.value)}
+              className={fieldCls(p('nom_residence'))}
+              {...lockExtra(p('nom_residence'))}
+              value={getField(p('nom_residence'))}
+              onChange={(e) => handleInputChange(p('nom_residence'), e.target.value)}
             />
           </div>
           <div>
@@ -40,9 +42,10 @@ function AccesLogementSection({ prefix, titre, getField, handleInputChange }) {
             <input
               type="text"
               placeholder="Indiquez le bâtiment (ex. : E1)"
-              className={inputClass}
-              value={getField(`section_logement.${prefix}.batiment`)}
-              onChange={(e) => handleInputChange(`section_logement.${prefix}.batiment`, e.target.value)}
+              className={fieldCls(p('batiment'))}
+              {...lockExtra(p('batiment'))}
+              value={getField(p('batiment'))}
+              onChange={(e) => handleInputChange(p('batiment'), e.target.value)}
             />
           </div>
         </div>
@@ -67,9 +70,10 @@ function AccesLogementSection({ prefix, titre, getField, handleInputChange }) {
             <input
               type="text"
               placeholder="Indiquez l'étage (ex. : 1)"
-              className={inputClass}
-              value={getField(`section_logement.${prefix}.etage`)}
-              onChange={(e) => handleInputChange(`section_logement.${prefix}.etage`, e.target.value)}
+              className={fieldCls(p('etage'))}
+              {...lockExtra(p('etage'))}
+              value={getField(p('etage'))}
+              onChange={(e) => handleInputChange(p('etage'), e.target.value)}
             />
           </div>
         </div>
@@ -81,9 +85,10 @@ function AccesLogementSection({ prefix, titre, getField, handleInputChange }) {
             <input
               type="text"
               placeholder="Indiquez le numéro de porte (ex. : 12A)"
-              className={inputClass}
-              value={getField(`section_logement.${prefix}.numero_porte`)}
-              onChange={(e) => handleInputChange(`section_logement.${prefix}.numero_porte`, e.target.value)}
+              className={fieldCls(p('numero_porte'))}
+              {...lockExtra(p('numero_porte'))}
+              value={getField(p('numero_porte'))}
+              onChange={(e) => handleInputChange(p('numero_porte'), e.target.value)}
             />
           </div>
         </div>
@@ -106,11 +111,18 @@ const autresTypes = [
 
 // ─── Composant principal ───────────────────────────────────────────────────
 export default function FicheLogement() {
-  const { getField, updateField } = useForm()
+  const { getField, updateField, isFieldLocked, isFicheLocked } = useForm()
 
   const handleInputChange = (fieldPath, value) => {
     updateField(fieldPath, value)
   }
+
+  // Champs d'identité/nature du bien : grisés + non éditables une fois la fiche
+  // verrouillée (après 1re génération de PDF). Passés aussi à AccesLogementSection.
+  const fieldCls = (path) =>
+    isFieldLocked(path) ? `${inputClass} bg-gray-100 text-gray-400 cursor-not-allowed` : inputClass
+  const lockExtra = (path) =>
+    isFieldLocked(path) ? { disabled: true, title: 'Champ verrouillé après génération du PDF' } : {}
 
   // Changement de type de propriété avec nettoyage des champs conditionnels
   const handleTypeProprieteChange = (newType) => {
@@ -140,6 +152,7 @@ export default function FicheLogement() {
   const isStudio = typePropriete === 'Studio'
   const isMaisonOuVilla = typePropriete === 'Maison' || typePropriete === 'Villa'
   const maisonNiveau = getField('section_logement.maison_niveau')
+  const niveauLocked = isFieldLocked('section_logement.maison_niveau')
 
   return (
     <div className="flex min-h-screen">
@@ -166,12 +179,22 @@ export default function FicheLogement() {
                 </div>
               </div>
 
+              {isFicheLocked && (
+                <div className="mb-6 flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-600">
+                  <Lock className="w-4 h-4 mt-0.5 shrink-0 text-gray-400" />
+                  <span>
+                    Le PDF a été généré : les champs qui identifient le bien (type, surface, typologie, accès) sont verrouillés. Les autres champs restent modifiables.
+                  </span>
+                </div>
+              )}
+
               <div className="space-y-6">
                 {/* Type de propriété */}
                 <div>
                   <label className={labelClass}>Type de propriété *</label>
                   <select
-                    className={inputClass}
+                    className={fieldCls('section_logement.type_propriete')}
+                    {...lockExtra('section_logement.type_propriete')}
                     value={typePropriete}
                     onChange={(e) => handleTypeProprieteChange(e.target.value)}
                   >
@@ -188,7 +211,8 @@ export default function FicheLogement() {
                     <div className="mt-3">
                       <label className={labelClass}>Type - Autres (Veuillez préciser) *</label>
                       <select
-                        className={inputClass}
+                        className={fieldCls('section_logement.type_autre_precision')}
+                        {...lockExtra('section_logement.type_autre_precision')}
                         value={getField('section_logement.type_autre_precision')}
                         onChange={(e) => handleInputChange('section_logement.type_autre_precision', e.target.value)}
                       >
@@ -208,7 +232,8 @@ export default function FicheLogement() {
                     <input
                       type="number"
                       placeholder="Ex: 45"
-                      className={inputClass}
+                      className={fieldCls('section_logement.surface')}
+                      {...lockExtra('section_logement.surface')}
                       value={getField('section_logement.surface')}
                       onChange={(e) => handleInputChange('section_logement.surface', e.target.value)}
                     />
@@ -216,7 +241,8 @@ export default function FicheLogement() {
                   <div>
                     <label className={labelClass}>Typologie *</label>
                     <select
-                      className={inputClass}
+                      className={fieldCls('section_logement.typologie')}
+                      {...lockExtra('section_logement.typologie')}
                       value={getField('section_logement.typologie')}
                       onChange={(e) => handleInputChange('section_logement.typologie', e.target.value)}
                     >
@@ -288,7 +314,8 @@ export default function FicheLogement() {
                       ].map(({ value, label }) => (
                         <label
                           key={value}
-                          className={`flex items-center gap-3 px-5 py-3 rounded-lg border-2 cursor-pointer transition-all ${maisonNiveau === value
+                          title={niveauLocked ? 'Champ verrouillé après génération du PDF' : undefined}
+                          className={`flex items-center gap-3 px-5 py-3 rounded-lg border-2 transition-all ${niveauLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${maisonNiveau === value
                             ? 'border-[#dbae61] bg-[#fdf6e8] text-gray-900 font-medium'
                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                             }`}
@@ -298,6 +325,7 @@ export default function FicheLogement() {
                             name="maison_niveau"
                             value={value}
                             checked={maisonNiveau === value}
+                            disabled={niveauLocked}
                             onChange={() => handleInputChange('section_logement.maison_niveau', value)}
                             className="accent-[#dbae61]"
                           />
@@ -326,6 +354,8 @@ export default function FicheLogement() {
                   titre="Appartement - Accès au logement"
                   getField={getField}
                   handleInputChange={handleInputChange}
+                  fieldCls={fieldCls}
+                  lockExtra={lockExtra}
                 />
               )}
 
@@ -336,6 +366,8 @@ export default function FicheLogement() {
                   titre="Studio - Accès au logement"
                   getField={getField}
                   handleInputChange={handleInputChange}
+                  fieldCls={fieldCls}
+                  lockExtra={lockExtra}
                 />
               )}
             </div>
