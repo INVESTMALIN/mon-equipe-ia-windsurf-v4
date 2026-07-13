@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Coins, Loader2, AlertCircle, RefreshCw, CreditCard, FileText,
-  CheckCircle, Clock, Info, ArrowUpRight, ArrowDownRight,
+  CheckCircle, Clock, Info, ArrowUpRight, ArrowDownRight, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useCreditBalance } from '../hooks/useCreditBalance'
@@ -47,6 +47,12 @@ export default function MesCredits() {
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(true)
 
+  // Factures Stripe des achats : map invoice_id -> hosted_invoice_url, résolue via
+  // /api/list-invoices (scopé au customer du user). `invoicesLoaded` évite d'afficher
+  // « non disponible » sur une ligne qui a un invoice_id tant que la map n'est pas là.
+  const [invoiceUrlById, setInvoiceUrlById] = useState({})
+  const [invoicesLoaded, setInvoicesLoaded] = useState(false)
+
   // Achat en cours (id du pack) : bloque tous les boutons + anti double-clic.
   const [purchasingPack, setPurchasingPack] = useState(null)
   const [purchaseError, setPurchaseError] = useState(null) // 'refus' | 'incident'
@@ -66,7 +72,7 @@ export default function MesCredits() {
     if (!user) { setHistory([]); setHistoryLoading(false); return }
     const { data, error: histError } = await supabase
       .from('credit_ledger')
-      .select('id, amount, type, description, created_at')
+      .select('id, amount, type, description, created_at, invoice_id:metadata->>stripe_invoice_id')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(20) // on ne charge jamais tout le ledger
@@ -74,9 +80,38 @@ export default function MesCredits() {
     setHistoryLoading(false)
   }, [])
 
+  // Résout les URLs de factures Stripe (une par achat). Non bloquant : en cas d'échec,
+  // les liens n'apparaissent simplement pas (l'historique reste affiché depuis Supabase).
+  const fetchInvoices = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) { setInvoicesLoaded(true); return }
+      const res = await fetch('/api/list-invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      })
+      if (res.ok) {
+        const { invoices } = await res.json()
+        const map = {}
+        for (const inv of invoices || []) {
+          if (inv.id && inv.hosted_invoice_url) map[inv.id] = inv.hosted_invoice_url
+        }
+        setInvoiceUrlById(map)
+      }
+    } catch {
+      // silencieux : dégradation propre, pas d'erreur affichée pour un lien secondaire
+    } finally {
+      setInvoicesLoaded(true)
+    }
+  }, [])
+
   useEffect(() => {
     fetchHistory()
-  }, [fetchHistory])
+    fetchInvoices()
+  }, [fetchHistory, fetchInvoices])
 
   // Cherche la ligne de crédit de CETTE session pour le user courant. Scope explicite
   // par user_id (pas seulement la RLS, cf. policy admin). Renvoie la ligne ou null.
@@ -127,6 +162,7 @@ export default function MesCredits() {
         setConfirming(false)
         await refresh()
         await fetchHistory()
+        await fetchInvoices()
         return
       }
 
@@ -158,7 +194,8 @@ export default function MesCredits() {
     }
     await refresh()
     await fetchHistory()
-  }, [checkoutReturn, findSessionCredit, refresh, fetchHistory])
+    await fetchInvoices()
+  }, [checkoutReturn, findSessionCredit, refresh, fetchHistory, fetchInvoices])
 
   const handlePurchase = async (pack) => {
     if (purchasingPack) return // anti double-clic : une seule session à la fois
@@ -429,9 +466,35 @@ export default function MesCredits() {
                           </p>
                         </div>
                       </div>
-                      <span className={`font-semibold whitespace-nowrap ${positif ? 'text-green-700' : 'text-red-700'}`}>
-                        {positif ? '+' : ''}{mvt.amount} crédit{Math.abs(mvt.amount) > 1 ? 's' : ''}
-                      </span>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className={`font-semibold whitespace-nowrap ${positif ? 'text-green-700' : 'text-red-700'}`}>
+                          {positif ? '+' : ''}{mvt.amount} crédit{Math.abs(mvt.amount) > 1 ? 's' : ''}
+                        </span>
+                        {/* Lien facture : uniquement sur les achats. Sans invoice_id (achat
+                            antérieur à l'activation d'invoice_creation) → « non disponible ».
+                            Avec invoice_id mais map pas encore chargée → rien (évite un flash). */}
+                        {mvt.type === 'achat' && (
+                          mvt.invoice_id ? (
+                            invoiceUrlById[mvt.invoice_id] ? (
+                              <a
+                                href={invoiceUrlById[mvt.invoice_id]}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-medium text-[#a07c32] hover:text-[#dbae61] hover:underline"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Facture
+                              </a>
+                            ) : (
+                              invoicesLoaded && (
+                                <span className="text-xs text-gray-400">Facture non disponible</span>
+                              )
+                            )
+                          ) : (
+                            <span className="text-xs text-gray-400">Facture non disponible</span>
+                          )
+                        )}
+                      </div>
                     </li>
                   )
                 })}
