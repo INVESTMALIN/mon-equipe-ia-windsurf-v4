@@ -18,7 +18,8 @@ import {
   Calendar,
   Clock,
   CreditCard,
-  Coins
+  Coins,
+  LogOut
 } from 'lucide-react'
 import CreateFicheModal from './fiche/CreateFicheModal'
 import DeleteFicheModal from './fiche/DeleteFicheModal'
@@ -42,6 +43,11 @@ export default function Dashboard() {
   // rôle fiche_lite — le rôle n'est connu qu'après chargement du profil, l'appel se
   // déclenche donc quand `enabled` passe à true.
   const { balance: creditsBalance, refresh: refreshCredits } = useCreditBalance(userProfile?.role === 'fiche_lite')
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate('/connexion')
+  }
 
   useEffect(() => {
     checkUserAndPremium()
@@ -252,7 +258,7 @@ export default function Dashboard() {
                   className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors"
                 >
                   <CreditCard className="w-4 h-4 mr-2 inline" />
-                  Mes crédits
+                  Recharger mes crédits
                 </button>
               ) : (
                 <button
@@ -263,6 +269,18 @@ export default function Dashboard() {
                   Retour
                 </button>
               )}
+
+              {/* Déconnexion discrète : icône seule + tooltip. Utile surtout au parcours
+                  fiche_lite (le Dashboard est sa page d'accueil, sinon logout uniquement
+                  depuis /mon-compte). */}
+              <button
+                onClick={handleLogout}
+                title="Se déconnecter"
+                aria-label="Se déconnecter"
+                className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
