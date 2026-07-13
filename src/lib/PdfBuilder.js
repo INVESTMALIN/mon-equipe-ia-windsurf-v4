@@ -218,13 +218,15 @@ function buildSectionNodes(sectionKey, donnees) {
     nodes.push({
       table: {
         widths: ['35%', '65%'],
+        // pdfmake 0.2 lit ce flag sur table.* (cf. tableProcessor) : au niveau du
+        // nœud content il serait ignoré → une ligne ne serait pas protégée.
+        dontBreakRows: true,
         body: scalarRows.map(([k, v]) => [
           { text: k, style: 'cellLabel' },
           { text: v, style: 'cellValue' },
         ]),
       },
       layout: TWO_COL_LAYOUT,
-      dontBreakRows: true, // une ligne de tableau n'est jamais coupée
       margin: [0, 0, 0, 8],
     })
   }
