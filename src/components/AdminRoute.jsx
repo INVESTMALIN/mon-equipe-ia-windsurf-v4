@@ -19,13 +19,21 @@ export default function AdminRoute({ children }) {
 
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('role')
+          .select('role, disabled_at')
           .eq('id', session.user.id)
           .single()
 
         // Fail-closed : toute erreur ou rôle != 'admin' refuse l'accès
         if (profileError || profile?.role !== 'admin') {
           navigate('/mon-compte', { replace: true })
+          return
+        }
+
+        // Admin désactivé : déconnexion immédiate côté UI (l'endpoint verifyAdmin
+        // bloque déjà toutes les écritures serveur, DB-checked à chaque appel).
+        if (profile.disabled_at) {
+          await supabase.auth.signOut()
+          navigate('/connexion', { replace: true })
           return
         }
 

@@ -40,12 +40,21 @@ export async function verifyAdmin(req, res) {
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from('users')
-    .select('role')
+    .select('role, disabled_at')
     .eq('id', user.id)
     .single()
 
   if (profileError || profile?.role !== 'admin') {
     res.status(403).json({ error: 'Forbidden, admin role required' })
+    return null
+  }
+
+  // Un admin désactivé ne doit plus rien pouvoir faire, même pendant la fenêtre
+  // résiduelle de son token d'accès (stateless). Ce check est lu en base à CHAQUE
+  // appel → il ferme tous les endpoints admin indépendamment du token (y compris
+  // l'auto-réactivation).
+  if (profile.disabled_at) {
+    res.status(403).json({ error: 'Forbidden, account disabled' })
     return null
   }
 
