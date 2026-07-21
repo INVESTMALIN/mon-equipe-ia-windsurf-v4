@@ -127,7 +127,6 @@ export default function MesCredits() {
         setConfirming(false)
         await refresh()
         await fetchHistory()
-        await fetchInvoices()
         return
       }
 
@@ -159,8 +158,7 @@ export default function MesCredits() {
     }
     await refresh()
     await fetchHistory()
-    await fetchInvoices()
-  }, [checkoutReturn, findSessionCredit, refresh, fetchHistory, fetchInvoices])
+  }, [checkoutReturn, findSessionCredit, refresh, fetchHistory])
 
   const handlePurchase = async (pack) => {
     if (purchasingPack) return // anti double-clic : une seule session à la fois
