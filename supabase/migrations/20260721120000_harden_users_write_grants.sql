@@ -21,14 +21,19 @@
 --
 -- INSERT : durci aussi. L'insertion à id arbitraire est déjà bloquée par RLS
 -- (with_check `auth.uid() = id`), et l'insert sur son propre id tombe sur le conflit de
--- clé primaire (la ligne existe déjà via le trigger). Reste UN résidu : le with_check ne
--- contraint pas `role`, donc si la ligne de profil d'un user était absente (ex. un
--- admin-delete-user qui supprime le profil puis échoue sur la suppression auth), ce user
--- pourrait se ré-insérer en `admin`. On révoque donc INSERT sur les colonnes sensibles.
--- L'inscription n'est PAS impactée : le trigger `handle_new_user` est SECURITY DEFINER
--- (propriétaire postgres) et pose `role`/`subscription_status` en bypassant ces grants
--- (vérifié : insert definer OK après révocation). Aucun code front n'insère dans users,
--- et le serveur écrit en service_role (bypass également).
+-- clé primaire quand la ligne existe déjà. Reste UN résidu : le with_check ne contraint
+-- pas `role`, donc si la ligne de profil d'un user était absente (ex. un admin-delete-user
+-- qui supprime le profil puis échoue sur la suppression auth), ce user pourrait se
+-- ré-insérer en `admin`. Vérifié par le comportement (profil supprimé puis self-insert).
+--
+-- IMPORTANT : comme pour UPDATE, un REVOKE au niveau COLONNE ne ferme PAS ce résidu tant
+-- que le privilège INSERT existe au niveau TABLE (les privilèges de colonne s'AJOUTENT au
+-- privilège table, ils ne le restreignent pas). Vérifié : avec un revoke colonne seul, le
+-- self-insert `role='admin'` réussissait encore. On révoque donc INSERT au niveau TABLE.
+-- Pas de re-GRANT : aucun chemin front n'insère dans users (le trigger `handle_new_user`,
+-- SECURITY DEFINER propriétaire postgres, pose le profil en bypassant les grants ; le
+-- serveur écrit en service_role, bypass également). Vérifié : après REVOKE table, le
+-- self-insert admin est bloqué ET l'insert definer de l'inscription passe toujours.
 --
 -- DELETE : déjà entièrement bloqué par RLS (aucune policy DELETE sur users → refus par
 -- défaut, 0 ligne pour un authenticated, sur sa ligne comme sur celle d'autrui). On n'y
@@ -41,16 +46,7 @@
 revoke update on public.users from authenticated, anon;
 grant  update (prenom, nom) on public.users to authenticated;
 
--- 2) INSERT : retirer les colonnes qui permettent de choisir droits/statut/facturation.
---    (id, email, prenom, nom, created_at restent insérables — sans intérêt d'escalade,
---     et l'insert self reste de toute façon borné par la PK + le with_check RLS.)
-revoke insert (
-  role,
-  subscription_status,
-  subscription_current_period_end,
-  subscription_trial_end,
-  subscription_cancel_at_period_end,
-  has_used_trial,
-  stripe_customer_id,
-  stripe_subscription_id
-) on public.users from authenticated, anon;
+-- 2) INSERT : couper le privilège au niveau TABLE (un revoke de colonnes seul serait
+--    inopérant tant que le grant table subsiste). Pas de re-GRANT : aucun insert client
+--    légitime sur users n'existe.
+revoke insert on public.users from authenticated, anon;
