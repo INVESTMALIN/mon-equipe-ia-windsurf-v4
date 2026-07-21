@@ -1,0 +1,22 @@
+-- Hotfix sécurité — retirer EXECUTE à authenticated/anon sur admin_adjust_credits.
+--
+-- La migration précédente (20260721141000) ne faisait que `revoke all from public` puis
+-- `grant execute to service_role`. Insuffisant sur ce projet : Supabase applique des
+-- DEFAULT PRIVILEGES qui accordent EXECUTE DIRECTEMENT à authenticated / anon /
+-- service_role sur toute nouvelle fonction du schéma public. Un revoke de PUBLIC ne
+-- retire pas ces grants directs → authenticated conservait EXECUTE.
+--
+-- Or admin_adjust_credits est SECURITY DEFINER et fait CONFIANCE à p_admin_id (l'identité
+-- admin est vérifiée en amont par le endpoint, pas dans la fonction). Elle ne contrôle
+-- pas l'appelant. Tant qu'authenticated pouvait l'exécuter, un concierge fiche_lite
+-- pouvait l'appeler directement via PostgREST (`rpc/admin_adjust_credits`) et se créditer
+-- lui-même — prouvé par le comportement (self-credit à 1000 crédits).
+--
+-- Correctif : révoquer EXECUTE explicitement à authenticated et anon. Seul le service_role
+-- (endpoint admin, après verifyAdmin) peut appeler la fonction. Idempotent.
+--
+-- Appliqué en live immédiatement (trou actif en prod) puis tracé ici. Après correctif,
+-- vérifié : has_function_privilege(authenticated) = false, l'appel authenticated est
+-- rejeté (« permission denied »), l'appel service_role fonctionne.
+
+revoke execute on function public.admin_adjust_credits(uuid, integer, public.credit_movement_type, text, uuid) from authenticated, anon;
