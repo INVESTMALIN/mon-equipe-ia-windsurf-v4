@@ -33,6 +33,7 @@ import MesCredits from './components/MesCredits'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminUsersList from './components/admin/AdminUsersList'
+import AdminUserDetail from './components/admin/AdminUserDetail'
 
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
@@ -245,6 +246,15 @@ function AppWrapper() {
             element={
               <AdminRoute>
                 <AdminUsersList />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users/:id"
+            element={
+              <AdminRoute>
+                <AdminUserDetail />
               </AdminRoute>
             }
           />
