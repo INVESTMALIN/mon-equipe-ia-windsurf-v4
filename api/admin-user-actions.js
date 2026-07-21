@@ -91,7 +91,9 @@ async function handleAdjustCredits(req, res, auth) {
   if (!['add', 'remove'].includes(direction)) {
     return res.status(400).json({ error: 'Direction invalide (add | remove)' })
   }
-  const n = parseInt(amount, 10)
+  // Number (pas parseInt) : parseInt('1.9') = 1 accepterait et tronquerait en silence
+  // un montant fractionnaire. On exige un entier strict.
+  const n = Number(amount)
   if (!Number.isInteger(n) || n <= 0) {
     return res.status(400).json({ error: 'Montant invalide (entier positif requis)' })
   }

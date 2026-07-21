@@ -39,7 +39,8 @@ export default function AdminAdjustCreditsModal({ isOpen, onClose, onSuccess, us
   if (!isOpen || !user || !action) return null
 
   const config = ACTION_CONFIG[action]
-  const n = parseInt(amount, 10)
+  // Number (pas parseInt) : rejette un montant fractionnaire au lieu de le tronquer.
+  const n = Number(amount)
   const amountValid = Number.isInteger(n) && n > 0
   const wouldGoNegative = action === 'remove' && amountValid && n > (balance ?? 0)
   const reasonValid = reason.trim().length > 0
