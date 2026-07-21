@@ -197,9 +197,20 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
       }
     )
 
+    // 8. Re-vérifier au retour sur l'onglet. Une désactivation admin (ban + disabled_at)
+    // n'émet aucun événement vers un client déjà ouvert ; ce re-check attrape le cas
+    // « l'utilisateur était sur une page, revient sur l'onglet » sans polling. Il ne
+    // ferme pas la fenêtre résiduelle du token d'accès stateless si l'utilisateur reste
+    // fixe sur la page sans quitter l'onglet (limite assumée, cf. disabled_at).
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !cancelled) checkAccess()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
     return () => {
       cancelled = true
       subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [navigate, requirePremium, allowRolesKey, location.pathname])
 
