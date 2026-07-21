@@ -11,8 +11,10 @@ import { sendEmail, confirmationEmail, resetEmail } from './_lib/sendEmail.js'
 
 const APP_URL = process.env.APP_URL || 'https://www.mon-equipe-ia.com'
 
-// Ban « permanent » (100 ans) pour la désactivation Auth. Le ban bloque nativement
-// login et refresh de token — le vrai check à la connexion.
+// Ban « permanent » (100 ans) pour la désactivation Auth. Le ban bloque tout NOUVEAU
+// login et le refresh de token. Le token d'accès déjà émis (stateless) reste valide
+// jusqu'à son expiration ; ProtectedRoute ferme en plus l'accès UI immédiatement en
+// lisant disabled_at.
 const BAN_DURATION_DISABLE = '876000h'
 
 async function handleGet(req, res) {

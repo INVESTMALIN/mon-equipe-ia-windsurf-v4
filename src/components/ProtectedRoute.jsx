@@ -67,10 +67,21 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
         // seulement sur les routes premium.
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('subscription_status, subscription_trial_end, subscription_current_period_end, role')
+          .select('subscription_status, subscription_trial_end, subscription_current_period_end, role, disabled_at')
           .eq('id', session.user.id)
           .single()
         if (cancelled) return
+
+        // 2a. Compte désactivé par un admin : déconnexion immédiate côté app. Le ban
+        // Supabase Auth bloque déjà login + refresh de token ; ce check ferme en plus
+        // l'accès UI pendant la durée de vie résiduelle du token d'accès (stateless,
+        // non révocable instantanément). Fail-open sur erreur profil : on ne déconnecte
+        // que si on lit POSITIVEMENT disabled_at (pas sur une erreur transitoire).
+        if (!profileError && profile?.disabled_at) {
+          await supabase.auth.signOut()
+          navigate('/connexion', { replace: true })
+          return
+        }
 
         // 2b. Gating Fiche Logement Lite : un user `fiche_lite` ne peut accéder
         // QU'AUX routes de son parcours (cf. FICHE_LITE_ALLOWED_PATHS). Toute
