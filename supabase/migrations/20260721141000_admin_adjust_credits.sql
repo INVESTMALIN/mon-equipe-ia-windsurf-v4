@@ -97,6 +97,11 @@ begin
 end;
 $$;
 
--- Exécutable uniquement par le service_role (endpoint admin). Pas de grant à
--- authenticated : aucun client ne doit pouvoir s'auto-créditer.
-revoke all on function public.admin_adjust_credits(uuid, integer, public.credit_movement_type, text, uuid) from public, authenticated, anon;
+-- Exécutable UNIQUEMENT par le service_role (endpoint admin). On retire l'EXECUTE
+-- accordé par défaut à PUBLIC, puis on l'accorde explicitement au service_role.
+-- SECURITY DEFINER ne régit que les privilèges INTERNES à la fonction, pas le droit de
+-- l'APPELER : sans ce grant, l'appelant service_role se prend « permission denied for
+-- function ». Pas de grant à authenticated/anon (couverts par le revoke de PUBLIC) :
+-- aucun client ne doit pouvoir s'auto-créditer.
+revoke all on function public.admin_adjust_credits(uuid, integer, public.credit_movement_type, text, uuid) from public;
+grant execute on function public.admin_adjust_credits(uuid, integer, public.credit_movement_type, text, uuid) to service_role;
