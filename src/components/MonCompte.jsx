@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2, AlertCircle, Users, Receipt, ExternalLink, Loader2 } from 'lucide-react'
+import { HelpCircle, CreditCard, User, ArrowLeft, ArrowRight, MessageSquare, Shield, Trash2, AlertCircle, Users } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ChangePasswordModal from './ChangePasswordModal'
 import EditProfileModal from './EditProfileModal'
@@ -14,11 +14,6 @@ export default function MonCompte() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-
-  // Factures d'abonnement Premium (section "Mes factures"). Réservé aux non-fiche_lite :
-  // on ne charge même pas l'endpoint pour un fiche_lite (section masquée pour lui).
-  const [invoices, setInvoices] = useState([])
-  const [invoicesLoading, setInvoicesLoading] = useState(false)
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -51,39 +46,6 @@ export default function MonCompte() {
       setLoading(false)
     }
   }
-
-  // Charge les factures d'abonnement dès que le rôle est connu. Masqué pour fiche_lite
-  // (produit sans abonnement) → on n'appelle même pas l'endpoint pour lui.
-  useEffect(() => {
-    if (!userProfile || userProfile.role === 'fiche_lite') return
-
-    let cancelled = false
-    const fetchInvoices = async () => {
-      setInvoicesLoading(true)
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) return
-        const res = await fetch('/api/list-invoices', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        })
-        if (res.ok && !cancelled) {
-          const { invoices: list } = await res.json()
-          // Section "Mes factures" = factures d'abonnement uniquement.
-          setInvoices((list || []).filter((inv) => inv.is_subscription))
-        }
-      } catch {
-        // silencieux : la section affichera son état vide plutôt qu'une erreur
-      } finally {
-        if (!cancelled) setInvoicesLoading(false)
-      }
-    }
-    fetchInvoices()
-    return () => { cancelled = true }
-  }, [userProfile])
 
   const handleManageSubscription = async () => {
     try {
@@ -339,79 +301,6 @@ export default function MonCompte() {
     )
   }
 
-  const renderInvoicesSection = () => {
-    // Masquée pour fiche_lite (produit sans abonnement Premium). Le chargement des
-    // factures est déjà gated sur ce même rôle (cf. useEffect).
-    if (userProfile?.role === 'fiche_lite') return null
-
-    const formatDate = (epochSec) =>
-      new Date(epochSec * 1000).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
-
-    const formatAmount = (inv) =>
-      (inv.total / 100).toLocaleString('fr-FR', { style: 'currency', currency: (inv.currency || 'eur').toUpperCase() })
-
-    const statusBadge = (status) => {
-      const map = {
-        paid: ['Payée', 'bg-green-100 text-green-800'],
-        open: ['En attente', 'bg-amber-100 text-amber-800'],
-        uncollectible: ['Échec', 'bg-red-100 text-red-800'],
-        void: ['Annulée', 'bg-gray-100 text-gray-600'],
-        draft: ['Brouillon', 'bg-gray-100 text-gray-600'],
-      }
-      const [label, cls] = map[status] || [status || 'Inconnu', 'bg-gray-100 text-gray-600']
-      return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls}`}>{label}</span>
-    }
-
-    return (
-      <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Receipt className="w-6 h-6 text-[#dbae61]" />
-          <h2 className="text-xl font-bold text-black">Mes factures</h2>
-        </div>
-
-        {invoicesLoading ? (
-          <div className="flex items-center gap-3 text-gray-500">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Chargement de vos factures…</span>
-          </div>
-        ) : invoices.length === 0 ? (
-          <p className="text-gray-500">
-            Aucune facture pour le moment. Vos factures d'abonnement apparaîtront ici après votre premier paiement.
-          </p>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {invoices.map((inv) => (
-              <li key={inv.id} className="flex items-center justify-between gap-4 py-4">
-                <div className="min-w-0">
-                  <p className="font-medium text-gray-900">{formatDate(inv.created)}</p>
-                  <p className="text-sm text-gray-500">
-                    {formatAmount(inv)}{inv.number ? ` · ${inv.number}` : ''}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  {statusBadge(inv.status)}
-                  {inv.hosted_invoice_url ? (
-                    <a
-                      href={inv.hosted_invoice_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-[#a07c32] hover:text-[#dbae61] hover:underline"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Voir
-                    </a>
-                  ) : (
-                    <span className="text-sm text-gray-400">Indisponible</span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header noir */}
@@ -513,9 +402,6 @@ export default function MonCompte() {
           {/* Section Abonnement dynamique */}
           {renderSubscriptionSection()}
         </div>
-
-        {/* Section Mes factures (abonnements Premium) — masquée pour fiche_lite */}
-        {renderInvoicesSection()}
 
         {/* Accès rapide aux assistants - SECTION CORRIGÉE */}
         <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
