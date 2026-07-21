@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft, AlertCircle, Shield, Mail, MailCheck, MailWarning,
-  Coins, Plus, Minus, Lock, Unlock, CreditCard, UserCog, CheckCircle
+  Coins, Plus, Minus, Lock, Unlock, CreditCard, UserCog, CheckCircle,
+  Send, Power, Ban
 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import AdminUpdateSubscriptionModal from './AdminUpdateSubscriptionModal'
@@ -62,6 +63,7 @@ export default function AdminUserDetail() {
   const [promoting, setPromoting] = useState(false)
   const [promoteConfirm, setPromoteConfirm] = useState(false)
   const [actionNotice, setActionNotice] = useState(null)
+  const [busyAction, setBusyAction] = useState(null) // 'resend_confirmation' | 'resend_reset' | 'disable' | 'enable'
 
   const fetchDetail = useCallback(async () => {
     setLoading(true)
@@ -145,7 +147,40 @@ export default function AdminUserDetail() {
     }
   }
 
+  const runAction = async (action, { confirm } = {}) => {
+    if (confirm && !window.confirm(confirm)) return
+    setBusyAction(action)
+    setActionNotice(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin-user-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action, user_id: id })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setActionNotice({ type: 'error', text: data.error || 'Erreur' })
+        return
+      }
+      const messages = {
+        resend_confirmation: 'Email de confirmation renvoyé.',
+        resend_reset: 'Email de réinitialisation renvoyé.',
+        disable: 'Compte désactivé.',
+        enable: 'Compte réactivé.'
+      }
+      setActionNotice({ type: 'success', text: messages[action] || 'Fait.' })
+      if (action === 'disable' || action === 'enable') fetchDetail()
+    } catch (err) {
+      console.error(`Erreur ${action}:`, err)
+      setActionNotice({ type: 'error', text: 'Erreur réseau.' })
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
   const user = detail?.user
+  const isDisabled = !!user?.disabled_at
   const isFicheLite = user?.role === 'fiche_lite'
   const isSubWorld = user?.role === 'user' || user?.role === 'admin'
   const canSetPremium = user?.subscription_status === 'free' || user?.subscription_status === 'expired'
@@ -216,6 +251,11 @@ export default function AdminUserDetail() {
                 </div>
                 <div className="flex flex-col items-start md:items-end gap-2">
                   <RoleBadge role={user.role} />
+                  {isDisabled && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <Ban className="w-3 h-3" /> Désactivé le {formatDate(user.disabled_at)}
+                    </span>
+                  )}
                   <span className="text-xs text-gray-500">Inscrit le {formatDate(user.created_at)}</span>
                 </div>
               </div>
@@ -378,6 +418,52 @@ export default function AdminUserDetail() {
                 )}
               </div>
             )}
+
+            {/* Compte : emails + désactivation */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-lg font-bold text-black mb-4">Compte</h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => runAction('resend_confirmation')}
+                  disabled={busyAction !== null}
+                  className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 hover:border-[#dbae61] text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
+                >
+                  <MailCheck className="w-4 h-4" />
+                  {busyAction === 'resend_confirmation' ? 'Envoi…' : 'Renvoyer la confirmation'}
+                </button>
+                <button
+                  onClick={() => runAction('resend_reset')}
+                  disabled={busyAction !== null}
+                  className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 hover:border-[#dbae61] text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                  {busyAction === 'resend_reset' ? 'Envoi…' : 'Renvoyer le reset mot de passe'}
+                </button>
+
+                {isDisabled ? (
+                  <button
+                    onClick={() => runAction('enable')}
+                    disabled={busyAction !== null}
+                    className="inline-flex items-center gap-2 border-2 border-green-200 text-green-700 hover:bg-green-50 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
+                  >
+                    <Power className="w-4 h-4" />
+                    {busyAction === 'enable' ? '…' : 'Réactiver le compte'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => runAction('disable', { confirm: "Désactiver ce compte ? Le concierge ne pourra plus se connecter (récupérable)." })}
+                    disabled={busyAction !== null}
+                    className="inline-flex items-center gap-2 border-2 border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
+                  >
+                    <Ban className="w-4 h-4" />
+                    {busyAction === 'disable' ? '…' : 'Désactiver le compte'}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-3">
+                La désactivation bloque la connexion sans supprimer le compte (réversible). La suppression définitive se fait depuis la liste.
+              </p>
+            </div>
           </div>
         ) : null}
       </div>

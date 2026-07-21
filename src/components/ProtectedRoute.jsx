@@ -67,10 +67,21 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
         // seulement sur les routes premium.
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('subscription_status, subscription_trial_end, subscription_current_period_end, role')
+          .select('subscription_status, subscription_trial_end, subscription_current_period_end, role, disabled_at')
           .eq('id', session.user.id)
           .single()
         if (cancelled) return
+
+        // 2a. Compte désactivé par un admin : déconnexion immédiate côté app. Le ban
+        // Supabase Auth bloque déjà login + refresh de token ; ce check ferme en plus
+        // l'accès UI pendant la durée de vie résiduelle du token d'accès (stateless,
+        // non révocable instantanément). Fail-open sur erreur profil : on ne déconnecte
+        // que si on lit POSITIVEMENT disabled_at (pas sur une erreur transitoire).
+        if (!profileError && profile?.disabled_at) {
+          await supabase.auth.signOut()
+          navigate('/connexion', { replace: true })
+          return
+        }
 
         // 2b. Gating Fiche Logement Lite : un user `fiche_lite` ne peut accéder
         // QU'AUX routes de son parcours (cf. FICHE_LITE_ALLOWED_PATHS). Toute
@@ -186,9 +197,20 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
       }
     )
 
+    // 8. Re-vérifier au retour sur l'onglet. Une désactivation admin (ban + disabled_at)
+    // n'émet aucun événement vers un client déjà ouvert ; ce re-check attrape le cas
+    // « l'utilisateur était sur une page, revient sur l'onglet » sans polling. Il ne
+    // ferme pas la fenêtre résiduelle du token d'accès stateless si l'utilisateur reste
+    // fixe sur la page sans quitter l'onglet (limite assumée, cf. disabled_at).
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !cancelled) checkAccess()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
     return () => {
       cancelled = true
       subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [navigate, requirePremium, allowRolesKey, location.pathname])
 

@@ -96,6 +96,7 @@ export default function AdminUsersList() {
   const [updateModal, setUpdateModal] = useState({ open: false, user: null, action: null })
   const [deleteModal, setDeleteModal] = useState({ open: false, user: null })
   const [openMenuId, setOpenMenuId] = useState(null)
+  const [createNotice, setCreateNotice] = useState(null) // avertissement post-création (ex: email non envoyé)
   const menuContainerRef = useRef(null)
 
   // Track the connected admin's id so we can disable destructive actions
@@ -232,6 +233,23 @@ export default function AdminUsersList() {
             Créer un compte
           </button>
         </div>
+
+        {createNotice && (
+          typeof createNotice === 'string' ? (
+            <div className="mb-6 flex items-start justify-between gap-3 p-4 rounded-lg bg-orange-50 border border-orange-200">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-orange-800">{createNotice}</p>
+              </div>
+              <button onClick={() => setCreateNotice(null)} className="text-orange-700 text-sm underline hover:no-underline">Fermer</button>
+            </div>
+          ) : (
+            <div className="mb-6 flex items-center justify-between gap-3 p-4 rounded-lg bg-green-50 border border-green-200">
+              <p className="text-sm text-green-800">Compte créé, l'email d'invitation a été envoyé.</p>
+              <button onClick={() => setCreateNotice(null)} className="text-green-700 text-sm underline hover:no-underline">Fermer</button>
+            </div>
+          )
+        )}
 
         {/* Filtres + recherche */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -429,7 +447,7 @@ export default function AdminUsersList() {
       <AdminCreateUserModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSuccess={fetchUsers}
+        onSuccess={(warning) => { fetchUsers(); setCreateNotice(warning || { ok: true }) }}
       />
 
       <AdminUpdateSubscriptionModal
