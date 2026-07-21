@@ -1,4 +1,5 @@
 import { verifyAdmin, supabaseAdmin } from './_lib/verifyAdmin.js'
+import { sendEmail, confirmationEmail, resetEmail } from './_lib/sendEmail.js'
 
 // Routeur unique des opérations admin sur un concierge (lecture détail + écritures),
 // dispatché sur `action`. Regroupé en UN endpoint à dessein : le plan Vercel Hobby
@@ -8,6 +9,12 @@ import { verifyAdmin, supabaseAdmin } from './_lib/verifyAdmin.js'
 // Toute action vérifie d'abord l'admin via verifyAdmin ; toutes les écritures passent
 // en service_role. Aucune écriture directe depuis le front sur ces données sensibles.
 
+const APP_URL = process.env.APP_URL || 'https://www.mon-equipe-ia.com'
+
+// Ban « permanent » (100 ans) pour la désactivation Auth. Le ban bloque nativement
+// login et refresh de token — le vrai check à la connexion.
+const BAN_DURATION_DISABLE = '876000h'
+
 async function handleGet(req, res) {
   const { user_id } = req.body || {}
   if (!user_id || typeof user_id !== 'string') {
@@ -16,7 +23,7 @@ async function handleGet(req, res) {
 
   const { data: profile, error: profErr } = await supabaseAdmin
     .from('users')
-    .select('id, prenom, nom, email, role, subscription_status, subscription_current_period_end, subscription_trial_end, subscription_cancel_at_period_end, has_used_trial, stripe_subscription_id, created_at')
+    .select('id, prenom, nom, email, role, subscription_status, subscription_current_period_end, subscription_trial_end, subscription_cancel_at_period_end, has_used_trial, stripe_subscription_id, disabled_at, created_at')
     .eq('id', user_id)
     .single()
 
@@ -46,7 +53,8 @@ async function handleGet(req, res) {
       // Nécessaire au front (AdminUpdateSubscriptionModal) pour afficher l'avertissement
       // « set_free n'annule pas la facturation Stripe » quand un abo Stripe existe.
       stripe_subscription_id: profile.stripe_subscription_id ?? null,
-      has_used_trial: profile.has_used_trial
+      has_used_trial: profile.has_used_trial,
+      disabled_at: profile.disabled_at ?? null
     },
     credits: null,
     fiches: null
@@ -187,6 +195,84 @@ async function handlePromoteAdmin(req, res) {
   return res.status(200).json({ user: data })
 }
 
+// Renvoi d'un lien par email via Resend (indépendant du SMTP Auth).
+//   - kind 'confirmation' → magiclink : `generateLink type 'signup'` exige un mot de
+//     passe qu'on n'a pas ; le magiclink (email seul) confirme l'email et connecte au
+//     clic, ce qui débloque un concierge dont le mail de confirmation est en spam.
+//   - kind 'reset' → recovery : lien de réinitialisation de mot de passe.
+async function handleResendLink(req, res, kind) {
+  const { user_id } = req.body || {}
+  if (!user_id || typeof user_id !== 'string') {
+    return res.status(400).json({ error: 'user_id requis' })
+  }
+
+  const { data: authData, error: getErr } = await supabaseAdmin.auth.admin.getUserById(user_id)
+  if (getErr || !authData?.user?.email) {
+    return res.status(404).json({ error: 'Utilisateur introuvable' })
+  }
+  const email = authData.user.email
+
+  const { data: profile } = await supabaseAdmin
+    .from('users').select('prenom').eq('id', user_id).single()
+  const prenom = profile?.prenom || null
+
+  const linkType = kind === 'reset' ? 'recovery' : 'magiclink'
+  const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+    type: linkType,
+    email,
+    options: { redirectTo: `${APP_URL}/nouveau-mot-de-passe` }
+  })
+  if (linkErr || !linkData?.properties?.action_link) {
+    console.error('admin-user-actions/resend: generateLink failed:', linkErr)
+    return res.status(500).json({ error: 'Erreur génération du lien', details: linkErr?.message })
+  }
+
+  const tpl = kind === 'reset'
+    ? resetEmail({ actionLink: linkData.properties.action_link, prenom })
+    : confirmationEmail({ actionLink: linkData.properties.action_link, prenom })
+
+  try {
+    await sendEmail({ to: email, subject: tpl.subject, html: tpl.html, text: tpl.text })
+  } catch (mailErr) {
+    console.error('admin-user-actions/resend: sendEmail failed:', mailErr)
+    return res.status(502).json({ error: "L'email n'a pas pu être envoyé", details: mailErr.message })
+  }
+
+  return res.status(200).json({ sent: true })
+}
+
+// Désactivation / réactivation. Le blocage réel de l'accès = ban Supabase Auth
+// (banned_until), qui rejette login et refresh de token. La colonne users.disabled_at
+// ne sert qu'à l'affichage admin.
+async function handleSetDisabled(req, res, auth, disabled) {
+  const { user_id } = req.body || {}
+  if (!user_id || typeof user_id !== 'string') {
+    return res.status(400).json({ error: 'user_id requis' })
+  }
+  if (disabled && auth.user.id === user_id) {
+    return res.status(400).json({ error: 'Tu ne peux pas désactiver ton propre compte' })
+  }
+
+  const { error: banErr } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+    ban_duration: disabled ? BAN_DURATION_DISABLE : 'none'
+  })
+  if (banErr) {
+    console.error('admin-user-actions/disable: updateUserById failed:', banErr)
+    return res.status(500).json({ error: 'Erreur mise à jour Auth', details: banErr.message })
+  }
+
+  const { error: profErr } = await supabaseAdmin
+    .from('users')
+    .update({ disabled_at: disabled ? new Date().toISOString() : null })
+    .eq('id', user_id)
+  if (profErr) {
+    console.error('admin-user-actions/disable: profile update failed:', profErr)
+    return res.status(500).json({ error: 'Erreur mise à jour profil', details: profErr.message })
+  }
+
+  return res.status(200).json({ disabled })
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -198,10 +284,14 @@ export default async function handler(req, res) {
   try {
     const { action } = req.body || {}
     switch (action) {
-      case 'get':            return await handleGet(req, res)
-      case 'adjust_credits': return await handleAdjustCredits(req, res, auth)
-      case 'unlock_fiche':   return await handleUnlockFiche(req, res)
-      case 'promote_admin':  return await handlePromoteAdmin(req, res)
+      case 'get':                 return await handleGet(req, res)
+      case 'adjust_credits':      return await handleAdjustCredits(req, res, auth)
+      case 'unlock_fiche':        return await handleUnlockFiche(req, res)
+      case 'promote_admin':       return await handlePromoteAdmin(req, res)
+      case 'resend_confirmation': return await handleResendLink(req, res, 'confirmation')
+      case 'resend_reset':        return await handleResendLink(req, res, 'reset')
+      case 'disable':             return await handleSetDisabled(req, res, auth, true)
+      case 'enable':              return await handleSetDisabled(req, res, auth, false)
       default:
         return res.status(400).json({ error: 'Action invalide' })
     }

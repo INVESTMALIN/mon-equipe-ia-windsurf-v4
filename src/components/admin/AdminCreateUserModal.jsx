@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { X, AlertCircle, Home, Bot } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 const DURATION_OPTIONS = [
@@ -15,16 +15,15 @@ function tomorrowYmd() {
 }
 
 function ymdToEndOfDayIso(ymd) {
-  // Local end-of-day so the user's intent ("expires on this date") matches.
   return new Date(`${ymd}T23:59:59`).toISOString()
 }
 
 export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
+  const [world, setWorld] = useState('fiche_lite') // 'fiche_lite' | 'mon_equipe_ia'
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
+  const [role, setRole] = useState('user') // pour Mon Équipe IA
   const [statusType, setStatusType] = useState('free')
   const [durationMode, setDurationMode] = useState('preset')
   const [presetMonths, setPresetMonths] = useState(12)
@@ -35,11 +34,11 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null
 
   const reset = () => {
+    setWorld('fiche_lite')
     setEmail('')
-    setPassword('')
-    setShowPassword(false)
     setPrenom('')
     setNom('')
+    setRole('user')
     setStatusType('free')
     setDurationMode('preset')
     setPresetMonths(12)
@@ -58,8 +57,7 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
     setError(null)
 
     if (!email.trim()) return setError('Email requis')
-    if (!password || password.length < 6) return setError('Mot de passe requis (6 caractères minimum)')
-    if (statusType === 'premium' && durationMode === 'custom' && !customDate) {
+    if (world === 'mon_equipe_ia' && statusType === 'premium' && durationMode === 'custom' && !customDate) {
       return setError("Date d'expiration requise")
     }
 
@@ -74,14 +72,17 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
 
       const body = {
         email: email.trim(),
-        password,
         prenom: prenom.trim() || null,
         nom: nom.trim() || null,
-        subscription_status: statusType
+        world
       }
-      if (statusType === 'premium') {
-        if (durationMode === 'custom') body.custom_end_date = ymdToEndOfDayIso(customDate)
-        else body.months = presetMonths
+      if (world === 'mon_equipe_ia') {
+        body.role = role
+        body.subscription_status = statusType
+        if (statusType === 'premium') {
+          if (durationMode === 'custom') body.custom_end_date = ymdToEndOfDayIso(customDate)
+          else body.months = presetMonths
+        }
       }
 
       const res = await fetch('/api/admin-create-user', {
@@ -100,8 +101,10 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
         return
       }
 
+      // Compte créé. Si l'email d'invitation n'est pas parti, on remonte l'avertissement
+      // sans bloquer (l'admin pourra renvoyer l'invitation depuis la fiche).
       reset()
-      onSuccess?.()
+      onSuccess?.(data.warning || null)
       onClose()
     } catch (err) {
       console.error('Erreur création user:', err)
@@ -109,6 +112,8 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
       setSubmitting(false)
     }
   }
+
+  const isMeia = world === 'mon_equipe_ia'
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -132,6 +137,35 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
+          {/* Choix du monde */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Type de compte</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setWorld('fiche_lite')}
+                className={`flex flex-col items-center gap-1 px-3 py-3 rounded-lg border-2 transition-colors ${
+                  world === 'fiche_lite' ? 'bg-[#dbae61]/10 border-[#dbae61]' : 'bg-white border-gray-200 hover:border-[#dbae61]'
+                }`}
+              >
+                <Home className="w-5 h-5 text-[#dbae61]" />
+                <span className="text-sm font-medium text-gray-800">Fiche Logement</span>
+                <span className="text-xs text-gray-500">Crédits · démarre à 0</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorld('mon_equipe_ia')}
+                className={`flex flex-col items-center gap-1 px-3 py-3 rounded-lg border-2 transition-colors ${
+                  isMeia ? 'bg-[#dbae61]/10 border-[#dbae61]' : 'bg-white border-gray-200 hover:border-[#dbae61]'
+                }`}
+              >
+                <Bot className="w-5 h-5 text-[#dbae61]" />
+                <span className="text-sm font-medium text-gray-800">Mon Équipe IA</span>
+                <span className="text-xs text-gray-500">Abonnement</span>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Email <span className="text-red-500">*</span>
@@ -142,34 +176,10 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#dbae61] focus:outline-none transition-colors"
-              placeholder="user@example.com"
+              placeholder="concierge@example.com"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Mot de passe <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-3 py-2 pr-10 border-2 border-gray-200 rounded-lg focus:border-[#dbae61] focus:outline-none transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
             <p className="text-xs text-gray-500 mt-1">
-              6 caractères minimum. Tu communiques le mot de passe au user en direct (pas d'email envoyé).
+              Un email d'invitation lui sera envoyé pour définir son mot de passe.
             </p>
           </div>
 
@@ -194,75 +204,100 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Statut</label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setStatusType('free')}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
-                  statusType === 'free'
-                    ? 'bg-[#dbae61] text-white border-[#dbae61]'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
-                }`}
-              >
-                Gratuit
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusType('premium')}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
-                  statusType === 'premium'
-                    ? 'bg-[#dbae61] text-white border-[#dbae61]'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
-                }`}
-              >
-                Premium
-              </button>
-            </div>
-          </div>
-
-          {statusType === 'premium' && (
-            <div className="space-y-3 p-4 rounded-lg bg-[#dbae61]/5 border border-[#dbae61]/20">
-              <label className="block text-sm font-semibold text-gray-700">Durée</label>
-              <div className="flex flex-wrap gap-2">
-                {DURATION_OPTIONS.map((opt) => (
+          {/* Champs spécifiques Mon Équipe IA */}
+          {isMeia && (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Rôle</label>
+                <div className="flex gap-2">
                   <button
-                    key={opt.value}
                     type="button"
-                    onClick={() => { setDurationMode('preset'); setPresetMonths(opt.value) }}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-colors ${
-                      durationMode === 'preset' && presetMonths === opt.value
-                        ? 'bg-[#dbae61] text-white border-[#dbae61]'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
+                    onClick={() => setRole('user')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
+                      role === 'user' ? 'bg-[#dbae61] text-white border-[#dbae61]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
                     }`}
                   >
-                    {opt.label}
+                    Utilisateur
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setDurationMode('custom')}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-colors ${
-                    durationMode === 'custom'
-                      ? 'bg-[#dbae61] text-white border-[#dbae61]'
-                      : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
-                  }`}
-                >
-                  Date custom
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('admin')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
+                      role === 'admin' ? 'bg-[#dbae61] text-white border-[#dbae61]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
+                    }`}
+                  >
+                    Admin
+                  </button>
+                </div>
               </div>
-              {durationMode === 'custom' && (
-                <input
-                  type="date"
-                  value={customDate}
-                  onChange={(e) => setCustomDate(e.target.value)}
-                  min={tomorrowYmd()}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#dbae61] focus:outline-none transition-colors"
-                />
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Statut</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStatusType('free')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
+                      statusType === 'free' ? 'bg-[#dbae61] text-white border-[#dbae61]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
+                    }`}
+                  >
+                    Gratuit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStatusType('premium')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
+                      statusType === 'premium' ? 'bg-[#dbae61] text-white border-[#dbae61]' : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
+                    }`}
+                  >
+                    Premium
+                  </button>
+                </div>
+              </div>
+
+              {statusType === 'premium' && (
+                <div className="space-y-3 p-4 rounded-lg bg-[#dbae61]/5 border border-[#dbae61]/20">
+                  <label className="block text-sm font-semibold text-gray-700">Durée</label>
+                  <div className="flex flex-wrap gap-2">
+                    {DURATION_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => { setDurationMode('preset'); setPresetMonths(opt.value) }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-colors ${
+                          durationMode === 'preset' && presetMonths === opt.value
+                            ? 'bg-[#dbae61] text-white border-[#dbae61]'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setDurationMode('custom')}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-colors ${
+                        durationMode === 'custom'
+                          ? 'bg-[#dbae61] text-white border-[#dbae61]'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-[#dbae61]'
+                      }`}
+                    >
+                      Date custom
+                    </button>
+                  </div>
+                  {durationMode === 'custom' && (
+                    <input
+                      type="date"
+                      value={customDate}
+                      onChange={(e) => setCustomDate(e.target.value)}
+                      min={tomorrowYmd()}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#dbae61] focus:outline-none transition-colors"
+                    />
+                  )}
+                  <p className="text-xs text-gray-500">Calculé à partir d'aujourd'hui.</p>
+                </div>
               )}
-              <p className="text-xs text-gray-500">Calculé à partir d'aujourd'hui.</p>
-            </div>
+            </>
           )}
 
           <div className="flex gap-3 pt-4 border-t border-gray-200">
@@ -279,7 +314,7 @@ export default function AdminCreateUserModal({ isOpen, onClose, onSuccess }) {
               disabled={submitting}
               className="flex-1 px-4 py-2 rounded-lg bg-[#dbae61] hover:bg-[#c49a4f] text-white font-medium disabled:opacity-40 transition-colors"
             >
-              {submitting ? 'Création…' : 'Créer le compte'}
+              {submitting ? 'Création…' : 'Créer et inviter'}
             </button>
           </div>
         </form>
