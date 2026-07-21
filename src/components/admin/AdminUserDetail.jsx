@@ -73,10 +73,10 @@ export default function AdminUserDetail() {
         setLoading(false)
         return
       }
-      const res = await fetch('/api/admin-get-user', {
+      const res = await fetch('/api/admin-user-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ user_id: id })
+        body: JSON.stringify({ action: 'get', user_id: id })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -85,7 +85,7 @@ export default function AdminUserDetail() {
       }
       setDetail(data)
     } catch (err) {
-      console.error('Erreur fetch admin-get-user:', err)
+      console.error('Erreur fetch admin-user-actions/get:', err)
       setError('Erreur réseau. Réessaie.')
     } finally {
       setLoading(false)
@@ -99,10 +99,10 @@ export default function AdminUserDetail() {
     setActionNotice(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch('/api/admin-unlock-fiche', {
+      const res = await fetch('/api/admin-user-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ fiche_id: ficheId })
+        body: JSON.stringify({ action: 'unlock_fiche', fiche_id: ficheId })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -124,10 +124,10 @@ export default function AdminUserDetail() {
     setActionNotice(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch('/api/admin-promote-admin', {
+      const res = await fetch('/api/admin-user-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ user_id: id })
+        body: JSON.stringify({ action: 'promote_admin', user_id: id })
       })
       const data = await res.json()
       if (!res.ok) {

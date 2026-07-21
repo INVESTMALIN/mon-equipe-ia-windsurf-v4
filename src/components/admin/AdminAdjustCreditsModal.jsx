@@ -60,15 +60,16 @@ export default function AdminAdjustCreditsModal({ isOpen, onClose, onSuccess, us
         return
       }
 
-      const res = await fetch('/api/admin-adjust-credits', {
+      const res = await fetch('/api/admin-user-actions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
+          action: 'adjust_credits',
           user_id: user.id,
-          action,
+          direction: action, // 'add' | 'remove'
           amount: n,
           reason: reason.trim()
         })
