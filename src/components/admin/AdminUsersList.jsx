@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Users, Search, AlertCircle, ChevronLeft, ChevronRight, Shield, MoreVertical, Plus } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import AdminCreateUserModal from './AdminCreateUserModal'
@@ -80,6 +80,7 @@ function ExpirationCell({ user }) {
 }
 
 export default function AdminUsersList() {
+  const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -323,7 +324,11 @@ export default function AdminUsersList() {
                     const canRenew = u.subscription_status === 'premium' || u.subscription_status === 'trial'
                     const menuOpen = openMenuId === u.id
                     return (
-                      <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={u.id}
+                        onClick={() => navigate(`/admin/users/${u.id}`)}
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      >
                         <td className="px-4 py-3 text-sm text-gray-900 font-medium">{u.email || '—'}</td>
                         <td className="px-4 py-3 text-sm text-gray-700">{u.prenom || '—'}</td>
                         <td className="px-4 py-3 text-sm text-gray-700">{u.nom || '—'}</td>
@@ -331,7 +336,7 @@ export default function AdminUsersList() {
                         <td className="px-4 py-3"><ExpirationCell user={u} /></td>
                         <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
                         <td className="px-4 py-3 text-sm text-gray-700">{formatDate(u.created_at)}</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           <div
                             className="relative inline-block"
                             ref={menuOpen ? menuContainerRef : null}
