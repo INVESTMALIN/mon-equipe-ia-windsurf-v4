@@ -21,6 +21,26 @@ const ALLOWED_PACKS = ['pack_1', 'pack_10', 'pack_20', 'pack_50']
 // rôle un jour, on modifie CETTE ligne, nulle part ailleurs.
 const CREDIT_ELIGIBLE_ROLES = ['fiche_lite']
 
+// Crée un customer Stripe neuf pour cet utilisateur et persiste son id en base.
+// Appelé quand aucun customer n'est stocké, ET quand le customer stocké n'existe pas
+// dans le compte Stripe courant : la preview (sandbox) et la prod (live) écrivent dans
+// la même base, donc un id créé depuis un environnement est orphelin dans l'autre.
+async function createFreshCustomer(user) {
+  const customer = await stripe.customers.create({
+    email: user.email,
+    name: user.user_metadata?.full_name || 'Utilisateur',
+    metadata: { user_id: user.id }
+  })
+
+  await supabase
+    .from('users')
+    .update({ stripe_customer_id: customer.id })
+    .eq('id', user.id)
+
+  console.log('👤 Nouveau customer Stripe créé (crédits):', customer.id)
+  return customer.id
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -90,21 +110,10 @@ export default async function handler(req, res) {
 
     // 6️⃣ Customer Stripe : réutiliser celui de l'utilisateur s'il existe, sinon le créer.
     //    (on réutilise le profil déjà chargé à l'étape 3 — un seul SELECT sur users)
-    let customerId = existingUser.stripe_customer_id
+    //    `|| null` : une chaîne vide en base vaut absence de customer.
+    let customerId = existingUser.stripe_customer_id || null
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.user_metadata?.full_name || 'Utilisateur',
-        metadata: { user_id: user.id }
-      })
-      customerId = customer.id
-
-      await supabase
-        .from('users')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', user.id)
-
-      console.log('👤 Nouveau customer Stripe créé (crédits):', customerId)
+      customerId = await createFreshCustomer(user)
     }
 
     // 7️⃣ Checkout Session en mode PAYMENT (paiement unique), surtout PAS subscription.
@@ -118,9 +127,9 @@ export default async function handler(req, res) {
       pack
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const buildSessionParams = (cid) => ({
       mode: 'payment',
-      customer: customerId,
+      customer: cid,
       payment_method_types: ['card'],
 
       line_items: [{
@@ -147,6 +156,22 @@ export default async function handler(req, res) {
 
       billing_address_collection: 'auto'
     })
+
+    let session
+    try {
+      session = await stripe.checkout.sessions.create(buildSessionParams(customerId))
+    } catch (err) {
+      // Customer orphelin : l'id stocké a été créé dans l'AUTRE compte Stripe
+      // (preview sandbox ↔ prod live partagent la même base). On ne rattrape QUE
+      // « ce customer n'existe pas » — toute autre erreur Stripe garde le
+      // comportement actuel (remontée au catch global, 500).
+      if (err?.code !== 'resource_missing' || err?.param !== 'customer') {
+        throw err
+      }
+      console.warn(`⚠️ Customer ${customerId} introuvable dans ce compte Stripe — recréation`)
+      customerId = await createFreshCustomer(user)
+      session = await stripe.checkout.sessions.create(buildSessionParams(customerId))
+    }
 
     console.log('✅ Checkout session crédits créée:', session.id, `(${pack}, ${credits} crédits)`)
     return res.status(200).json({ url: session.url, session_id: session.id })
