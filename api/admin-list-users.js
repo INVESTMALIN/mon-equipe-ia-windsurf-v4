@@ -107,24 +107,36 @@ export default async function handler(req, res) {
     let pageUsers = merged.slice(start, end)
 
     // 8. Solde de crédits pour les fiche_lite de la page courante (affichage colonne
-    //    Statut). UNE seule requête pour toute la page (≤ perPage ids), sommée ici —
-    //    pas de N+1 quand la liste grossira. En cas d'erreur, solde à null : le front
-    //    affiche « — » plutôt qu'un faux « 0 crédit ».
+    //    Statut). Requêtes groupées pour toute la page (≤ perPage ids), sommées ici —
+    //    pas de N+1 quand la liste grossira. Le ledger est paginé jusqu'à épuisement :
+    //    PostgREST plafonne les réponses (1000 lignes par défaut), une somme sur une
+    //    réponse tronquée afficherait un solde silencieusement faux. On avance de
+    //    data.length et on s'arrête sur page vide, correct quel que soit le cap réel.
+    //    En cas d'erreur, solde à null : le front affiche « — », pas un faux « 0 crédit ».
     const ficheLiteIds = pageUsers.filter(u => u.role === 'fiche_lite').map(u => u.id)
     if (ficheLiteIds.length > 0) {
-      const { data: ledger, error: ledgerErr } = await supabaseAdmin
-        .from('credit_ledger')
-        .select('user_id, amount')
-        .in('user_id', ficheLiteIds)
+      const LEDGER_PAGE = 1000
+      let balances = new Map()
+      let from = 0
+      while (true) {
+        const { data: ledger, error: ledgerErr } = await supabaseAdmin
+          .from('credit_ledger')
+          .select('user_id, amount')
+          .in('user_id', ficheLiteIds)
+          .order('id', { ascending: true })
+          .range(from, from + LEDGER_PAGE - 1)
 
-      let balances = null
-      if (ledgerErr) {
-        console.error('admin-list-users: SELECT credit_ledger failed:', ledgerErr)
-      } else {
-        balances = new Map()
-        for (const row of ledger || []) {
+        if (ledgerErr) {
+          console.error('admin-list-users: SELECT credit_ledger failed:', ledgerErr)
+          balances = null
+          break
+        }
+        if (!ledger || ledger.length === 0) break
+
+        for (const row of ledger) {
           balances.set(row.user_id, (balances.get(row.user_id) || 0) + row.amount)
         }
+        from += ledger.length
       }
 
       pageUsers = pageUsers.map(u => {
