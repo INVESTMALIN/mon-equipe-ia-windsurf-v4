@@ -353,7 +353,22 @@ export default function AdminUsersList() {
                         onClick={() => navigate(`/admin/users/${u.id}`)}
                         className="hover:bg-gray-50 transition-colors cursor-pointer"
                       >
-                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">{u.email || '—'}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-gray-900 font-medium">{u.email || '—'}</span>
+                            {/* Jamais connecté = compte invité non activé. Signal fiable :
+                                last_sign_in_at (email_confirmed_at est posé d'office à la
+                                création admin, choix produit). */}
+                            {u.last_sign_in_at == null && (
+                              <span
+                                title="Ce compte ne s'est jamais connecté"
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+                              >
+                                En attente
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-sm text-gray-700">{u.prenom || '—'}</td>
                         <td className="px-4 py-3 text-sm text-gray-700">{u.nom || '—'}</td>
                         <td className="px-4 py-3"><RoleBadge role={u.role} /></td>

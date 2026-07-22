@@ -64,6 +64,10 @@ export default async function handler(req, res) {
         id: u.id,
         email: u.email || null,
         created_at: u.created_at,
+        // null tant que la personne ne s'est JAMAIS connectée. C'est le signal fiable
+        // d'un compte invité non activé (email_confirmed_at ne l'est pas : un compte
+        // créé depuis l'admin est confirmé d'office — choix produit assumé).
+        last_sign_in_at: u.last_sign_in_at ?? null,
         prenom: p.prenom ?? null,
         nom: p.nom ?? null,
         role: p.role ?? 'user',

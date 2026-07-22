@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft, AlertCircle, Mail, MailCheck, MailWarning,
   Coins, Plus, Minus, Lock, Unlock, CreditCard, UserCog, CheckCircle,
-  Send, Power, Ban
+  Send, Power, Ban, X
 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import RoleBadge from './RoleBadge'
@@ -53,8 +53,24 @@ export default function AdminUserDetail() {
   const [unlockingId, setUnlockingId] = useState(null)
   const [promoting, setPromoting] = useState(false)
   const [promoteConfirm, setPromoteConfirm] = useState(false)
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false)
   const [actionNotice, setActionNotice] = useState(null)
   const [busyAction, setBusyAction] = useState(null) // 'resend_confirmation' | 'resend_reset' | 'disable' | 'enable'
+
+  // Le bandeau vit en haut de page alors que certaines actions se déclenchent en bas :
+  // sans ça, le retour d'une action peut ne jamais entrer dans le viewport.
+  // `loading` en dépendance : les actions qui enchaînent setActionNotice + fetchDetail
+  // démontent le bandeau pendant le rechargement (ref null au premier passage) — on
+  // scrolle donc après le remontage, quand loading repasse à false.
+  const noticeRef = useRef(null)
+  useEffect(() => {
+    if (actionNotice && !loading) noticeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [actionNotice, loading])
+
+  // Un bandeau de succès se rapporte à la DERNIÈRE action : toute nouvelle action
+  // (y compris l'ouverture d'une modale) efface celui de la précédente.
+  const openCreditModal = (action) => { setActionNotice(null); setCreditModal({ open: true, action }) }
+  const openSubModal = (action) => { setActionNotice(null); setSubModal({ open: true, action }) }
 
   const fetchDetail = useCallback(async () => {
     setLoading(true)
@@ -138,8 +154,7 @@ export default function AdminUserDetail() {
     }
   }
 
-  const runAction = async (action, { confirm } = {}) => {
-    if (confirm && !window.confirm(confirm)) return
+  const runAction = async (action) => {
     setBusyAction(action)
     setActionNotice(null)
     try {
@@ -154,9 +169,12 @@ export default function AdminUserDetail() {
         setActionNotice({ type: 'error', text: data.error || 'Erreur' })
         return
       }
+      // Retour explicite avec l'adresse destinataire pour les envois de mail :
+      // sans elle, l'admin ne sait pas si l'action a fonctionné et reclique.
+      const dest = data.email || detail?.user?.email
       const messages = {
-        resend_confirmation: 'Email de confirmation renvoyé.',
-        resend_reset: 'Email de réinitialisation renvoyé.',
+        resend_confirmation: `Un lien de connexion a été envoyé${dest ? ` à ${dest}` : ''}.`,
+        resend_reset: `Un email de réinitialisation a été envoyé${dest ? ` à ${dest}` : ''}.`,
         disable: 'Compte désactivé.',
         enable: 'Compte réactivé.'
       }
@@ -211,7 +229,7 @@ export default function AdminUserDetail() {
         ) : user ? (
           <div className="space-y-6">
             {actionNotice && (
-              <div className={`flex items-start gap-2 p-3 rounded-lg border ${actionNotice.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-700'}`}>
+              <div ref={noticeRef} className={`flex items-start gap-2 p-3 rounded-lg border ${actionNotice.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-700'}`}>
                 {actionNotice.type === 'success' ? <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />}
                 <p className="text-sm">{actionNotice.text}</p>
               </div>
@@ -261,13 +279,13 @@ export default function AdminUserDetail() {
                   </h2>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setCreditModal({ open: true, action: 'add' })}
+                      onClick={() => openCreditModal('add')}
                       className="inline-flex items-center gap-1 bg-[#dbae61] hover:bg-[#c49a4f] text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
                     >
                       <Plus className="w-4 h-4" /> Ajouter
                     </button>
                     <button
-                      onClick={() => setCreditModal({ open: true, action: 'remove' })}
+                      onClick={() => openCreditModal('remove')}
                       disabled={(detail.credits.balance ?? 0) <= 0}
                       className="inline-flex items-center gap-1 border-2 border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium px-3 py-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
@@ -378,13 +396,13 @@ export default function AdminUserDetail() {
 
                 <div className="flex flex-wrap gap-2">
                   {canSetPremium && (
-                    <button onClick={() => setSubModal({ open: true, action: 'set_premium' })} className="bg-[#dbae61] hover:bg-[#c49a4f] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Offrir le premium</button>
+                    <button onClick={() => openSubModal('set_premium')} className="bg-[#dbae61] hover:bg-[#c49a4f] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">Offrir le premium</button>
                   )}
                   {canRenew && (
-                    <button onClick={() => setSubModal({ open: true, action: 'renew' })} className="border-2 border-gray-200 text-gray-700 hover:border-[#dbae61] text-sm font-medium px-4 py-2 rounded-lg transition-colors">Renouveler</button>
+                    <button onClick={() => openSubModal('renew')} className="border-2 border-gray-200 text-gray-700 hover:border-[#dbae61] text-sm font-medium px-4 py-2 rounded-lg transition-colors">Renouveler</button>
                   )}
                   {canSetFree && (
-                    <button onClick={() => setSubModal({ open: true, action: 'set_free' })} className="border-2 border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Révoquer le premium</button>
+                    <button onClick={() => openSubModal('set_free')} className="border-2 border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors">Révoquer le premium</button>
                   )}
                 </div>
 
@@ -420,7 +438,7 @@ export default function AdminUserDetail() {
                   className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 hover:border-[#dbae61] text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
                 >
                   <MailCheck className="w-4 h-4" />
-                  {busyAction === 'resend_confirmation' ? 'Envoi…' : 'Renvoyer la confirmation'}
+                  {busyAction === 'resend_confirmation' ? 'Envoi…' : 'Envoyer un lien de connexion'}
                 </button>
                 <button
                   onClick={() => runAction('resend_reset')}
@@ -428,7 +446,7 @@ export default function AdminUserDetail() {
                   className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 hover:border-[#dbae61] text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
                 >
                   <Send className="w-4 h-4" />
-                  {busyAction === 'resend_reset' ? 'Envoi…' : 'Renvoyer le reset mot de passe'}
+                  {busyAction === 'resend_reset' ? 'Envoi…' : 'Réinitialiser le mot de passe'}
                 </button>
 
                 {isDisabled ? (
@@ -442,7 +460,7 @@ export default function AdminUserDetail() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => runAction('disable', { confirm: "Désactiver ce compte ? Le concierge ne pourra plus se connecter (récupérable)." })}
+                    onClick={() => { setActionNotice(null); setDisableConfirmOpen(true) }}
                     disabled={busyAction !== null}
                     className="inline-flex items-center gap-2 border-2 border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
                   >
@@ -465,7 +483,12 @@ export default function AdminUserDetail() {
         user={user}
         balance={detail?.credits?.balance ?? 0}
         onClose={() => setCreditModal({ open: false, action: null })}
-        onSuccess={() => { setCreditModal({ open: false, action: null }); fetchDetail() }}
+        onSuccess={(newBalance) => {
+          const verb = creditModal.action === 'add' ? 'ajoutés' : 'retirés'
+          setCreditModal({ open: false, action: null })
+          setActionNotice({ type: 'success', text: `Crédits ${verb}${Number.isInteger(newBalance) ? ` — nouveau solde : ${newBalance}` : ''}.` })
+          fetchDetail()
+        }}
       />
 
       <AdminUpdateSubscriptionModal
@@ -473,8 +496,56 @@ export default function AdminUserDetail() {
         action={subModal.action}
         user={user}
         onClose={() => setSubModal({ open: false, action: null })}
-        onSuccess={() => { setSubModal({ open: false, action: null }); fetchDetail() }}
+        onSuccess={() => {
+          setSubModal({ open: false, action: null })
+          setActionNotice({ type: 'success', text: 'Abonnement mis à jour.' })
+          fetchDetail()
+        }}
       />
+
+      {/* Confirmation de désactivation : modale de l'app (même gabarit que les crédits),
+          pas le confirm() natif — que certains navigateurs permettent de supprimer
+          définitivement, ce qui ferait sauter la confirmation en silence. */}
+      {disableConfirmOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-black flex items-center gap-2">
+                <Ban className="w-5 h-5 text-red-600" />
+                Désactiver le compte
+              </h2>
+              <button
+                onClick={() => setDisableConfirmOpen(false)}
+                disabled={busyAction !== null}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-40"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-700">
+                Désactiver ce compte ? Le concierge ne pourra plus se connecter (récupérable).
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setDisableConfirmOpen(false)}
+                  disabled={busyAction !== null}
+                  className="flex-1 px-4 py-2 rounded-lg border-2 border-gray-200 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => { await runAction('disable'); setDisableConfirmOpen(false) }}
+                  disabled={busyAction !== null}
+                  className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {busyAction === 'disable' ? 'En cours…' : 'Désactiver'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
