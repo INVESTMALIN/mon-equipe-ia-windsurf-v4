@@ -142,7 +142,7 @@ export default async function handler(req, res) {
     let email_sent = true
     let warning
     try {
-      const tpl = invitationEmail({ actionLink: linkData.properties.action_link, prenom: profileData.prenom })
+      const tpl = invitationEmail({ actionLink: linkData.properties.action_link, prenom: profileData.prenom, world })
       await sendEmail({ to: email.trim(), subject: tpl.subject, html: tpl.html, text: tpl.text })
     } catch (mailErr) {
       console.error('admin-create-user: sendEmail failed:', mailErr)

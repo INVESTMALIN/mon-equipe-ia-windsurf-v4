@@ -20,7 +20,13 @@ export default function Login() {
 
     if (error) {
       console.error('Erreur de login:', error.message)
-      setError('Connexion échouée : ' + error.message)
+      // Le ban Supabase (désactivation admin) renvoie « User is banned » : message
+      // brut anglais, illisible pour un concierge. On le traduit en consigne claire.
+      if (/banned/i.test(error.message)) {
+        setError('Votre compte a été désactivé. Contactez votre conciergerie.')
+      } else {
+        setError('Connexion échouée : ' + error.message)
+      }
       setLoading(false)
       return
     }

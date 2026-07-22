@@ -1,5 +1,5 @@
 import { verifyAdmin, supabaseAdmin } from './_lib/verifyAdmin.js'
-import { sendEmail, confirmationEmail, resetEmail } from './_lib/sendEmail.js'
+import { sendEmail, loginLinkEmail, resetEmail } from './_lib/sendEmail.js'
 
 // Routeur unique des opérations admin sur un concierge (lecture détail + écritures),
 // dispatché sur `action`. Regroupé en UN endpoint à dessein : le plan Vercel Hobby
@@ -199,8 +199,10 @@ async function handlePromoteAdmin(req, res) {
 
 // Renvoi d'un lien par email via Resend (indépendant du SMTP Auth).
 //   - kind 'confirmation' → magiclink : `generateLink type 'signup'` exige un mot de
-//     passe qu'on n'a pas ; le magiclink (email seul) confirme l'email et connecte au
-//     clic, ce qui débloque un concierge dont le mail de confirmation est en spam.
+//     passe qu'on n'a pas ; le magiclink (email seul) connecte directement au clic et
+//     dépose sur la définition du mot de passe. C'est un accès de secours assumé,
+//     présenté comme « lien de connexion » (bouton et mail), pas comme une confirmation.
+//     (L'action reste nommée resend_confirmation : identifiant d'API, pas un libellé.)
 //   - kind 'reset' → recovery : lien de réinitialisation de mot de passe.
 async function handleResendLink(req, res, kind) {
   const { user_id } = req.body || {}
@@ -215,8 +217,10 @@ async function handleResendLink(req, res, kind) {
   const email = authData.user.email
 
   const { data: profile } = await supabaseAdmin
-    .from('users').select('prenom').eq('id', user_id).single()
+    .from('users').select('prenom, role').eq('id', user_id).single()
   const prenom = profile?.prenom || null
+  // Le mail parle le vocabulaire du monde du compte (Fiche Logement vs Mon Équipe IA).
+  const world = profile?.role === 'fiche_lite' ? 'fiche_lite' : 'mon_equipe_ia'
 
   const linkType = kind === 'reset' ? 'recovery' : 'magiclink'
   const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
@@ -231,7 +235,7 @@ async function handleResendLink(req, res, kind) {
 
   const tpl = kind === 'reset'
     ? resetEmail({ actionLink: linkData.properties.action_link, prenom })
-    : confirmationEmail({ actionLink: linkData.properties.action_link, prenom })
+    : loginLinkEmail({ actionLink: linkData.properties.action_link, prenom, world })
 
   try {
     await sendEmail({ to: email, subject: tpl.subject, html: tpl.html, text: tpl.text })
@@ -240,7 +244,8 @@ async function handleResendLink(req, res, kind) {
     return res.status(502).json({ error: "L'email n'a pas pu être envoyé", details: mailErr.message })
   }
 
-  return res.status(200).json({ sent: true })
+  // L'adresse sert au retour explicite côté front (« envoyé à x@y.com »).
+  return res.status(200).json({ sent: true, email })
 }
 
 // Désactivation / réactivation. Le blocage réel de l'accès = ban Supabase Auth

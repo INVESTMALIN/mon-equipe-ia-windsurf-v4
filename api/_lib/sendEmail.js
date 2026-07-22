@@ -54,13 +54,22 @@ function esc(s) {
     .replace(/'/g, '&#39;')
 }
 
+// Nom du produit côté client, dérivé du monde du compte (deux mondes étanches).
+// « Fiche Logement » sans « Lite » : naming client validé. Un concierge qui a acheté
+// Fiche Logement ne doit jamais recevoir un mail qui lui parle de Mon Équipe IA.
+function productName(world) {
+  return world === 'fiche_lite' ? 'Fiche Logement' : 'Mon Équipe IA'
+}
+
 // Enveloppe HTML minimale et sobre, aux couleurs de la marque (#dbae61).
-function wrap(title, bodyHtml) {
+// Le pied de page porte le nom du produit du monde (défaut : Mon Équipe IA,
+// ce qui laisse les gabarits non paramétrés strictement inchangés).
+function wrap(title, bodyHtml, world) {
   return `<!doctype html><html><body style="margin:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a">
   <div style="max-width:480px;margin:0 auto;padding:32px 24px">
     <h1 style="font-size:20px;color:#1a1a1a;margin:0 0 16px">${title}</h1>
     ${bodyHtml}
-    <p style="font-size:12px;color:#999;margin-top:32px">Mon Équipe IA — Invest Malin</p>
+    <p style="font-size:12px;color:#999;margin-top:32px">${productName(world)} — Invest Malin</p>
   </div></body></html>`
 }
 
@@ -69,31 +78,37 @@ function button(href, label) {
   <p style="font-size:12px;color:#666">Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :<br><span style="word-break:break-all">${href}</span></p>`
 }
 
-/** Invitation à définir son mot de passe (compte créé par l'admin). */
-export function invitationEmail({ actionLink, prenom }) {
+/** Invitation à définir son mot de passe (compte créé par l'admin). Suit le monde. */
+export function invitationEmail({ actionLink, prenom, world }) {
   const hello = prenom ? `Bonjour ${esc(prenom)},` : 'Bonjour,'
+  const product = productName(world)
   return {
-    subject: 'Votre accès à Mon Équipe IA',
-    html: wrap('Bienvenue sur Mon Équipe IA', `
+    subject: `Votre accès à ${product}`,
+    html: wrap(`Bienvenue sur ${product}`, `
       <p style="font-size:14px;line-height:1.5">${hello}</p>
       <p style="font-size:14px;line-height:1.5">Un compte vient d'être créé pour vous. Cliquez ci-dessous pour définir votre mot de passe et accéder à votre espace.</p>
       ${button(actionLink, 'Définir mon mot de passe')}
-    `),
+    `, world),
     text: `${hello}\n\nUn compte vient d'être créé pour vous. Définissez votre mot de passe : ${actionLink}`
   }
 }
 
-/** Renvoi du lien de confirmation d'email. */
-export function confirmationEmail({ actionLink, prenom }) {
+/**
+ * Lien de connexion (magiclink) : accès de secours envoyé par l'admin. Il connecte
+ * directement la personne et la dépose sur la définition du mot de passe — le mail
+ * annonce donc un lien de connexion, PAS une confirmation d'adresse. Suit le monde.
+ */
+export function loginLinkEmail({ actionLink, prenom, world }) {
   const hello = prenom ? `Bonjour ${esc(prenom)},` : 'Bonjour,'
+  const product = productName(world)
   return {
-    subject: 'Confirmez votre adresse email',
-    html: wrap('Confirmez votre email', `
+    subject: `Votre lien de connexion à ${product}`,
+    html: wrap('Votre lien de connexion', `
       <p style="font-size:14px;line-height:1.5">${hello}</p>
-      <p style="font-size:14px;line-height:1.5">Pour activer votre accès, confirmez votre adresse email :</p>
-      ${button(actionLink, 'Confirmer mon email')}
-    `),
-    text: `${hello}\n\nConfirmez votre adresse email : ${actionLink}`
+      <p style="font-size:14px;line-height:1.5">Voici un lien pour vous connecter directement à votre espace. Vous pourrez ensuite définir un nouveau mot de passe.</p>
+      ${button(actionLink, 'Me connecter')}
+    `, world),
+    text: `${hello}\n\nConnectez-vous directement avec ce lien : ${actionLink}`
   }
 }
 
