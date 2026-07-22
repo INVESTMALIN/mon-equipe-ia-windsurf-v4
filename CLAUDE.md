@@ -354,6 +354,18 @@ Quand Julien dit "merged" ou "PR mergée", tu fais le cleanup:
 2. `git pull`
 3. `git branch -d <branch-name>` pour supprimer la branche locale
 
+## Branche chore/preview-sandbox — NE JAMAIS SUPPRIMER NI MERGER
+
+Cette branche ne contient qu'un commit vide et n'a pas vocation à partir dans main.
+Son seul rôle est de maintenir vivante une URL de preview Vercel stable, sur laquelle
+pointe un endpoint webhook du sandbox Stripe.
+
+Si la branche est supprimée, l'URL meurt, le webhook Stripe poste dans le vide, et les
+achats de crédits en préprod ne créditent plus rien.
+
+Ne pas la merger, ne pas la supprimer, ne jamais l'inclure dans un nettoyage de branches,
+même si elle paraît vieille ou vide.
+
 
 **🎯 STATUT GLOBAL** : SYSTÈME PRODUCTION-READY  
 **📋 PROCHAINES ÉTAPES** : Finitions + tests Kevin + préparation lancement  
