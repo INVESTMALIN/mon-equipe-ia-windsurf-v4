@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Users, Search, AlertCircle, ChevronLeft, ChevronRight, Shield, MoreVertical, Plus } from 'lucide-react'
+import { ArrowLeft, Users, Search, AlertCircle, ChevronLeft, ChevronRight, MoreVertical, Plus } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
+import RoleBadge from './RoleBadge'
 import AdminCreateUserModal from './AdminCreateUserModal'
 import AdminUpdateSubscriptionModal from './AdminUpdateSubscriptionModal'
 import AdminDeleteUserModal from './AdminDeleteUserModal'
@@ -9,12 +10,15 @@ import AdminDeleteUserModal from './AdminDeleteUserModal'
 const PER_PAGE = 25
 const SEARCH_DEBOUNCE_MS = 350
 
+// Mondes (dérivés du rôle) puis statuts d'abonnement, scopés côté serveur au
+// monde Mon Équipe IA (un clic sur « Gratuit » ne remonte jamais un fiche_lite).
 const STATUS_FILTERS = [
   { value: 'all', label: 'Tous' },
-  { value: 'free', label: 'Gratuit' },
-  { value: 'trial', label: 'Essai' },
+  { value: 'me_ia', label: 'Mon Équipe IA' },
+  { value: 'fiche_lite', label: 'Fiche Logement' },
   { value: 'premium', label: 'Premium' },
-  { value: 'expired', label: 'Expiré' }
+  { value: 'free', label: 'Gratuit' },
+  { value: 'trial', label: 'Essai' }
 ]
 
 function StatusBadge({ status }) {
@@ -31,16 +35,18 @@ function StatusBadge({ status }) {
   }
 }
 
-function RoleBadge({ role }) {
-  if (role === 'admin') {
+// La colonne Statut parle le vocabulaire du monde de la ligne : abonnement pour
+// Mon Équipe IA, solde de crédits pour Fiche Logement (« 0 crédit », jamais « Gratuit »).
+function StatusCell({ user }) {
+  if (user.role === 'fiche_lite') {
+    if (user.credit_balance == null) return <span className="text-gray-400">—</span>
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#dbae61] bg-opacity-20 text-[#8b7355]">
-        <Shield className="w-3 h-3" />
-        Admin
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-800">
+        {user.credit_balance} crédit{user.credit_balance > 1 ? 's' : ''}
       </span>
     )
   }
-  return <span className="text-xs text-gray-500">Utilisateur</span>
+  return <StatusBadge status={user.subscription_status} />
 }
 
 function formatDate(dateStr) {
@@ -327,9 +333,9 @@ export default function AdminUsersList() {
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Prénom</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Nom</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Rôle</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Statut</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Expiration</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Rôle</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Inscription</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -350,9 +356,9 @@ export default function AdminUsersList() {
                         <td className="px-4 py-3 text-sm text-gray-900 font-medium">{u.email || '—'}</td>
                         <td className="px-4 py-3 text-sm text-gray-700">{u.prenom || '—'}</td>
                         <td className="px-4 py-3 text-sm text-gray-700">{u.nom || '—'}</td>
-                        <td className="px-4 py-3"><StatusBadge status={u.subscription_status} /></td>
-                        <td className="px-4 py-3"><ExpirationCell user={u} /></td>
                         <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
+                        <td className="px-4 py-3"><StatusCell user={u} /></td>
+                        <td className="px-4 py-3"><ExpirationCell user={u} /></td>
                         <td className="px-4 py-3 text-sm text-gray-700">{formatDate(u.created_at)}</td>
                         <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           <div

@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
-  ArrowLeft, AlertCircle, Shield, Mail, MailCheck, MailWarning,
+  ArrowLeft, AlertCircle, Mail, MailCheck, MailWarning,
   Coins, Plus, Minus, Lock, Unlock, CreditCard, UserCog, CheckCircle,
   Send, Power, Ban
 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
+import RoleBadge from './RoleBadge'
 import AdminUpdateSubscriptionModal from './AdminUpdateSubscriptionModal'
 import AdminAdjustCreditsModal from './AdminAdjustCreditsModal'
 
@@ -39,16 +40,6 @@ function StatusBadge({ status }) {
   }
   const labels = { premium: 'Premium', trial: 'Essai', expired: 'Expiré', free: 'Gratuit' }
   return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${map[status] || map.free}`}>{labels[status] || status}</span>
-}
-
-function RoleBadge({ role }) {
-  if (role === 'admin') {
-    return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#dbae61] bg-opacity-20 text-[#8b7355]"><Shield className="w-3 h-3" />Admin</span>
-  }
-  if (role === 'fiche_lite') {
-    return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Fiche Logement</span>
-  }
-  return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Utilisateur</span>
 }
 
 export default function AdminUserDetail() {
