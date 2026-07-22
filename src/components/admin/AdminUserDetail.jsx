@@ -59,10 +59,13 @@ export default function AdminUserDetail() {
 
   // Le bandeau vit en haut de page alors que certaines actions se déclenchent en bas :
   // sans ça, le retour d'une action peut ne jamais entrer dans le viewport.
+  // `loading` en dépendance : les actions qui enchaînent setActionNotice + fetchDetail
+  // démontent le bandeau pendant le rechargement (ref null au premier passage) — on
+  // scrolle donc après le remontage, quand loading repasse à false.
   const noticeRef = useRef(null)
   useEffect(() => {
-    if (actionNotice) noticeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }, [actionNotice])
+    if (actionNotice && !loading) noticeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [actionNotice, loading])
 
   // Un bandeau de succès se rapporte à la DERNIÈRE action : toute nouvelle action
   // (y compris l'ouverture d'une modale) efface celui de la précédente.
