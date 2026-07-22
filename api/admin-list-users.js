@@ -75,9 +75,20 @@ export default async function handler(req, res) {
       }
     })
 
-    // 4. Status filter (client passes 'all' for no filter)
+    // 4. Filtre (le client passe 'all' pour aucun filtre).
+    //    Deux mondes étanches dérivés du rôle : Mon Équipe IA (user/admin) et
+    //    Fiche Logement (fiche_lite). Les filtres d'abonnement (free/trial/premium)
+    //    sont scopés au monde Mon Équipe IA : un client fiche_lite a bien
+    //    subscription_status='free' en base, mais ce vocabulaire ne le concerne pas.
+    const ME_IA_ROLES = ['user', 'admin']
     if (status && status !== 'all') {
-      merged = merged.filter(u => u.subscription_status === status)
+      if (status === 'me_ia') {
+        merged = merged.filter(u => ME_IA_ROLES.includes(u.role))
+      } else if (status === 'fiche_lite') {
+        merged = merged.filter(u => u.role === 'fiche_lite')
+      } else {
+        merged = merged.filter(u => ME_IA_ROLES.includes(u.role) && u.subscription_status === status)
+      }
     }
 
     // 5. Email search (case-insensitive substring)
@@ -93,7 +104,46 @@ export default async function handler(req, res) {
     const total = merged.length
     const start = (pageNum - 1) * perPageNum
     const end = start + perPageNum
-    const pageUsers = merged.slice(start, end)
+    let pageUsers = merged.slice(start, end)
+
+    // 8. Solde de crédits pour les fiche_lite de la page courante (affichage colonne
+    //    Statut). Requêtes groupées pour toute la page (≤ perPage ids), sommées ici —
+    //    pas de N+1 quand la liste grossira. Le ledger est paginé jusqu'à épuisement :
+    //    PostgREST plafonne les réponses (1000 lignes par défaut), une somme sur une
+    //    réponse tronquée afficherait un solde silencieusement faux. On avance de
+    //    data.length et on s'arrête sur page vide, correct quel que soit le cap réel.
+    //    En cas d'erreur, solde à null : le front affiche « — », pas un faux « 0 crédit ».
+    const ficheLiteIds = pageUsers.filter(u => u.role === 'fiche_lite').map(u => u.id)
+    if (ficheLiteIds.length > 0) {
+      const LEDGER_PAGE = 1000
+      let balances = new Map()
+      let from = 0
+      while (true) {
+        const { data: ledger, error: ledgerErr } = await supabaseAdmin
+          .from('credit_ledger')
+          .select('user_id, amount')
+          .in('user_id', ficheLiteIds)
+          .order('id', { ascending: true })
+          .range(from, from + LEDGER_PAGE - 1)
+
+        if (ledgerErr) {
+          console.error('admin-list-users: SELECT credit_ledger failed:', ledgerErr)
+          balances = null
+          break
+        }
+        if (!ledger || ledger.length === 0) break
+
+        for (const row of ledger) {
+          balances.set(row.user_id, (balances.get(row.user_id) || 0) + row.amount)
+        }
+        from += ledger.length
+      }
+
+      pageUsers = pageUsers.map(u => {
+        if (u.role !== 'fiche_lite') return u
+        return { ...u, credit_balance: balances ? (balances.get(u.id) || 0) : null }
+      })
+    }
 
     return res.status(200).json({
       users: pageUsers,
