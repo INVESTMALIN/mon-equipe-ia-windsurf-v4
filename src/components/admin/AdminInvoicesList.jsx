@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Search, AlertCircle, ChevronLeft, ChevronRight, Unlink } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
@@ -101,7 +101,14 @@ export default function AdminInvoicesList() {
 
   useEffect(() => { setPage(1) }, [debouncedSearch])
 
+  // Une recherche lancée depuis la page N déclenche DEUX fetchs dans la même passe
+  // (l'ancienne page puis la page 1 après reset). Sans garde, celui qui résout en
+  // DERNIER gagne — potentiellement le périmé. Chaque fetch prend un numéro de
+  // séquence ; seule la réponse du dernier parti a le droit d'écrire l'état.
+  const requestSeq = useRef(0)
+
   const fetchInvoices = useCallback(async () => {
+    const seq = ++requestSeq.current
     setLoading(true)
     setError(null)
     try {
@@ -122,6 +129,8 @@ export default function AdminInvoicesList() {
         .order('received_at', { ascending: false })
         .range(from, from + PER_PAGE - 1)
 
+      if (seq !== requestSeq.current) return // réponse périmée : un fetch plus récent est parti
+
       if (fetchError) {
         // PGRST103 : la plage demandée dépasse le résultat. Arrive quand une recherche
         // rétrécit le total alors qu'on était en page N (le fetch de la même passe voit
@@ -138,10 +147,12 @@ export default function AdminInvoicesList() {
       setInvoices(data || [])
       setTotal(count || 0)
     } catch (err) {
+      if (seq !== requestSeq.current) return
       console.error('Erreur fetch factures:', err)
       setError('Erreur réseau. Réessaie.')
     } finally {
-      setLoading(false)
+      // Le spinner appartient au dernier fetch parti : un périmé ne l'éteint pas.
+      if (seq === requestSeq.current) setLoading(false)
     }
   }, [page, debouncedSearch])
 
