@@ -70,10 +70,17 @@ function centsOrNull(value) {
 }
 
 // Date ISO (YYYY-MM-DD) attendue ; tout autre format → null (préservé dans le brut).
+// La regex ne suffit pas : une date impossible ("2026-02-31") serait rejetée par
+// Postgres et ferait échouer TOUT l'insert — on exige un aller-retour calendaire exact.
 function isoDateOrNull(value) {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())
-    ? value.trim()
-    : null
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null
+  const parsed = new Date(`${trimmed}T00:00:00Z`)
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== trimmed) {
+    return null
+  }
+  return trimmed
 }
 
 export default async function handler(req, res) {

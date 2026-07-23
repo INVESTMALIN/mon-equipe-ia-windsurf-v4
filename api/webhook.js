@@ -147,6 +147,26 @@ export default async function handler(req, res) {
               return res.status(400).json({ received: false, error: 'invalid credit purchase metadata' })
             }
 
+            // Rattachement différé des factures orphelines : le webhook de Kevin (Make)
+            // et celui de Stripe sont livrés indépendamment, dans un ordre quelconque.
+            // Si la facture est arrivée AVANT notre ligne de ledger, elle a été archivée
+            // avec user_id null (et son rejeu est un no-op : elle ne se rattachera jamais
+            // seule). On la raccroche ici, une fois le user connu. Best-effort STRICT :
+            // un échec ne doit jamais empêcher le crédit — la facture reste archivée et
+            // rattachable plus tard. Appelé aussi sur le no-op 23505 (rejeu Stripe) :
+            // la facture peut être arrivée entre la première livraison et le rejeu.
+            const attachOrphanInvoices = async () => {
+              if (!session.payment_intent) return
+              const { error: attachError } = await supabase
+                .from('invoices')
+                .update({ user_id: creditUserId })
+                .eq('payment_intent_id', session.payment_intent)
+                .is('user_id', null)
+              if (attachError) {
+                console.error('⚠️ Rattachement facture orpheline échoué (non bloquant):', attachError.message)
+              }
+            }
+
             // Écriture ledger en service_role (bypass RLS), type 'achat', montant positif.
             // IDEMPOTENCE : l'index unique sur metadata->>'stripe_session_id' garantit AU
             // PLUS une ligne par session. Un rejeu / une livraison concurrente échoue en
@@ -174,6 +194,7 @@ export default async function handler(req, res) {
               // 23505 = unique_violation : session déjà créditée. No-op idempotent = SUCCÈS (200).
               if (ledgerError.code === '23505') {
                 console.log(`⏭️ Session ${session.id} déjà créditée (index unique), no-op`)
+                await attachOrphanInvoices()
                 await markEventAsProcessed()
                 break
               }
@@ -186,6 +207,8 @@ export default async function handler(req, res) {
             }
 
             console.log(`✅ ${credits} crédit(s) accordés à ${creditUserId} (session ${session.id})`)
+
+            await attachOrphanInvoices()
 
             // Marquer l'event comme traité APRÈS le crédit (jamais avant : un échec réel
             // doit laisser Stripe retenter, l'index unique empêchant le double-crédit).
