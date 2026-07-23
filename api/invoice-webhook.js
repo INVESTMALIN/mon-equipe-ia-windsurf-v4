@@ -119,8 +119,8 @@ export default async function handler(req, res) {
   // intent. Best-effort STRICT — deux cas légitimes ne matchent pas (facture sans
   // achat de crédits, ex. un acompte ; facture arrivée avant notre ligne de ledger)
   // et un échec de lecture ne doit jamais faire perdre la facture : user_id reste null.
-  let userId = null
-  if (paymentIntentId) {
+  async function resolveUserId() {
+    if (!paymentIntentId) return null
     const { data: ledgerRow, error: ledgerError } = await supabase
       .from('credit_ledger')
       .select('user_id')
@@ -130,10 +130,12 @@ export default async function handler(req, res) {
 
     if (ledgerError) {
       console.error('[invoice-webhook] résolution user_id échouée (facture stockée sans rattachement):', ledgerError.message)
-    } else {
-      userId = ledgerRow?.user_id || null
+      return null
     }
+    return ledgerRow?.user_id || null
   }
+
+  const userId = await resolveUserId()
 
   const { data: inserted, error: insertError } = await supabase
     .from('invoices')
@@ -166,6 +168,30 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Storage failed' })
   }
 
-  console.log(`[invoice-webhook] facture archivée: ${inserted.id}${userId ? ` (user ${userId})` : ' (sans rattachement)'}`)
+  // Fermeture de la course avec le webhook Stripe (les deux arrivent dans un ordre
+  // quelconque). Fenêtre restante après la 1re résolution : le ledger est écrit APRÈS
+  // notre lecture, et son backfill (attachOrphanInvoices) passe AVANT le commit de
+  // notre INSERT — chacun a raté l'autre. On re-résout donc APRÈS l'insert : notre
+  // ligne étant désormais committée, soit on voit le ledger ici, soit le ledger
+  // (committé après) nous verra à son backfill. Best-effort : la facture est archivée
+  // quoi qu'il arrive.
+  let attachedUserId = userId
+  if (!attachedUserId) {
+    const lateUserId = await resolveUserId()
+    if (lateUserId) {
+      const { error: attachError } = await supabase
+        .from('invoices')
+        .update({ user_id: lateUserId })
+        .eq('id', inserted.id)
+        .is('user_id', null)
+      if (attachError) {
+        console.error('[invoice-webhook] rattachement post-insert échoué (non bloquant):', attachError.message)
+      } else {
+        attachedUserId = lateUserId
+      }
+    }
+  }
+
+  console.log(`[invoice-webhook] facture archivée: ${inserted.id}${attachedUserId ? ` (user ${attachedUserId})` : ' (sans rattachement)'}`)
   return res.status(200).json({ received: true })
 }
