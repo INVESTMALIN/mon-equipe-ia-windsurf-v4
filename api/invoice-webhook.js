@@ -81,6 +81,9 @@ function isoDateOrNull(value) {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
   if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null
+  // L'année 0000 passe l'aller-retour JS (an 1 av. J.-C.) mais n'existe pas pour le
+  // type `date` de Postgres — l'insert échouerait.
+  if (trimmed.startsWith('0000')) return null
   const parsed = new Date(`${trimmed}T00:00:00Z`)
   if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== trimmed) {
     return null
