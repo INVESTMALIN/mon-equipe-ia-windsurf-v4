@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { FileText, AlertCircle, ExternalLink } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 import { formatEuros, formatDateFacture } from '../../lib/invoiceFormat'
@@ -41,7 +41,15 @@ export default function AdminUserInvoices({ userId }) {
   const [invoices, setInvoices] = useState(null)
   const [error, setError] = useState(null)
 
+  // Si :id change pendant que le composant reste monté (navigation fiche A → fiche B),
+  // une réponse LENTE de A pourrait écraser les factures de B. Numéro de séquence :
+  // seule la réponse du dernier fetch parti écrit l'état — et on repasse en
+  // « chargement » au départ pour ne jamais laisser visibles les factures de A.
+  const requestSeq = useRef(0)
+
   const fetchInvoices = useCallback(async () => {
+    const seq = ++requestSeq.current
+    setInvoices(null)
     setError(null)
     const { data, error: fetchError } = await supabase
       .from('invoices')
@@ -49,6 +57,8 @@ export default function AdminUserInvoices({ userId }) {
       .eq('user_id', userId)
       .order('date_facture', { ascending: false, nullsFirst: false })
       .order('received_at', { ascending: false })
+
+    if (seq !== requestSeq.current) return // réponse périmée (autre fiche ouverte depuis)
 
     if (fetchError) {
       console.error('Erreur chargement factures:', fetchError)
