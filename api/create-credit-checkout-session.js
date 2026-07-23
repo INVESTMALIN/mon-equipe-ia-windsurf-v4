@@ -151,7 +151,26 @@ export default async function handler(req, res) {
       success_url: `${origin}/mes-credits?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/mes-credits?checkout=cancel`,
 
-      billing_address_collection: 'auto'
+      // ── Facturation (demande Victoria) : la facture comptable est générée par le
+      // système de Kevin, qui ne reçoit que le customer_id. Adresse et raison sociale
+      // doivent donc vivre sur le CUSTOMER Stripe, pas seulement sur la session.
+
+      // Adresse de facturation TOUJOURS demandée (décision produit — pas de mode
+      // intermédiaire chez Stripe : demandé ou absent).
+      billing_address_collection: 'required',
+
+      // Sans customer_update, la saisie resterait sur la session : `auto` reporte
+      // l'adresse ET le nom (raison sociale si la case entreprise est cochée) sur le
+      // Customer existant.
+      customer_update: { address: 'auto', name: 'auto' },
+
+      // Raison sociale FACULTATIVE via la case « J'achète en tant qu'entreprise »
+      // (required: 'never' par défaut — un particulier paie sans rien renseigner).
+      // Voie choisie plutôt que name_collection.business (champ récent, persistance
+      // Customer non documentée) : ici Stripe documente l'enregistrement sur
+      // customer.name/business_name + customer.tax_ids — et le numéro de TVA collecté
+      // est de toute façon une mention obligatoire d'une facture B2B en France.
+      tax_id_collection: { enabled: true }
     })
 
     let session
