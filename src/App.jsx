@@ -34,6 +34,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminUsersList from './components/admin/AdminUsersList'
 import AdminUserDetail from './components/admin/AdminUserDetail'
+import AdminInvoicesList from './components/admin/AdminInvoicesList'
 
 import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
@@ -255,6 +256,17 @@ function AppWrapper() {
             element={
               <AdminRoute>
                 <AdminUserDetail />
+              </AdminRoute>
+            }
+          />
+
+          {/* Volontairement ABSENTE de FICHE_LITE_ALLOWED_PATHS : toute nouvelle
+              route est fermée par défaut au rôle fiche_lite. */}
+          <Route
+            path="/admin/invoices"
+            element={
+              <AdminRoute>
+                <AdminInvoicesList />
               </AdminRoute>
             }
           />

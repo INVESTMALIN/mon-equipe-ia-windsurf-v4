@@ -9,6 +9,7 @@ import { supabase } from '../../supabaseClient'
 import RoleBadge from './RoleBadge'
 import AdminUpdateSubscriptionModal from './AdminUpdateSubscriptionModal'
 import AdminAdjustCreditsModal from './AdminAdjustCreditsModal'
+import AdminUserInvoices from './AdminUserInvoices'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -427,6 +428,11 @@ export default function AdminUserDetail() {
                 )}
               </div>
             )}
+
+            {/* Bloc Factures — tronc commun (pas dans le bloc crédits) : une facture
+                n'appartient à aucun des deux mondes, et le jour où les abonnements
+                Premium deviennent payants le bloc est déjà au bon endroit. */}
+            <AdminUserInvoices userId={id} />
 
             {/* Compte : emails + désactivation */}
             <div className="bg-white rounded-xl shadow-sm p-6">

@@ -229,7 +229,13 @@ export default function AdminUsersList() {
               <Users className="w-8 h-8 text-[#dbae61]" />
               <h1 className="text-3xl font-bold text-black">Espace admin</h1>
             </div>
-            <p className="text-gray-600">Gestion des utilisateurs</p>
+            <p className="text-gray-600">
+              Gestion des utilisateurs
+              <span className="mx-2 text-gray-300">·</span>
+              <Link to="/admin/invoices" className="text-sm text-gray-500 hover:text-[#dbae61] underline underline-offset-2 transition-colors">
+                Factures
+              </Link>
+            </p>
           </div>
           <button
             onClick={() => setCreateModalOpen(true)}
