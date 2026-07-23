@@ -60,13 +60,18 @@ function textOrNull(value) {
 }
 
 // Montant en centimes, transmis en chaîne ("20000" = 200 €). Illisible → null,
-// le payload brut conserve la valeur d'origine.
+// le payload brut conserve la valeur d'origine. Borné à int4 : une valeur hors
+// plage ferait échouer TOUT l'insert côté Postgres (colonne integer) en 500.
+const INT4_MAX = 2147483647
 function centsOrNull(value) {
-  if (typeof value === 'number' && Number.isInteger(value)) return value
-  if (typeof value === 'string' && /^-?\d+$/.test(value.trim())) {
-    return parseInt(value.trim(), 10)
+  let parsed = null
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    parsed = value
+  } else if (typeof value === 'string' && /^-?\d+$/.test(value.trim())) {
+    parsed = parseInt(value.trim(), 10)
   }
-  return null
+  if (parsed === null || parsed > INT4_MAX || parsed < -INT4_MAX - 1) return null
+  return parsed
 }
 
 // Date ISO (YYYY-MM-DD) attendue ; tout autre format → null (préservé dans le brut).
