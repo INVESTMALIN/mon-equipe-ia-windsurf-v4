@@ -147,18 +147,23 @@ export default async function handler(req, res) {
               return res.status(400).json({ received: false, error: 'invalid credit purchase metadata' })
             }
 
-            // Facture Stripe générée par invoice_creation (cf. create-credit-checkout-session).
-            // `session.invoice` est normalement présent sur l'event ; fallback via retrieve
-            // si jamais l'event précède l'attache de l'invoice. Best-effort STRICT : un échec
-            // de résolution ne doit JAMAIS empêcher le crédit d'un paiement encaissé — on
-            // stocke null et /mes-credits affichera « facture non disponible ».
-            let stripeInvoiceId = typeof session.invoice === 'string' ? session.invoice : (session.invoice?.id || null)
-            if (!stripeInvoiceId) {
-              try {
-                const fullSession = await stripe.checkout.sessions.retrieve(session.id)
-                stripeInvoiceId = typeof fullSession.invoice === 'string' ? fullSession.invoice : (fullSession.invoice?.id || null)
-              } catch (invoiceErr) {
-                console.warn(`⚠️ Résolution invoice impossible pour session ${session.id} (non bloquant):`, invoiceErr.message)
+            // Rattachement différé des factures orphelines : le webhook de Kevin (Make)
+            // et celui de Stripe sont livrés indépendamment, dans un ordre quelconque.
+            // Si la facture est arrivée AVANT notre ligne de ledger, elle a été archivée
+            // avec user_id null (et son rejeu est un no-op : elle ne se rattachera jamais
+            // seule). On la raccroche ici, une fois le user connu. Best-effort STRICT :
+            // un échec ne doit jamais empêcher le crédit — la facture reste archivée et
+            // rattachable plus tard. Appelé aussi sur le no-op 23505 (rejeu Stripe) :
+            // la facture peut être arrivée entre la première livraison et le rejeu.
+            const attachOrphanInvoices = async () => {
+              if (!session.payment_intent) return
+              const { error: attachError } = await supabase
+                .from('invoices')
+                .update({ user_id: creditUserId })
+                .eq('payment_intent_id', session.payment_intent)
+                .is('user_id', null)
+              if (attachError) {
+                console.error('⚠️ Rattachement facture orpheline échoué (non bloquant):', attachError.message)
               }
             }
 
@@ -173,11 +178,13 @@ export default async function handler(req, res) {
                 user_id: creditUserId,
                 amount: credits,
                 type: 'achat',
+                // Plus de stripe_invoice_id : invoice_creation a été retiré du checkout
+                // (la facture qui fait foi est celle de Kevin, archivée dans `invoices`
+                // et rattachée via stripe_payment_intent).
                 metadata: {
                   stripe_session_id: session.id,
                   stripe_event_id: event.id,
                   stripe_payment_intent: session.payment_intent,
-                  stripe_invoice_id: stripeInvoiceId,
                   pack
                 },
                 description: `Achat ${pack} — ${credits} crédit(s)`
@@ -187,6 +194,7 @@ export default async function handler(req, res) {
               // 23505 = unique_violation : session déjà créditée. No-op idempotent = SUCCÈS (200).
               if (ledgerError.code === '23505') {
                 console.log(`⏭️ Session ${session.id} déjà créditée (index unique), no-op`)
+                await attachOrphanInvoices()
                 await markEventAsProcessed()
                 break
               }
@@ -199,6 +207,8 @@ export default async function handler(req, res) {
             }
 
             console.log(`✅ ${credits} crédit(s) accordés à ${creditUserId} (session ${session.id})`)
+
+            await attachOrphanInvoices()
 
             // Marquer l'event comme traité APRÈS le crédit (jamais avant : un échec réel
             // doit laisser Stripe retenter, l'index unique empêchant le double-crédit).

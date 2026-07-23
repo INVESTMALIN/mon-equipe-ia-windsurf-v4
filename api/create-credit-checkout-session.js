@@ -140,16 +140,13 @@ export default async function handler(req, res) {
       client_reference_id: user.id,
       metadata: purchaseMetadata,
       // Reporter les metadata sur le PaymentIntent : retrouver l'achat depuis un litige.
+      // Le payment_intent est aussi la clé de rattachement de la facture comptable de
+      // Kevin (table invoices, via /api/invoice-webhook).
       payment_intent_data: { metadata: purchaseMetadata },
 
-      // En mode `payment`, Stripe ne génère qu'un reçu par défaut. On force la création
-      // d'une vraie facture (numéro, TVA, PDF, hosted_invoice_url) pour que l'utilisateur
-      // puisse la récupérer depuis /mes-credits. Les mêmes metadata sont reportées sur la
-      // facture pour la traçabilité (litige). L'invoice_id est capté au webhook.
-      invoice_creation: {
-        enabled: true,
-        invoice_data: { metadata: purchaseMetadata },
-      },
+      // PAS d'invoice_creation : la facture qui fait foi (numérotée, TVA) est générée
+      // par le système Make de Kevin à l'encaissement. En laisser une seconde côté
+      // Stripe produirait deux documents numérotés pour un seul paiement.
 
       success_url: `${origin}/mes-credits?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/mes-credits?checkout=cancel`,
