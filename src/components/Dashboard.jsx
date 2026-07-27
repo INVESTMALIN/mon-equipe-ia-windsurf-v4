@@ -286,8 +286,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Contenu principal */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      {/* Contenu principal — pb-28 réserve la zone du bouton d'aide flottant (parcours
+          Fiche Logement) pour qu'il ne recouvre pas le menu de la dernière fiche. */}
+      <div className="max-w-6xl mx-auto px-6 py-8 pb-28">
         {/* Filtres et recherche */}
         <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

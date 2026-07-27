@@ -635,7 +635,9 @@ export default function MonCompte() {
                 
       </div>
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-8 px-6 md:px-20 text-sm text-gray-500">
+      {/* pb-24 : réserve la zone du bouton d'aide flottant (parcours Fiche Logement) pour
+          qu'il ne recouvre pas les liens du footer sur mobile. */}
+      <footer className="bg-white border-t border-gray-200 py-8 pb-24 px-6 md:px-20 text-sm text-gray-500">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© 2025 Mon Équipe IA. Tous droits réservés.</p>
           <div className="flex gap-4">
