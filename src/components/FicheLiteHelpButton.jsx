@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   HelpCircle, X, Compass, Coins, ClipboardList, Wand2, Lock, LifeBuoy,
 } from 'lucide-react'
 import { useIsFicheLite } from '../hooks/useIsFicheLite'
+import { FICHE_LITE_ALLOWED_PATHS } from './ProtectedRoute'
 
 // Bouton d'aide flottant du parcours Fiche Logement (concierges à crédits).
 // Monté globalement dans App.jsx, mais rendu UNIQUEMENT pour ce parcours : le contenu
@@ -423,6 +425,7 @@ function ContenuOnglet({ id }) {
 
 export default function FicheLiteHelpButton() {
   const isFicheLite = useIsFicheLite()
+  const { pathname } = useLocation()
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(TABS[0].id)
 
@@ -430,14 +433,27 @@ export default function FicheLiteHelpButton() {
   const panelRef = useRef(null)  // panneau de la modale, périmètre du piège à focus
   const closeRef = useRef(null)  // bouton « fermer », qui reçoit le focus à l'ouverture
 
-  // Le gate de rôle peut se refermer alors que la modale est ouverte (déconnexion depuis
-  // un autre onglet, session expirée, profil devenu illisible). On referme explicitement :
-  // sinon le composant ne rend plus rien MAIS `isOpen` resterait vrai, le verrou de scroll
-  // posé sur <body> ne serait jamais relâché (page entière non défilable), et la modale
-  // resurgirait toute seule si le rôle repassait à true.
+  // Double condition d'affichage : le bon utilisateur ET un écran du parcours.
+  //
+  // Le rôle seul ne suffit pas. Un concierge connecté peut atteindre des pages publiques
+  // (FAQ, mentions légales, conditions…) — typiquement via les liens du footer de
+  // /mon-compte. Ces pages ne réservent pas la place du bouton en bas de page, qui
+  // recouvrirait alors leurs liens en bas à droite sur mobile. On s'en tient donc aux
+  // écrans du parcours, qui eux réservent tous cette place.
+  //
+  // Lecture SEULE de l'allowlist du gate de routes : rien n'est modifié ici, on réutilise
+  // la liste pour ne pas en maintenir une seconde. Une route ajoutée là devra, elle aussi,
+  // réserver la zone du bouton en bas de page.
+  const visible = isFicheLite && FICHE_LITE_ALLOWED_PATHS.includes(pathname)
+
+  // La visibilité peut tomber alors que la modale est ouverte (déconnexion depuis un autre
+  // onglet, session expirée, ou simple navigation hors du parcours). On referme
+  // explicitement : sinon le composant ne rend plus rien MAIS `isOpen` resterait vrai, le
+  // verrou de scroll posé sur <body> ne serait jamais relâché (page entière non défilable),
+  // et la modale resurgirait toute seule au retour sur le parcours.
   useEffect(() => {
-    if (!isFicheLite) setIsOpen(false)
-  }, [isFicheLite])
+    if (!visible) setIsOpen(false)
+  }, [visible])
 
   // Échap ferme, le scroll de la page derrière est gelé, et le focus clavier est confiné
   // à la modale. `aria-modal="true"` affirme que le reste de la page est inerte : sans
@@ -482,7 +498,7 @@ export default function FicheLiteHelpButton() {
     }
   }, [isOpen])
 
-  if (!isFicheLite) return null
+  if (!visible) return null
 
   return (
     <>
