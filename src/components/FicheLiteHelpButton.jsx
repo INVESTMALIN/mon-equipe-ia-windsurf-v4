@@ -28,7 +28,7 @@ const SUPPORT_EMAIL = 'contact@invest-malin.com'
 // Libellés courts : 6 onglets doivent tenir dans la largeur du panneau sans barre de
 // défilement horizontale. Le titre long de chaque section est repris en tête de contenu.
 const TABS = [
-  { id: 'parcours', label: 'Le parcours', icon: Compass },
+  { id: 'parcours', label: 'Parcours', icon: Compass },
   { id: 'credits', label: 'Crédits', icon: Coins },
   { id: 'formulaire', label: 'Formulaire', icon: ClipboardList },
   { id: 'annonce', label: 'Annonce et PDF', icon: Wand2 },
@@ -596,10 +596,11 @@ export default function FicheLiteHelpButton() {
 
             {/* Onglets. shrink-0 : sans lui, flex comprimait la rangée quand le contenu
                 était long — les onglets apparaissaient coupés en deux, voire disparaissaient.
-                flex-wrap plutôt que défilement horizontal : les 6 onglets restent tous
-                visibles, sans barre de défilement grise ni onglet caché hors écran. */}
-            <div className="shrink-0 border-b border-gray-200 px-5 sm:px-6">
-              <div className="flex flex-wrap gap-x-1">
+                flex-nowrap : les 6 onglets tiennent sur UNE ligne (chrome resserré + libellés
+                courts) ; deux rangées n'étaient pas lisibles comme une barre d'onglets. Le
+                défilement horizontal reste possible sur écran étroit, sans barre grise. */}
+            <div className="shrink-0 border-b border-gray-200 px-5 sm:px-6 overflow-x-auto no-scrollbar">
+              <div className="flex flex-nowrap gap-x-1 min-w-max">
                 {TABS.map((tab) => {
                   const Icon = tab.icon
                   const actif = activeTab === tab.id
@@ -608,7 +609,7 @@ export default function FicheLiteHelpButton() {
                       key={tab.id}
                       type="button"
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                      className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                         actif
                           ? 'border-[#dbae61] text-[#a07c32]'
                           : 'border-transparent text-gray-600 hover:text-gray-900'
