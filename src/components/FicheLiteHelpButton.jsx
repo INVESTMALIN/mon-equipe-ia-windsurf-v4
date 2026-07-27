@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   HelpCircle, X, Compass, Coins, ClipboardList, Wand2, Lock, LifeBuoy,
 } from 'lucide-react'
@@ -426,6 +426,10 @@ export default function FicheLiteHelpButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(TABS[0].id)
 
+  const openerRef = useRef(null) // bouton flottant, à qui le focus est rendu à la fermeture
+  const panelRef = useRef(null)  // panneau de la modale, périmètre du piège à focus
+  const closeRef = useRef(null)  // bouton « fermer », qui reçoit le focus à l'ouverture
+
   // Le gate de rôle peut se refermer alors que la modale est ouverte (déconnexion depuis
   // un autre onglet, session expirée, profil devenu illisible). On referme explicitement :
   // sinon le composant ne rend plus rien MAIS `isOpen` resterait vrai, le verrou de scroll
@@ -435,16 +439,46 @@ export default function FicheLiteHelpButton() {
     if (!isFicheLite) setIsOpen(false)
   }, [isFicheLite])
 
-  // Échap ferme la modale, et on gèle le scroll de la page derrière.
+  // Échap ferme, le scroll de la page derrière est gelé, et le focus clavier est confiné
+  // à la modale. `aria-modal="true"` affirme que le reste de la page est inerte : sans
+  // piège à focus, un utilisateur au clavier tabulerait vers des contrôles situés derrière
+  // l'overlay, que le lecteur d'écran annonce pourtant comme inaccessibles.
   useEffect(() => {
     if (!isOpen) return
-    const onKeyDown = (e) => { if (e.key === 'Escape') setIsOpen(false) }
+
+    const opener = openerRef.current
+    closeRef.current?.focus()
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') { setIsOpen(false); return }
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusables = panel.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (!focusables.length) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+
     window.addEventListener('keydown', onKeyDown)
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previous
+      // Focus rendu au bouton flottant. `isConnected` : quand la fermeture vient du gate
+      // de rôle, le bouton est déjà démonté — on ne tente pas de focaliser un nœud détaché.
+      if (opener?.isConnected) opener.focus()
     }
   }, [isOpen])
 
@@ -458,6 +492,7 @@ export default function FicheLiteHelpButton() {
           z-30 : sous l'overlay du menu de sections mobile (z-40), qui doit donc bien
           recouvrir le bouton quand il est ouvert. */}
       <button
+        ref={openerRef}
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Aide : comment ça marche"
@@ -473,6 +508,7 @@ export default function FicheLiteHelpButton() {
           onClick={() => setIsOpen(false)}
         >
           <div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="aide-fiche-titre"
@@ -493,6 +529,7 @@ export default function FicheLiteHelpButton() {
                 </div>
               </div>
               <button
+                ref={closeRef}
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Fermer l'aide"
