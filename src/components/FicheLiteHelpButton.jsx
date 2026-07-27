@@ -100,8 +100,8 @@ function ContenuOnglet({ id }) {
             </Etape>
             <Etape n="3" titre="Remplissez les 24 étapes">
               Du propriétaire jusqu'à la finalisation. Votre saisie est enregistrée automatiquement :
-              attendez le bandeau vert de confirmation avant de fermer, et vous reprendrez plus tard
-              là où vous en étiez.
+              cliquez sur « Enregistrer » avant de fermer, et vous reprendrez plus tard là où vous en
+              étiez.
             </Etape>
             <Etape n="4" titre="Générez votre annonce">
               Sur la dernière étape, choisissez Airbnb ou Booking. L'annonce est rédigée à partir de
@@ -193,16 +193,14 @@ function ContenuOnglet({ id }) {
           <ul className="space-y-2 text-gray-700">
             <Puce>
               Quelques secondes après que vous avez arrêté de taper, la fiche est enregistrée
-              automatiquement. Un bandeau vert « Sauvegardé avec succès » vous le confirme.
+              automatiquement. Un bandeau vert « Sauvegardé avec succès » apparaît quand une
+              sauvegarde vient d'aboutir.
             </Puce>
             <Puce>
-              <strong>Attendez ce bandeau vert avant de fermer l'onglet ou d'éteindre votre
-              téléphone.</strong> Si vous fermez dans les secondes qui suivent une saisie, les toutes
-              dernières modifications peuvent ne pas être enregistrées.
-            </Puce>
-            <Puce>
-              Le bouton « Enregistrer », en bas de chaque étape, force la sauvegarde immédiatement.
-              C'est le moyen le plus sûr avant de fermer ou de changer de logement.
+              <strong>Avant de fermer l'onglet, d'éteindre votre téléphone ou de recharger la page :
+              cliquez sur « Enregistrer », en bas de chaque étape, et laissez la sauvegarde se
+              terminer.</strong> C'est le seul moyen d'être sûr que vos toutes dernières saisies sont
+              enregistrées — le bandeau vert, lui, peut dater de la sauvegarde précédente.
             </Puce>
             <Puce>
               Pour reprendre plus tard : retournez dans « Mes Fiches Logement » et cliquez sur
