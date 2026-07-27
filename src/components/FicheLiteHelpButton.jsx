@@ -99,8 +99,9 @@ function ContenuOnglet({ id }) {
               à ce moment-là, et c'est le seul.
             </Etape>
             <Etape n="3" titre="Remplissez les 24 étapes">
-              Du propriétaire jusqu'à la finalisation. Tout est enregistré au fur et à mesure : vous
-              pouvez fermer et reprendre plus tard, autant de fois que nécessaire.
+              Du propriétaire jusqu'à la finalisation. Votre saisie est enregistrée automatiquement :
+              attendez le bandeau vert de confirmation avant de fermer, et vous reprendrez plus tard
+              là où vous en étiez.
             </Etape>
             <Etape n="4" titre="Générez votre annonce">
               Sur la dernière étape, choisissez Airbnb ou Booking. L'annonce est rédigée à partir de
@@ -195,8 +196,13 @@ function ContenuOnglet({ id }) {
               automatiquement. Un bandeau vert « Sauvegardé avec succès » vous le confirme.
             </Puce>
             <Puce>
+              <strong>Attendez ce bandeau vert avant de fermer l'onglet ou d'éteindre votre
+              téléphone.</strong> Si vous fermez dans les secondes qui suivent une saisie, les toutes
+              dernières modifications peuvent ne pas être enregistrées.
+            </Puce>
+            <Puce>
               Le bouton « Enregistrer », en bas de chaque étape, force la sauvegarde immédiatement.
-              Pratique avant de fermer votre téléphone ou de changer de logement.
+              C'est le moyen le plus sûr avant de fermer ou de changer de logement.
             </Puce>
             <Puce>
               Pour reprendre plus tard : retournez dans « Mes Fiches Logement » et cliquez sur
@@ -260,8 +266,18 @@ function ContenuOnglet({ id }) {
               cliquez sur « Générer l'annonce ». Comptez 20 à 30 secondes.
             </Puce>
             <Puce>
-              L'agent écrit à partir de ce que vous avez saisi dans la fiche et de la localisation du
-              logement (commerces, transports, distances). Il n'invente pas d'information.
+              Les caractéristiques du logement (équipements, surface, capacité, accès, couchages)
+              viennent uniquement de votre fiche. L'agent n'en invente aucune, et ce qui n'est pas
+              renseigné est simplement passé sous silence.
+            </Puce>
+            <Puce>
+              Les distances et les points d'intérêt viennent de la localisation du logement. Si elle
+              n'est pas disponible, la rubrique « comment se déplacer » est laissée vide plutôt que
+              d'être inventée.
+            </Puce>
+            <Puce>
+              En revanche, pour décrire l'ambiance d'un quartier ou d'une ville, l'agent s'appuie
+              aussi sur ses connaissances générales.
             </Puce>
             <Puce>
               Pour Airbnb, il produit des propositions de titre, la description, et les rubriques
@@ -281,6 +297,14 @@ function ContenuOnglet({ id }) {
               sur votre appareil.
             </Puce>
           </ul>
+
+          <Encadre titre="Relisez l'annonce avant de la publier">
+            <p>
+              C'est votre annonce qui sera lue par les voyageurs. Une description de quartier peut
+              être datée ou approximative : vérifiez ce qui est écrit avant de le publier, comme
+              vous le feriez pour un texte rédigé par quelqu'un d'autre.
+            </p>
+          </Encadre>
 
           <Encadre titre="Complétez la fiche avant de générer">
             <p>
@@ -413,8 +437,9 @@ function ContenuOnglet({ id }) {
 
           <Encadre titre="Un réflexe qui règle beaucoup de choses">
             <p>
-              Si une page se fige ou n'affiche pas ce que vous attendez, rechargez-la. Votre saisie
-              enregistrée est conservée, vous ne perdez rien.
+              Si une page se fige ou n'affiche pas ce que vous attendez, rechargez-la. Tout ce qui a
+              déjà été enregistré est conservé. Si vous le pouvez, cliquez sur « Enregistrer » avant
+              de recharger.
             </p>
           </Encadre>
         </div>
