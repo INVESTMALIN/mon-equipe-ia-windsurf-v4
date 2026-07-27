@@ -13,10 +13,18 @@ export function useIsFicheLite() {
 
   useEffect(() => {
     let cancelled = false
+    // Jeton de génération : plusieurs résolutions peuvent se chevaucher (une déconnexion
+    // qui survient pendant une requête profil lente). Sans ce jeton, la plus ANCIENNE peut
+    // terminer en dernier et réinstaller le rôle de l'utilisateur précédent — le bouton
+    // resterait affiché sur la page de connexion ou pour un autre compte.
+    let generation = 0
 
     const resolve = async () => {
+      const current = ++generation
+      const superseded = () => cancelled || current !== generation
+
       const { data: { user } } = await supabase.auth.getUser()
-      if (cancelled) return
+      if (superseded()) return
       if (!user) {
         setIsFicheLite(false)
         return
@@ -26,7 +34,7 @@ export function useIsFicheLite() {
         .select('role')
         .eq('id', user.id)
         .single()
-      if (cancelled) return
+      if (superseded()) return
       setIsFicheLite(!error && data?.role === 'fiche_lite')
     }
 

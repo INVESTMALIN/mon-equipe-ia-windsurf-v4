@@ -426,6 +426,15 @@ export default function FicheLiteHelpButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(TABS[0].id)
 
+  // Le gate de rôle peut se refermer alors que la modale est ouverte (déconnexion depuis
+  // un autre onglet, session expirée, profil devenu illisible). On referme explicitement :
+  // sinon le composant ne rend plus rien MAIS `isOpen` resterait vrai, le verrou de scroll
+  // posé sur <body> ne serait jamais relâché (page entière non défilable), et la modale
+  // resurgirait toute seule si le rôle repassait à true.
+  useEffect(() => {
+    if (!isFicheLite) setIsOpen(false)
+  }, [isFicheLite])
+
   // Échap ferme la modale, et on gèle le scroll de la page derrière.
   useEffect(() => {
     if (!isOpen) return
