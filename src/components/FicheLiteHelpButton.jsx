@@ -432,6 +432,7 @@ export default function FicheLiteHelpButton() {
   const openerRef = useRef(null) // bouton flottant, à qui le focus est rendu à la fermeture
   const panelRef = useRef(null)  // panneau de la modale, périmètre du piège à focus
   const closeRef = useRef(null)  // bouton « fermer », qui reçoit le focus à l'ouverture
+  const contentRef = useRef(null) // conteneur défilant du contenu, remis en haut par onglet
 
   // Double condition d'affichage : le bon utilisateur ET un écran du parcours.
   //
@@ -454,6 +455,14 @@ export default function FicheLiteHelpButton() {
   useEffect(() => {
     if (!visible) setIsOpen(false)
   }, [visible])
+
+  // Changement d'onglet : le conteneur défilant est réutilisé d'un onglet à l'autre et
+  // conserve son `scrollTop`. Sans remise à zéro, l'onglet sélectionné après avoir fait
+  // défiler le précédent s'ouvre en plein milieu de son contenu — titre et première
+  // consigne hors écran, ce qui donne l'impression d'une aide qui commence au hasard.
+  useEffect(() => {
+    if (isOpen) contentRef.current?.scrollTo({ top: 0 })
+  }, [activeTab, isOpen])
 
   // Échap ferme, le scroll de la page derrière est gelé, et le focus clavier est confiné
   // à la modale. `aria-modal="true"` affirme que le reste de la page est inerte : sans
@@ -581,7 +590,7 @@ export default function FicheLiteHelpButton() {
             </div>
 
             {/* Contenu */}
-            <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-6">
+            <div ref={contentRef} className="flex-1 overflow-y-auto px-5 sm:px-6 py-6">
               <ContenuOnglet id={activeTab} />
             </div>
           </div>
