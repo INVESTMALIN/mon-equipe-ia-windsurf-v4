@@ -25,13 +25,15 @@ import { FICHE_LITE_ALLOWED_PATHS } from './ProtectedRoute'
 
 const SUPPORT_EMAIL = 'contact@invest-malin.com'
 
+// Libellés courts : 6 onglets doivent tenir dans la largeur du panneau sans barre de
+// défilement horizontale. Le titre long de chaque section est repris en tête de contenu.
 const TABS = [
-  { id: 'parcours', label: 'Comment ça marche', icon: Compass },
+  { id: 'parcours', label: 'Le parcours', icon: Compass },
   { id: 'credits', label: 'Crédits', icon: Coins },
-  { id: 'formulaire', label: 'Le formulaire', icon: ClipboardList },
+  { id: 'formulaire', label: 'Formulaire', icon: ClipboardList },
   { id: 'annonce', label: 'Annonce et PDF', icon: Wand2 },
-  { id: 'verrou', label: 'Champs verrouillés', icon: Lock },
-  { id: 'aide', label: "Besoin d'aide", icon: LifeBuoy },
+  { id: 'verrou', label: 'Verrouillage', icon: Lock },
+  { id: 'aide', label: 'Aide', icon: LifeBuoy },
 ]
 
 /** Puce dorée + texte, la liste standard de cette aide. */
@@ -311,7 +313,7 @@ function ContenuOnglet({ id }) {
           <Encadre titre="La première génération verrouille une partie de la fiche">
             <p>
               Avant votre tout premier PDF, un message vous prévient et vous pouvez encore annuler.
-              Voir l'onglet « Champs verrouillés ».
+              Voir l'onglet « Verrouillage ».
             </p>
           </Encadre>
         </div>
@@ -532,16 +534,19 @@ export default function FicheLiteHelpButton() {
           className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-end sm:items-center justify-center sm:p-4"
           onClick={() => setIsOpen(false)}
         >
+          {/* Hauteur STABLE d'un onglet à l'autre. Avec `h-auto`, le panneau épousait le
+              contenu : court sur « Le parcours », plafonné à 85vh sur les onglets longs,
+              donc une modale qui changeait de taille à chaque clic. */}
           <div
             ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="aide-fiche-titre"
-            className="bg-white w-full sm:max-w-3xl h-[90vh] sm:h-auto sm:max-h-[85vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="bg-white w-full sm:max-w-3xl h-[90vh] sm:h-[36rem] sm:max-h-[85vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* En-tête */}
-            <div className="flex items-center justify-between gap-4 px-5 sm:px-6 py-4 border-b border-gray-200">
+            {/* En-tête — shrink-0 : sans lui, flex le comprime quand le contenu est long. */}
+            <div className="shrink-0 flex items-center justify-between gap-4 px-5 sm:px-6 py-4 border-b border-gray-200">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 shrink-0 bg-[#dbae61] bg-opacity-15 rounded-xl flex items-center justify-center">
                   <HelpCircle className="w-5 h-5 text-[#dbae61]" />
@@ -564,9 +569,12 @@ export default function FicheLiteHelpButton() {
               </button>
             </div>
 
-            {/* Onglets — défilables horizontalement sur mobile */}
-            <div className="border-b border-gray-200 px-5 sm:px-6 overflow-x-auto">
-              <div className="flex gap-1 min-w-max">
+            {/* Onglets. shrink-0 : sans lui, flex comprimait la rangée quand le contenu
+                était long — les onglets apparaissaient coupés en deux, voire disparaissaient.
+                flex-wrap plutôt que défilement horizontal : les 6 onglets restent tous
+                visibles, sans barre de défilement grise ni onglet caché hors écran. */}
+            <div className="shrink-0 border-b border-gray-200 px-5 sm:px-6">
+              <div className="flex flex-wrap gap-x-1">
                 {TABS.map((tab) => {
                   const Icon = tab.icon
                   const actif = activeTab === tab.id
