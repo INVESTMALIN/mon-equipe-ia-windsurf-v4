@@ -445,13 +445,15 @@ export default function FicheLiteHelpButton() {
     <>
       {/* Bouton flottant. Les écrans du parcours réservent la place correspondante en bas
           de page (cf. NavigationButtons, FicheFinalisation, Dashboard, MesCredits) pour ne
-          jamais recouvrir « Suivant », « Finaliser » ou le menu d'une fiche sur mobile. */}
+          jamais recouvrir « Suivant », « Finaliser » ou le menu d'une fiche sur mobile.
+          z-30 : sous l'overlay du menu de sections mobile (z-40), qui doit donc bien
+          recouvrir le bouton quand il est ouvert. */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Aide : comment ça marche"
         title="Comment ça marche ?"
-        className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-[#dbae61] hover:bg-[#c49a4f] text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+        className="fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full bg-[#dbae61] hover:bg-[#c49a4f] text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
       >
         <HelpCircle className="w-6 h-6" />
       </button>
@@ -460,11 +462,11 @@ export default function FicheLiteHelpButton() {
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-end sm:items-center justify-center sm:p-4"
           onClick={() => setIsOpen(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="aide-fiche-titre"
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="aide-fiche-titre"
             className="bg-white w-full sm:max-w-3xl h-[90vh] sm:h-auto sm:max-h-[85vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
