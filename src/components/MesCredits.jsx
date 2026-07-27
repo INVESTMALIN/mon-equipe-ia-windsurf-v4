@@ -217,7 +217,8 @@ export default function MesCredits() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+      {/* pb-28 : réserve la zone du bouton d'aide flottant (parcours Fiche Logement). */}
+      <div className="max-w-6xl mx-auto px-6 py-8 pb-28 space-y-8">
         {/* ─── Bandeau retour Stripe : crédité / crédit en attente ─── */}
         {/* (L'état "validation en cours" est porté par le bloc solde ci-dessous, qui n'affiche */}
         {/*  alors AUCUN chiffre — on ne présente jamais l'ancien solde comme final.) */}

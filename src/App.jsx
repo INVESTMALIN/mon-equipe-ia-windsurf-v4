@@ -50,6 +50,8 @@ import Tarifs from './components/Tarifs'
 
 import Support from './components/Support'
 
+import FicheLiteHelpButton from './components/FicheLiteHelpButton'
+
 
 function AppWrapper() {
   return (
@@ -273,6 +275,11 @@ function AppWrapper() {
 
         </Routes>
       </main>
+
+      {/* Aide flottante du parcours Fiche Logement. Le composant ne rend rien pour les
+          autres utilisateurs : pas de gating à faire ici. Hors <main> pour rester
+          au-dessus de la page quelle que soit la route. */}
+      <FicheLiteHelpButton />
     </div>
   )
 }

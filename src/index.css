@@ -20,3 +20,14 @@ body {
   overflow-x: hidden;
 }
 
+/* Conteneur défilable sans barre de défilement visible. Utilisé par la rangée d'onglets
+   de l'aide : elle tient sur une ligne en desktop, et reste glissable sur mobile sans
+   afficher la barre grise du système. */
+.no-scrollbar {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE / anciens Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;                  /* Chrome, Safari */
+}
+

@@ -680,8 +680,10 @@ export default function FicheFinalisation() {
                 </div>
               </div>
 
-              {/* Accordéon technique TRÈS discret */}
-              <details className="mt-8 border-t border-gray-100 pt-4">
+              {/* Accordéon technique TRÈS discret.
+                  pb-20 : réserve la zone du bouton d'aide flottant (cette section n'utilise
+                  pas NavigationButtons, elle a sa propre navigation ci-dessus). */}
+              <details className="mt-8 pb-20 border-t border-gray-100 pt-4">
                 <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5">
                   <Settings className="w-3.5 h-3.5" /> Données techniques de la fiche
                 </summary>

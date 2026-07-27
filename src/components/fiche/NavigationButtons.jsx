@@ -16,7 +16,9 @@ export default function NavigationButtons() {
   }
 
   return (
-    <div className="mt-8 pt-8 border-t border-gray-200">
+    // pb-24 : réserve la zone du bouton d'aide flottant (bas droite) pour qu'il ne
+    // recouvre jamais « Suivant » quand la page est déroulée à fond, notamment sur mobile.
+    <div className="mt-8 pt-8 pb-24 border-t border-gray-200">
       {/* Messages de sauvegarde */}
       {saveStatus.saving && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
