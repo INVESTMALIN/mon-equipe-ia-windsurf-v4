@@ -116,6 +116,36 @@ export default function FicheClefs() {
                   </div>
                 </div>
 
+                {/* Emplacement de l'emballage de la boîte à clés */}
+                <div>
+                  <label className="block font-medium text-gray-900 mb-2">
+                    Emplacement de l'emballage de la boîte à clés (Si possible dans l'espace de stockage prestataire) *
+                  </label>
+                  <textarea
+                    placeholder="Décrivez où se trouve l'emballage de la boîte à clés"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                    rows="3"
+                    value={formData.emplacementEmballageBoite || ''}
+                    onChange={(e) => handleInputChange('section_clefs.emplacementEmballageBoite', e.target.value)}
+                  />
+
+                  {/* Rappel photo emballage (Lite ne stocke pas de média) */}
+                  <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="emballage_photo_taken"
+                        className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                        checked={getField('section_clefs.photos_rappels.emballage_taken') || false}
+                        onChange={(e) => handleInputChange('section_clefs.photos_rappels.emballage_taken', e.target.checked)}
+                      />
+                      <label htmlFor="emballage_photo_taken" className="text-sm text-yellow-800">
+                        📸 Pensez à prendre une photo de l'emplacement de l'emballage
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Sections conditionnelles selon le type de boîte */}
                 {formData.boiteType === "TTlock" && (
                   <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">

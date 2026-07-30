@@ -47,7 +47,12 @@ const BRANCH_SCHEMAS = {
     'salle_sport_instructions'
   ],
   salle_jeux: [
-    'salle_jeux_equipements', 'salle_jeux_instructions'
+    'salle_jeux_equipements',
+    'salle_jeux_billard_instructions', 'salle_jeux_baby_foot_instructions',
+    'salle_jeux_ping_pong_instructions'
+  ],
+  local_velo: [
+    'local_velo_type_acces'
   ]
 }
 
@@ -60,7 +65,8 @@ const PHOTOS_SCHEMAS = {
   hammam: ['hammam_photos_taken'],
   salle_cinema: ['salle_cinema_photos_taken'],
   salle_sport: ['salle_sport_photos_taken'],
-  salle_jeux: ['salle_jeux_photos_taken']
+  salle_jeux: ['salle_jeux_photos_taken'],
+  local_velo: []
 }
 
 // Composant pattern entretien réutilisable
@@ -167,6 +173,7 @@ export default function FicheEquipExterieur() {
       else if (field.includes('dispose_salle_cinema')) branchToClean = 'salle_cinema'
       else if (field.includes('dispose_salle_sport')) branchToClean = 'salle_sport'
       else if (field.includes('dispose_salle_jeux')) branchToClean = 'salle_jeux'
+      else if (field.includes('dispose_local_velo')) branchToClean = 'local_velo'
 
       if (branchToClean) {
         // Nettoyer les champs de la branche
@@ -519,6 +526,53 @@ export default function FicheEquipExterieur() {
                       <span className="text-gray-700">Non</span>
                     </label>
                   </div>
+                </div>
+
+                {/* Question 10 : Local à vélo */}
+                <div className="space-y-3">
+                  <label className="block font-semibold text-gray-900">
+                    Le logement propose-t-il un local à vélo ?
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={formData.dispose_local_velo === true}
+                        onChange={() => handleRadioChange('section_equip_spe_exterieur.dispose_local_velo', 'true')}
+                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] focus:ring-2"
+                      />
+                      <span className="text-gray-700">Oui</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={formData.dispose_local_velo === false}
+                        onChange={() => handleRadioChange('section_equip_spe_exterieur.dispose_local_velo', 'false')}
+                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] focus:ring-2"
+                      />
+                      <span className="text-gray-700">Non</span>
+                    </label>
+                  </div>
+
+                  {/* Type d'accès au local à vélo (conditionnel) */}
+                  {formData.dispose_local_velo === true && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <label className="block font-semibold text-gray-900 mb-3">Type d'accès au local à vélo</label>
+                      <div className="flex gap-6">
+                        {[{ v: 'libre', l: 'Libre' }, { v: 'avec_cle', l: 'Avec clé' }].map(({ v, l }) => (
+                          <label key={v} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              checked={formData.local_velo_type_acces === v}
+                              onChange={() => handleInputChange('section_equip_spe_exterieur.local_velo_type_acces', v)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] focus:ring-2"
+                            />
+                            <span className="text-gray-700">{l}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1434,18 +1488,26 @@ export default function FicheEquipExterieur() {
                       </div>
                     </div>
 
-                    {/* Instructions par équipement */}
-                    {(formData.salle_jeux_equipements || []).length > 0 && (
-                      <div className="space-y-4">
-                        <label className="block font-medium text-gray-900">Instructions d'utilisation</label>
-                        <textarea
-                          placeholder="Décrivez les règles et consignes d'utilisation pour chaque équipement disponible"
-                          className="w-full p-3 border border-gray-300 rounded-lg h-24 focus:outline-none focus:border-[#dbae61] focus:ring-1 focus:ring-[#dbae61]"
-                          value={getField('section_equip_spe_exterieur.salle_jeux_instructions')}
-                          onChange={(e) => handleInputChange('section_equip_spe_exterieur.salle_jeux_instructions', e.target.value)}
-                        />
-                      </div>
-                    )}
+                    {/* Instructions PAR équipement (une zone par jeu coché) */}
+                    {[
+                      { option: 'Billard', field: 'salle_jeux_billard_instructions', label: 'Billard', placeholder: "Décrivez les instructions pour utiliser le billard" },
+                      { option: 'Baby Foot', field: 'salle_jeux_baby_foot_instructions', label: 'Baby Foot', placeholder: "Décrivez les instructions pour utiliser le baby foot" },
+                      { option: 'Ping Pong', field: 'salle_jeux_ping_pong_instructions', label: 'Ping Pong', placeholder: "Décrivez les instructions pour utiliser la table de ping pong" },
+                    ].map(({ option, field, label, placeholder }) => (
+                      (formData.salle_jeux_equipements || []).includes(option) && (
+                        <div key={field} className="space-y-4">
+                          <label className="block font-medium text-gray-900">
+                            {label} - Instructions d'utilisation
+                          </label>
+                          <textarea
+                            placeholder={placeholder}
+                            className="w-full p-3 border border-gray-300 rounded-lg h-24 focus:outline-none focus:border-[#dbae61] focus:ring-1 focus:ring-[#dbae61]"
+                            value={getField(`section_equip_spe_exterieur.${field}`)}
+                            onChange={(e) => handleInputChange(`section_equip_spe_exterieur.${field}`, e.target.value)}
+                          />
+                        </div>
+                      )
+                    ))}
 
                     {/* Rappel photos */}
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

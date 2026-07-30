@@ -21,6 +21,9 @@ const BRANCH_SCHEMAS = {
   chauffage: [
     'chauffage_type', 'chauffage_instructions'
   ],
+  ventilateur: [
+    'ventilateur_types', 'ventilateur_nombre', 'ventilateur_emplacement'
+  ],
   lave_linge: [
     'lave_linge_prix', 'lave_linge_emplacement',
     'lave_linge_instructions'
@@ -37,9 +40,6 @@ const BRANCH_SCHEMAS = {
   ],
   accessible_mobilite_reduite: [
     'pmr_details'
-  ],
-  animaux_acceptes: [
-    'animaux_commentaire'
   ]
 }
 
@@ -140,12 +140,12 @@ export default function FicheEquipements() {
     { key: 'tourne_disque', label: 'Tourne disque' },
     { key: 'coffre_fort', label: 'Coffre fort' },
     { key: 'ascenseur', label: 'Ascenseur' },
-    { key: 'animaux_acceptes', label: 'Animaux acceptés' },
     { key: 'fetes_autorisees', label: 'Fêtes autorisées' },
 
     // Colonne 2
     { key: 'tv', label: 'TV' },
     { key: 'chauffage', label: 'Chauffage' },
+    { key: 'ventilateur', label: 'Ventilateur' },
     { key: 'fer_repasser', label: 'Fer à repasser' },
     { key: 'etendoir', label: 'Etendoir' },
     { key: 'piano', label: 'Piano' },
@@ -665,6 +665,80 @@ export default function FicheEquipements() {
                     </div>
                   )}
 
+                  {/* BLOC CONDITIONNEL VENTILATEUR */}
+                  {formData.ventilateur && (
+                    <div className="mt-8 p-6 bg-gray-50 border-2 border-gray-200 rounded-xl space-y-6">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        🌀 Ventilateur et rafraîchisseurs
+                      </h3>
+
+                      {/* Types de ventilateur - Sélection multiple */}
+                      <div>
+                        <label className="block font-medium text-gray-900 mb-3">Types de ventilateur *</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {['Ventilateur de plafond', 'Ventilateur Mobile', "Rafraichisseur d'air"].map(type => (
+                            <label key={type} className="flex items-center gap-3 cursor-pointer hover:bg-white p-3 rounded transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={(formData.ventilateur_types || []).includes(type)}
+                                onChange={(e) => {
+                                  const currentTypes = formData.ventilateur_types || []
+                                  const newTypes = e.target.checked
+                                    ? [...currentTypes, type]
+                                    : currentTypes.filter(t => t !== type)
+                                  handleInputChange('section_equipements.ventilateur_types', newTypes)
+                                }}
+                                className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                              />
+                              <span className="text-sm">{type}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Nombre */}
+                      <div>
+                        <label className="block font-medium text-gray-900 mb-2">Nombre de ventilateurs</label>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Ex: 2"
+                          className="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                          value={formData.ventilateur_nombre || ""}
+                          onChange={(e) => handleInputChange('section_equipements.ventilateur_nombre', e.target.value)}
+                        />
+                      </div>
+
+                      {/* Emplacement */}
+                      <div>
+                        <label className="block font-medium text-gray-900 mb-2">Emplacement</label>
+                        <textarea
+                          placeholder="Décrivez où se trouvent les ventilateurs..."
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                          rows={3}
+                          value={formData.ventilateur_emplacement || ""}
+                          onChange={(e) => handleInputChange('section_equipements.ventilateur_emplacement', e.target.value)}
+                        />
+                      </div>
+
+                      {/* Rappel photo (Lite ne stocke pas de média) */}
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="ventilateur_taken"
+                            className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                            checked={getField('section_equipements.photos_rappels.ventilateur_taken') || false}
+                            onChange={(e) => handleInputChange('section_equipements.photos_rappels.ventilateur_taken', e.target.checked)}
+                          />
+                          <label htmlFor="ventilateur_taken" className="text-sm text-yellow-800">
+                            📸 Pensez à prendre une photo des ventilateurs
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* BLOC CONDITIONNEL LAVE-LINGE */}
                   {formData.lave_linge && (
                     <div className="mt-8 p-6 bg-purple-50 border-2 border-purple-200 rounded-xl space-y-6">
@@ -862,27 +936,8 @@ export default function FicheEquipements() {
                     </div>
                   )}
 
-                  {/* BLOC CONDITIONNEL ANIMAUX */}
-                  {formData.animaux_acceptes && (
-                    <div className="mt-8 p-6 bg-amber-50 border-2 border-amber-200 rounded-xl space-y-6">
-                      <h3 className="text-lg font-semibold text-amber-900 flex items-center gap-2">
-                        🐾 Conditions pour les animaux
-                      </h3>
-
-                      {/* Commentaire conditions */}
-                      <div>
-                        <label className="block font-medium text-gray-900 mb-2">Conditions et restrictions *</label>
-                        <textarea
-                          placeholder="Précisez les conditions d'accueil des animaux : taille, nombre, supplément éventuel, zones interdites, règles particulières..."
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
-                          rows={4}
-                          value={formData.animaux_commentaire || ""}
-                          onChange={(e) => handleInputChange('section_equipements.animaux_commentaire', e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  )}
-
+                  {/* La question « Animaux acceptés » vit désormais dans la section
+                      Exigences (alignement sur la version coordinateurs). */}
 
 
                   {/* SECTION Configuration Wi-Fi */}

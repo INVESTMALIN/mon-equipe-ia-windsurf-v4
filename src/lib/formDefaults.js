@@ -175,6 +175,7 @@ export const initialFormData = {
     boiteType: "", // "TTlock", "Igloohome", "Masterlock"
     boiteType_autre_precision: "",
     emplacementBoite: "",
+    emplacementEmballageBoite: "",
 
     // Configurations spécifiques par type
     ttlock: {
@@ -214,6 +215,7 @@ export const initialFormData = {
     // Rappels photos (VERSION LITE)
     photos_rappels: {
       emplacement_taken: false,
+      emballage_taken: false,
       interphone_taken: false,
       tempo_gache_taken: false,
       digicode_taken: false,
@@ -268,7 +270,10 @@ export const initialFormData = {
     nombre_nuits_minimum: "",
     tarif_minimum_nuit: "",
     dates_bloquees: "",
-    precisions_exigences: ""
+    precisions_exigences: "",
+    // Animaux (déplacé depuis section_equipements pour aligner sur la version coordinateurs)
+    animaux_acceptes: "", // "oui" | "non"
+    animaux_commentaire: ""
   },
 
   section_gestion_linge: {
@@ -353,10 +358,13 @@ export const initialFormData = {
     tourne_disque: false,
     coffre_fort: false,
     ascenseur: false,
-    animaux_acceptes: false,
+    // `animaux_acceptes` a été déplacé vers section_exigences (alignement coordinateurs).
+    // Retiré des défauts pour que les nouvelles fiches ne portent plus la clé morte ; les
+    // fiches existantes conservent la leur, relue en repli par FicheExigences.
     fetes_autorisees: false,
     tv: false,
     chauffage: false,
+    ventilateur: false,
     fer_repasser: false,
     etendoir: false,
     piano: false,
@@ -394,6 +402,11 @@ export const initialFormData = {
     chauffage_type: "", // "Central", "Électrique", "Gaz", "Poêle", "Cheminée"
     chauffage_instructions: "", // Textarea
 
+    // Ventilateur (conditionnel si ventilateur = true)
+    ventilateur_types: [], // multi : "Ventilateur de plafond", "Ventilateur Mobile", "Rafraichisseur d'air"
+    ventilateur_nombre: "",
+    ventilateur_emplacement: "", // Textarea
+
     // Lave-linge (conditionnel si lave_linge = true)
     lave_linge_prix: "", // "Compris", "Supplément"
     lave_linge_emplacement: "",
@@ -410,9 +423,6 @@ export const initialFormData = {
 
     // PMR (conditionnel si accessible_mobilite_reduite = true)
     pmr_details: "", // Textarea
-
-    // Animaux (conditionnel si animaux_acceptes = true)
-    animaux_commentaire: "", // Textarea
 
     // WiFi - NOUVEAUX identifiants (conditionnel si wifi_statut = "oui")
     wifi_nom_reseau: "", // SSID
@@ -433,6 +443,7 @@ export const initialFormData = {
       tv_consoles_video_taken: false,
       climatisation_video_taken: false,
       chauffage_video_taken: false,
+      ventilateur_taken: false,
       lave_linge_video_taken: false,
       seche_linge_video_taken: false,
       parking_photos_taken: false,
@@ -874,6 +885,7 @@ export const initialFormData = {
     equipements_cafetiere: null,
     equipements_bouilloire: null,
     equipements_grille_pain: null,
+    equipements_hotte: null,
     equipements_blender: null,
     equipements_cuiseur_riz: null,
     equipements_machine_pain: null,
@@ -935,6 +947,7 @@ export const initialFormData = {
 
     // Grille-pain (conditionnel)
     grille_pain_instructions: "",
+    hotte_instructions: "",
 
     // Blender (conditionnel)
     blender_instructions: "",
@@ -961,6 +974,7 @@ export const initialFormData = {
       cafetiere_taken: false,
       bouilloire_taken: false,
       grille_pain_taken: false,
+      hotte_taken: false,
       blender_taken: false,
       cuiseur_riz_taken: false,
       machine_pain_taken: false,
@@ -1069,6 +1083,13 @@ export const initialFormData = {
     // Cheminée (conditionnel)
     cheminee_type: "", // "Électrique", "Éthanol", "Gaz", "Poêle à granulés", "Bois", "Décorative"
 
+    // Canapé-lit (conditionnel si equipements_canape_lit = true)
+    canape_lit_simple: false,
+    canape_lit_double: false,
+    canape_lit_autre_type: false,
+    canape_lit_equipements: false,
+    canape_lit_autre_type_details: "",
+
     // Autres détails
     autres_equipements_details: "",
     nombre_places_table: "",
@@ -1093,6 +1114,10 @@ export const initialFormData = {
     dispose_piscine: null,
     dispose_jacuzzi: null,
     dispose_cuisine_exterieure: null,
+    dispose_local_velo: null,
+
+    // BRANCHE LOCAL À VÉLO (conditionnel si dispose_local_velo = true)
+    local_velo_type_acces: "", // "libre" | "avec_cle"
 
     // BRANCHE EXTÉRIEUR (conditionnel si dispose_exterieur = true)
     exterieur_type_espace: [], // array: "Balcon", "Terrasse", "Jardin", "Patio", "Aucun"

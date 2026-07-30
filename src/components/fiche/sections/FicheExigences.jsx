@@ -14,6 +14,22 @@ export default function FicheExigences() {
     updateField(field, value)
   }
 
+  // « Animaux acceptés » vivait auparavant dans section_equipements, sous forme de case à
+  // cocher (booléen). La question a été déplacée ici pour s'aligner sur la version
+  // coordinateurs, où c'est un choix OUI/NON.
+  //
+  // Reprise des réponses déjà saisies, SANS écriture en base : tant que la nouvelle clé
+  // est vide, on lit l'ancienne. Seul l'ancien `true` est repris (→ « OUI ») : l'ancien
+  // `false` est la valeur par défaut de la case à cocher, indiscernable d'une question
+  // jamais répondue — le reprendre en « NON » inventerait une réponse sur les fiches qui
+  // n'ont jamais traité le sujet. Dès que l'utilisateur répond ici, la nouvelle clé gagne.
+  const animauxLegacy = getField('section_equipements.animaux_acceptes') === true ? 'oui' : ''
+  const animauxAcceptes = getField('section_exigences.animaux_acceptes') || animauxLegacy
+  const animauxCommentaire =
+    getField('section_exigences.animaux_commentaire') ||
+    getField('section_equipements.animaux_commentaire') ||
+    ''
+
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
@@ -107,6 +123,39 @@ export default function FicheExigences() {
                     value={getField('section_exigences.precisions_exigences') || ''}
                     onChange={(e) => handleInputChange('section_exigences.precisions_exigences', e.target.value)}
                   />
+                </div>
+
+                {/* Animaux acceptés */}
+                <div>
+                  <label className="block font-medium text-gray-900 mb-3">Animaux acceptés</label>
+                  <div className="flex gap-6 mb-4">
+                    {[{ v: 'oui', l: 'OUI' }, { v: 'non', l: 'NON' }].map(({ v, l }) => (
+                      <label key={v} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="animaux_acceptes"
+                          checked={animauxAcceptes === v}
+                          onChange={() => handleInputChange('section_exigences.animaux_acceptes', v)}
+                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] focus:ring-2"
+                        />
+                        <span className="text-gray-700">{l}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Commentaire conditionnel */}
+                  {animauxAcceptes && (
+                    <div>
+                      <label className="block font-medium text-gray-900 mb-2">Commentaire (facultatif)</label>
+                      <textarea
+                        placeholder="Précisez les conditions d'acceptation des animaux, restrictions éventuelles..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                        rows="4"
+                        value={animauxCommentaire}
+                        onChange={(e) => handleInputChange('section_exigences.animaux_commentaire', e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
