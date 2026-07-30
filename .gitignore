@@ -22,7 +22,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Secrets et variables d'environnement.
+# ATTENTION : `.env` seul ne couvrait pas `.env.local`, `.env.production` etc.
+# Le glob attrape toutes les variantes ; seul `.env.example` (sans valeurs) est suivi.
 .env
+.env.*
+!.env.example
+
+# Outillage de capture authentifiée pour les agents (scripts/dev-auth, scripts/dev-shot).
+# `.agent-auth/` et `.auth/` : sessions navigateur en cache = tokens. La session est
+# normalement écrite hors du repo (~/.agent-auth/), ces lignes sont un filet de sécurité
+# au cas où un chemin local serait utilisé.
+.agent-auth/
+.auth/
+# `.shots/` : captures d'écran, volumineuses et sans valeur historique.
+.shots/
 
 .vercel
 .claude/
