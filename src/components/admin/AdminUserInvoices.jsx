@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { FileText, AlertCircle, ExternalLink } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
-import { formatEuros, formatDateFacture } from '../../lib/invoiceFormat'
+import { formatEuros, formatDateFacture, isSafeInvoiceUrl } from '../../lib/invoiceFormat'
 
 // Bloc Factures de la fiche concierge (/admin/users/:id) — TRONC COMMUN, volontairement
 // hors du bloc crédits : une facture n'appartient à aucun des deux mondes, et le jour où
@@ -13,9 +13,9 @@ import { formatEuros, formatDateFacture } from '../../lib/invoiceFormat'
 // d'écriture cliente n'existe).
 
 // Le lien vient du payload de Kevin via la base : on ne rend un <a> que pour du
-// http(s), jamais un autre schéma.
+// http(s), jamais un autre schéma (règle partagée, cf. isSafeInvoiceUrl).
 export function DriveLink({ href }) {
-  if (typeof href !== 'string' || !/^https?:\/\//i.test(href)) {
+  if (!isSafeInvoiceUrl(href)) {
     return <span className="text-gray-400">—</span>
   }
   return (

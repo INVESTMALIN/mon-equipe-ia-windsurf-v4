@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Coins, Loader2, AlertCircle, RefreshCw, CreditCard, FileText,
-  CheckCircle, Clock, Info, ArrowUpRight, ArrowDownRight,
+  CheckCircle, Clock, Info, ArrowUpRight, ArrowDownRight, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useCreditBalance } from '../hooks/useCreditBalance'
+import { isSafeInvoiceUrl } from '../lib/invoiceFormat'
 
 // Packs de crédits — l'`id` est le lookup_key Stripe. Le front n'envoie QUE cet id au
 // serveur : ni montant, ni price_id, ni nombre de crédits, ni user_id (le serveur résout
@@ -47,6 +48,11 @@ export default function MesCredits() {
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(true)
 
+  // Factures archivées du user, indexées par payment_intent_id — la clé de rattachement
+  // entre une facture et un achat. Map (et non objet littéral) : les clés viennent d'une
+  // colonne texte, un objet exposerait `constructor`/`__proto__` à la lecture.
+  const [invoicesByPi, setInvoicesByPi] = useState(() => new Map())
+
   // Achat en cours (id du pack) : bloque tous les boutons + anti double-clic.
   const [purchasingPack, setPurchasingPack] = useState(null)
   const [purchaseError, setPurchaseError] = useState(null) // 'refus' | 'incident'
@@ -59,18 +65,43 @@ export default function MesCredits() {
 
   const fetchHistory = useCallback(async () => {
     setHistoryLoading(true)
-    // Scope EXPLICITE au user courant : ne PAS dépendre de la seule RLS. La policy
-    // admin (credit_ledger_select_admin) laisse un admin lire TOUTES les lignes ; sans
-    // ce filtre, un compte admin verrait ici l'historique de tous les utilisateurs.
+    // Scope EXPLICITE au user courant : ne PAS dépendre de la seule RLS. Les policies
+    // admin (credit_ledger_select_admin, invoices_select_admin) laissent un admin lire
+    // TOUTES les lignes ; sans ce filtre, un compte admin verrait ici l'historique et
+    // les factures de tous les utilisateurs.
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setHistory([]); setHistoryLoading(false); return }
-    const { data, error: histError } = await supabase
-      .from('credit_ledger')
-      .select('id, amount, type, description, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20) // on ne charge jamais tout le ledger
-    if (!histError) setHistory(data || [])
+    if (!user) { setHistory([]); setInvoicesByPi(new Map()); setHistoryLoading(false); return }
+
+    // Deux lectures indépendantes, en parallèle. Les factures ne conditionnent pas
+    // l'historique : si leur lecture échoue, les mouvements s'affichent quand même,
+    // simplement sans lien — jamais de page vide à cause d'une facture.
+    const [ledgerRes, invoicesRes] = await Promise.all([
+      supabase
+        .from('credit_ledger')
+        .select('id, amount, type, description, created_at, metadata')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20), // on ne charge jamais tout le ledger
+      supabase
+        .from('invoices')
+        .select('payment_intent_id, lien_drive, received_at')
+        .eq('user_id', user.id)
+        .order('received_at', { ascending: true }),
+    ])
+
+    if (!ledgerRes.error) setHistory(ledgerRes.data || [])
+
+    const index = new Map()
+    if (!invoicesRes.error) {
+      for (const inv of invoicesRes.data || []) {
+        // Tri ascendant + écrasement : si une facture est ré-émise pour un même
+        // paiement (l'unicité en base porte sur event_id_stripe, pas sur le
+        // payment_intent), c'est la plus récente qui gagne.
+        if (inv.payment_intent_id) index.set(inv.payment_intent_id, inv.lien_drive)
+      }
+    }
+    setInvoicesByPi(index)
+
     setHistoryLoading(false)
   }, [])
 
@@ -406,6 +437,12 @@ export default function MesCredits() {
               <ul>
                 {history.map((mvt, index) => {
                   const positif = mvt.amount > 0
+                  // Lien facture : uniquement si la facture de CET achat est déjà
+                  // arrivée. Tant qu'elle n'est pas là, on n'affiche RIEN — pas de
+                  // mention « indisponible » : le délai d'acheminement peut dépasser
+                  // 24 h et se résout seul, inutile de déclencher un ticket support.
+                  const paymentIntent = mvt.metadata?.stripe_payment_intent
+                  const lienFacture = paymentIntent ? invoicesByPi.get(paymentIntent) : null
                   return (
                     <li
                       key={mvt.id}
@@ -434,6 +471,17 @@ export default function MesCredits() {
                         <span className={`font-semibold whitespace-nowrap ${positif ? 'text-green-700' : 'text-red-700'}`}>
                           {positif ? '+' : ''}{mvt.amount} crédit{Math.abs(mvt.amount) > 1 ? 's' : ''}
                         </span>
+                        {isSafeInvoiceUrl(lienFacture) && (
+                          <a
+                            href={lienFacture}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-[#dbae61] hover:underline whitespace-nowrap"
+                          >
+                            Facture
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
                       </div>
                     </li>
                   )
