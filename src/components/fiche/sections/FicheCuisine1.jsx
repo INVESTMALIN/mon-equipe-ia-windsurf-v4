@@ -42,6 +42,7 @@ export default function FicheCuisine1() {
     { key: 'equipements_cafetiere', label: 'Cafetière' },
     { key: 'equipements_bouilloire', label: 'Bouilloire électrique' },
     { key: 'equipements_grille_pain', label: 'Grille-pain' },
+    { key: 'equipements_hotte', label: 'Hotte' },
     { key: 'equipements_blender', label: 'Blender' },
     { key: 'equipements_cuiseur_riz', label: 'Cuiseur à riz' },
     { key: 'equipements_machine_pain', label: 'Machine à pain' },
@@ -447,6 +448,7 @@ export default function FicheCuisine1() {
                   { key: 'lave_vaisselle', label: 'Lave-vaisselle', hasDetails: false },
                   { key: 'bouilloire', label: 'Bouilloire électrique', hasDetails: false },
                   { key: 'grille_pain', label: 'Grille-pain', hasDetails: false },
+                  { key: 'hotte', label: 'Hotte', hasDetails: false },
                   { key: 'blender', label: 'Blender', hasDetails: false },
                   { key: 'cuiseur_riz', label: 'Cuiseur à riz', hasDetails: false },
                   { key: 'machine_pain', label: 'Machine à pain', hasDetails: false }

@@ -400,6 +400,7 @@ function mapModele(f: FicheLiteRow): ModeleZone {
   const ext = section(f, 'section_equip_spe_exterieur')
   const teletravail = section(f, 'section_teletravail')
   const equipements = section(f, 'section_equipements')
+  const exigences = section(f, 'section_exigences')
   const proprietaire = section(f, 'section_proprietaire')
   const securite = section(f, 'section_securite')
   const typePropriete = txt(logement, 'type_propriete')
@@ -453,8 +454,13 @@ function mapModele(f: FicheLiteRow): ModeleZone {
       bebe: mapBebe(f),
     },
     regles_internes: {
-      animaux_acceptes: boolish(equipements, 'animaux_acceptes'),
-      animaux_commentaire: txt(equipements, 'animaux_commentaire'),
+      // « Animaux acceptés » a été déplacé de section_equipements vers section_exigences
+      // (mise à parité avec la version coordinateurs). On lit la nouvelle emplacement en
+      // priorité, avec repli sur l'ancienne pour les fiches jamais rouvertes depuis.
+      // `boolish` accepte déjà les chaînes "oui"/"non" comme les booléens natifs, donc
+      // les deux formes de stockage sont couvertes sans changement de comportement.
+      animaux_acceptes: boolish(exigences, 'animaux_acceptes') ?? boolish(equipements, 'animaux_acceptes'),
+      animaux_commentaire: txt(exigences, 'animaux_commentaire') || txt(equipements, 'animaux_commentaire'),
       // Résultats calculés (mêmes valeurs qu'en zone code) : le modèle les habille.
       fetes_autorisees: fetesAutorisees(equipements),
       fumeurs_acceptes: fumeursAcceptes(equipements),

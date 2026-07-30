@@ -27,6 +27,17 @@ export default function FicheSalonSam() {
     if (field === 'section_salon_sam.equipements_cheminee' && !checked) {
       updateField('section_salon_sam.cheminee_type', '')
     }
+
+    // Idem canapé-lit : sans ce nettoyage, les sous-options resteraient stockées alors que
+    // le bloc est masqué, et le PDF (générique) annoncerait des détails de canapé-lit sur
+    // une fiche qui déclare ne pas en avoir.
+    if (field === 'section_salon_sam.equipements_canape_lit' && !checked) {
+      updateField('section_salon_sam.canape_lit_simple', false)
+      updateField('section_salon_sam.canape_lit_double', false)
+      updateField('section_salon_sam.canape_lit_autre_type', false)
+      updateField('section_salon_sam.canape_lit_equipements', false)
+      updateField('section_salon_sam.canape_lit_autre_type_details', '')
+    }
   }
 
 
@@ -158,6 +169,58 @@ export default function FicheSalonSam() {
                         </label>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* 3bis. Canapé-lit - Sous-options (conditionnel) */}
+                {formData.equipements_canape_lit === true && (
+                  <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
+                    <label className="block font-medium text-gray-900">
+                      Précisions sur le canapé-lit
+                    </label>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { key: 'canape_lit_simple', label: 'Canapé-lit simple' },
+                        { key: 'canape_lit_double', label: 'Canapé-lit double' },
+                        { key: 'canape_lit_autre_type', label: 'Autre type de lit' },
+                        { key: 'canape_lit_equipements', label: 'Équipements du lit' },
+                      ].map((opt) => (
+                        <label key={opt.key} className="flex items-center gap-3 cursor-pointer hover:bg-white/60 p-2 rounded">
+                          <input
+                            type="checkbox"
+                            checked={formData[opt.key] === true}
+                            onChange={(e) => {
+                              handleInputChange(`section_salon_sam.${opt.key}`, e.target.checked)
+                              // Décocher « Autre type de lit » vide sa précision : sinon
+                              // elle resterait stockée, champ masqué, et le PDF annoncerait
+                              // un type de couchage personnalisé devenu obsolète.
+                              if (opt.key === 'canape_lit_autre_type' && !e.target.checked) {
+                                handleInputChange('section_salon_sam.canape_lit_autre_type_details', '')
+                              }
+                            }}
+                            className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          />
+                          <span className="text-sm font-medium">{opt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    {/* Champ conditionnel "Autre type de lit" */}
+                    {formData.canape_lit_autre_type === true && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-1">
+                          Préciser le type de lit
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="ex. clic-clac, futon, BZ, banquette gigogne…"
+                          value={formData.canape_lit_autre_type_details || ""}
+                          onChange={(e) => handleInputChange('section_salon_sam.canape_lit_autre_type_details', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
