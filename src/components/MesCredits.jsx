@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Coins, Loader2, AlertCircle, RefreshCw, CreditCard, FileText,
@@ -63,13 +63,23 @@ export default function MesCredits() {
   const [confirmOutcome, setConfirmOutcome] = useState(null) // 'credited' | 'pending'
   const [creditedAmount, setCreditedAmount] = useState(null)
 
+  // `fetchHistory` a trois appelants (montage, retour de paiement confirmé, bouton
+  // « Actualiser le solde ») : deux appels peuvent être en vol en même temps. Sans
+  // garde, une réponse LENTE partie en premier écraserait une réponse plus récente —
+  // et ferait disparaître la ligne d'achat et son lien facture jusqu'au prochain
+  // rechargement. Numéro de séquence : seule la réponse du dernier appel parti écrit
+  // l'état (même idiome que AdminUserInvoices).
+  const historySeq = useRef(0)
+
   const fetchHistory = useCallback(async () => {
+    const seq = ++historySeq.current
     setHistoryLoading(true)
     // Scope EXPLICITE au user courant : ne PAS dépendre de la seule RLS. Les policies
     // admin (credit_ledger_select_admin, invoices_select_admin) laissent un admin lire
     // TOUTES les lignes ; sans ce filtre, un compte admin verrait ici l'historique et
     // les factures de tous les utilisateurs.
     const { data: { user } } = await supabase.auth.getUser()
+    if (seq !== historySeq.current) return // un appel plus récent est parti depuis
     if (!user) { setHistory([]); setInvoicesByPi(new Map()); setHistoryLoading(false); return }
 
     // Deux lectures indépendantes, en parallèle. Les factures ne conditionnent pas
@@ -88,6 +98,11 @@ export default function MesCredits() {
         .eq('user_id', user.id)
         .order('received_at', { ascending: true }),
     ])
+
+    // Réponse périmée : on n'écrit RIEN (ni historique, ni factures, ni `loading` —
+    // l'appel encore en vol s'en chargera). Les deux états sont issus du même couple de
+    // requêtes, ils doivent être écrits ensemble ou pas du tout.
+    if (seq !== historySeq.current) return
 
     if (!ledgerRes.error) setHistory(ledgerRes.data || [])
 
