@@ -190,7 +190,15 @@ export default function FicheSalonSam() {
                           <input
                             type="checkbox"
                             checked={formData[opt.key] === true}
-                            onChange={(e) => handleInputChange(`section_salon_sam.${opt.key}`, e.target.checked)}
+                            onChange={(e) => {
+                              handleInputChange(`section_salon_sam.${opt.key}`, e.target.checked)
+                              // Décocher « Autre type de lit » vide sa précision : sinon
+                              // elle resterait stockée, champ masqué, et le PDF annoncerait
+                              // un type de couchage personnalisé devenu obsolète.
+                              if (opt.key === 'canape_lit_autre_type' && !e.target.checked) {
+                                handleInputChange('section_salon_sam.canape_lit_autre_type_details', '')
+                              }
+                            }}
                             className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
                           />
                           <span className="text-sm font-medium">{opt.label}</span>
