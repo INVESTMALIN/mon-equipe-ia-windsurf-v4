@@ -23,6 +23,27 @@ export default function FicheExigences() {
   // `false` est la valeur par défaut de la case à cocher, indiscernable d'une question
   // jamais répondue — le reprendre en « NON » inventerait une réponse sur les fiches qui
   // n'ont jamais traité le sujet. Dès que l'utilisateur répond ici, la nouvelle clé gagne.
+  // Dès que l'utilisateur répond ICI, on purge l'ancienne clé : sinon une fiche héritée
+  // d'un ancien `true` répondue « NON » garderait les deux valeurs, et le PDF (générique,
+  // il parcourt les deux sections) annoncerait à la fois animaux acceptés et refusés.
+  // Écriture déclenchée par l'utilisateur sur SA fiche, dans son propre enregistrement —
+  // pas de reprise de masse sur la base.
+  const handleAnimauxChange = (value) => {
+    handleInputChange('section_exigences.animaux_acceptes', value)
+    if (getField('section_equipements.animaux_acceptes') !== undefined) {
+      updateField('section_equipements.animaux_acceptes', null)
+    }
+    const legacyCommentaire = getField('section_equipements.animaux_commentaire')
+    if (legacyCommentaire) {
+      // Le commentaire hérité est recopié une fois vers la nouvelle clé avant purge,
+      // pour qu'il ne disparaisse pas de l'écran au moment où l'ancienne est vidée.
+      if (!getField('section_exigences.animaux_commentaire')) {
+        handleInputChange('section_exigences.animaux_commentaire', legacyCommentaire)
+      }
+      updateField('section_equipements.animaux_commentaire', '')
+    }
+  }
+
   const animauxLegacy = getField('section_equipements.animaux_acceptes') === true ? 'oui' : ''
   const animauxAcceptes = getField('section_exigences.animaux_acceptes') || animauxLegacy
   const animauxCommentaire =
@@ -135,7 +156,7 @@ export default function FicheExigences() {
                           type="radio"
                           name="animaux_acceptes"
                           checked={animauxAcceptes === v}
-                          onChange={() => handleInputChange('section_exigences.animaux_acceptes', v)}
+                          onChange={() => handleAnimauxChange(v)}
                           className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] focus:ring-2"
                         />
                         <span className="text-gray-700">{l}</span>

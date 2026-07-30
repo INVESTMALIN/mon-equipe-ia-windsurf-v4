@@ -49,7 +49,10 @@ const BRANCH_SCHEMAS = {
   salle_jeux: [
     'salle_jeux_equipements',
     'salle_jeux_billard_instructions', 'salle_jeux_baby_foot_instructions',
-    'salle_jeux_ping_pong_instructions'
+    'salle_jeux_ping_pong_instructions',
+    // Ancienne clé unique, remplacée par les trois ci-dessus. Conservée dans le nettoyage
+    // pour qu'une valeur héritée ne survive pas au décochage de la branche.
+    'salle_jeux_instructions'
   ],
   local_velo: [
     'local_velo_type_acces'

@@ -27,6 +27,17 @@ export default function FicheSalonSam() {
     if (field === 'section_salon_sam.equipements_cheminee' && !checked) {
       updateField('section_salon_sam.cheminee_type', '')
     }
+
+    // Idem canapé-lit : sans ce nettoyage, les sous-options resteraient stockées alors que
+    // le bloc est masqué, et le PDF (générique) annoncerait des détails de canapé-lit sur
+    // une fiche qui déclare ne pas en avoir.
+    if (field === 'section_salon_sam.equipements_canape_lit' && !checked) {
+      updateField('section_salon_sam.canape_lit_simple', false)
+      updateField('section_salon_sam.canape_lit_double', false)
+      updateField('section_salon_sam.canape_lit_autre_type', false)
+      updateField('section_salon_sam.canape_lit_equipements', false)
+      updateField('section_salon_sam.canape_lit_autre_type_details', '')
+    }
   }
 
 
