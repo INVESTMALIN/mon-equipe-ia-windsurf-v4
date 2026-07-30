@@ -1,4 +1,11 @@
-// Formatage partagé des factures (bloc fiche concierge + page globale admin).
+// Formatage partagé des factures (bloc fiche concierge + page globale admin + /mes-credits).
+
+// Le lien vient du payload de Kevin, via la base : on ne rend un lien QUE pour du
+// http(s), jamais un autre schéma (`javascript:`, `data:`…). Règle unique, partagée par
+// l'admin et l'espace concierge — une seule place à corriger.
+export function isSafeInvoiceUrl(href) {
+  return typeof href === 'string' && /^https?:\/\//i.test(href)
+}
 
 // `montant` est stocké en ENTIER DE CENTIMES (cf. table invoices) : affichage en euros.
 export function formatEuros(cents) {
