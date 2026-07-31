@@ -82,7 +82,10 @@ export const formatForPdf = (formData) => {
       section_salon_sam: enrichSection(cleanedData.section_salon_sam, 'salon'),
       
       // Section 18 - Équipements Extérieur
-      section_equip_exterieur: enrichSection(cleanedData.section_equip_exterieur, 'exterieur'),
+      // La clé du formulaire est section_equip_spe_exterieur (cf. formDefaults,
+      // supabaseHelpers, DataProcessor). Lire section_equip_exterieur renvoyait
+      // toujours undefined : la section sortait « vide » et disparaissait du PDF.
+      section_equip_spe_exterieur: enrichSection(cleanedData.section_equip_spe_exterieur, 'exterieur'),
       
       // Section 19 - Communs
       section_communs: enrichSection(cleanedData.section_communs, 'communs'),
