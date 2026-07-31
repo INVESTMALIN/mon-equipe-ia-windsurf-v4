@@ -43,6 +43,23 @@ const BRANCH_SCHEMAS = {
   ]
 }
 
+// Rappels photo à décocher avec la branche (même découpage que BRANCH_SCHEMAS,
+// convention de FicheEquipExterieur). En Lite les médias ne sont pas stockés :
+// chaque upload du formulaire coordinateurs devient une case « photo prise »
+// rangée dans photos_rappels. Sans ce nettoyage, la case restait cochée après
+// décochage de l'équipement et ressortait dans le PDF.
+const PHOTOS_SCHEMAS = {
+  tv: ['tv_video_taken', 'tv_consoles_video_taken'],
+  climatisation: ['climatisation_video_taken'],
+  chauffage: ['chauffage_video_taken'],
+  ventilateur: ['ventilateur_taken'],
+  lave_linge: ['lave_linge_video_taken'],
+  seche_linge: ['seche_linge_video_taken'],
+  parking_equipement: [],
+  piano: [],
+  accessible_mobilite_reduite: []
+}
+
 export default function FicheEquipements() {
   const {
     getField,
@@ -72,6 +89,14 @@ export default function FicheEquipements() {
           newData[key] = null
         }
       })
+
+      // Nettoyer les rappels photo associés
+      if (newData.photos_rappels) {
+        newData.photos_rappels = { ...newData.photos_rappels }
+        PHOTOS_SCHEMAS[fieldKey].forEach(photoKey => {
+          newData.photos_rappels[photoKey] = false
+        })
+      }
 
       // Remettre explicitement le flag racine à false
       newData[fieldKey] = false
