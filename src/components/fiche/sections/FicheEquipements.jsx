@@ -109,7 +109,9 @@ export default function FicheEquipements() {
     }
   }
 
-  // Handler spécialisé pour le statut WiFi avec nettoyage
+  // Handler spécialisé pour le statut WiFi avec nettoyage.
+  // Le WiFi est un radio à 3 états, pas une checkbox : il ne peut pas passer par
+  // BRANCH_SCHEMAS (qui se déclenche sur `value === false`), d'où ce handler dédié.
   const handleWifiStatutChange = (field, value) => {
     updateField(field, value)
 
@@ -117,6 +119,9 @@ export default function FicheEquipements() {
     if (value !== 'oui') {
       updateField('section_equipements.wifi_nom_reseau', '')
       updateField('section_equipements.wifi_mot_de_passe', '')
+      // Le rappel photo du routeur n'est proposé que sous "oui" : sans ça il reste
+      // coché et ressort dans le PDF sur un logement sans WiFi déclaré.
+      updateField('section_equipements.photos_rappels.wifi_routeur_photo_taken', false)
     }
 
     // Nettoyer les détails si on quitte "en_cours"
@@ -978,7 +983,7 @@ export default function FicheEquipements() {
                             name="wifi_statut"
                             value="oui"
                             checked={formData.wifi_statut === 'oui'}
-                            onChange={(e) => handleInputChange('section_equipements.wifi_statut', e.target.value)}
+                            onChange={(e) => handleWifiStatutChange('section_equipements.wifi_statut', e.target.value)}
                             className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
                           />
                           <span>Oui (WiFi disponible et fonctionnel)</span>
@@ -990,7 +995,7 @@ export default function FicheEquipements() {
                             name="wifi_statut"
                             value="en_cours"
                             checked={formData.wifi_statut === 'en_cours'}
-                            onChange={(e) => handleInputChange('section_equipements.wifi_statut', e.target.value)}
+                            onChange={(e) => handleWifiStatutChange('section_equipements.wifi_statut', e.target.value)}
                             className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
                           />
                           <span>En cours d'installation</span>
@@ -1002,7 +1007,7 @@ export default function FicheEquipements() {
                             name="wifi_statut"
                             value="non"
                             checked={formData.wifi_statut === 'non'}
-                            onChange={(e) => handleInputChange('section_equipements.wifi_statut', e.target.value)}
+                            onChange={(e) => handleWifiStatutChange('section_equipements.wifi_statut', e.target.value)}
                             className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61]"
                           />
                           <span className="text-red-600 font-medium">Non (pas de WiFi disponible) ❌</span>
