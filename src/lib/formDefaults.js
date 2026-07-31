@@ -428,6 +428,11 @@ export const initialFormData = {
     wifi_nom_reseau: "", // SSID
     wifi_mot_de_passe: "", // Password
 
+    // Équipement ménage
+    menage_aspirateur_type: "", // radio
+    menage_serpillere_type: "", // radio
+    menage_autres_description: "",
+
     // === PHOTOS RAPPELS (VERSION LITE) ===
     photos_rappels: {
       // Existants
@@ -448,7 +453,14 @@ export const initialFormData = {
       seche_linge_video_taken: false,
       parking_photos_taken: false,
       parking_video_taken: false,
-      wifi_routeur_photo_taken: false
+      wifi_routeur_photo_taken: false,
+
+      // Équipement ménage
+      menage_aspirateur_video_taken: false,
+      menage_serpillere_video_taken: false,
+      menage_balais_video_taken: false,
+      menage_balayette_video_taken: false,
+      menage_autres_video_taken: false
     }
   },
 
@@ -1114,6 +1126,11 @@ export const initialFormData = {
     dispose_piscine: null,
     dispose_jacuzzi: null,
     dispose_cuisine_exterieure: null,
+    dispose_sauna: null,
+    dispose_hammam: null,
+    dispose_salle_cinema: null,
+    dispose_salle_sport: null,
+    dispose_salle_jeux: null,
     dispose_local_velo: null,
 
     // BRANCHE LOCAL À VÉLO (conditionnel si dispose_local_velo = true)
@@ -1175,6 +1192,34 @@ export const initialFormData = {
     cuisine_ext_type: "", // "Privée", "Publique ou partagée"
     cuisine_ext_caracteristiques: [], // array: "Four", "Évier"
 
+    // BRANCHE SAUNA (conditionnel si dispose_sauna = true)
+    sauna_acces: "", // "Intérieur", "Extérieur"
+    sauna_entretien_prestataire: null, // true/false/null
+    sauna_entretien_frequence: "", // conditionnel si entretien_prestataire = true
+    sauna_entretien_type_prestation: "", // conditionnel si entretien_prestataire = true
+    sauna_entretien_qui: "", // conditionnel si entretien_prestataire = false
+    sauna_instructions: "",
+
+    // BRANCHE HAMMAM (conditionnel si dispose_hammam = true)
+    hammam_acces: "", // "Intérieur", "Extérieur"
+    hammam_entretien_prestataire: null, // true/false/null
+    hammam_entretien_frequence: "", // conditionnel si entretien_prestataire = true
+    hammam_entretien_type_prestation: "", // conditionnel si entretien_prestataire = true
+    hammam_entretien_qui: "", // conditionnel si entretien_prestataire = false
+    hammam_instructions: "",
+
+    // BRANCHE SALLE DE CINÉMA (conditionnel si dispose_salle_cinema = true)
+    salle_cinema_instructions: "",
+
+    // BRANCHE SALLE DE SPORT (conditionnel si dispose_salle_sport = true)
+    salle_sport_instructions: "",
+
+    // BRANCHE SALLE DE JEUX (conditionnel si dispose_salle_jeux = true)
+    salle_jeux_equipements: [], // array: "Billard", "Baby Foot", "Ping Pong"
+    salle_jeux_billard_instructions: "", // conditionnel si "Billard" sélectionné
+    salle_jeux_baby_foot_instructions: "", // conditionnel si "Baby Foot" sélectionné
+    salle_jeux_ping_pong_instructions: "", // conditionnel si "Ping Pong" sélectionné
+
     // Éléments abîmés (3 espaces différents)
     garage_elements_abimes: null, // true/false/null
     buanderie_elements_abimes: null, // true/false/null
@@ -1186,6 +1231,11 @@ export const initialFormData = {
       barbecue_photos_taken: false,
       piscine_video_taken: false,
       jacuzzi_photos_taken: false,
+      sauna_photos_taken: false,
+      hammam_photos_taken: false,
+      salle_cinema_photos_taken: false,
+      salle_sport_photos_taken: false,
+      salle_jeux_photos_taken: false,
       garage_elements_abimes_taken: false,
       buanderie_elements_abimes_taken: false,
       autres_pieces_elements_abimes_taken: false
@@ -1207,7 +1257,15 @@ export const initialFormData = {
 
   section_teletravail: {
     equipements: [],
-    equipements_autre_details: ""
+    equipements_autre_details: "",
+    ethernet_disponible: null, // true/false/null
+    speedtest_resultat: "",
+
+    // Photos rappels (VERSION LITE)
+    photos_rappels: {
+      espace_travail_photo_taken: false,
+      speedtest_screenshot_taken: false
+    }
   },
 
   section_bebe: {

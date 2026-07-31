@@ -5,6 +5,96 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { ChefHat } from 'lucide-react'
 
+// Cartes de schéma - définir quels champs nettoyer par branche.
+// Même convention que FicheEquipements / FicheEquipExterieur (BUG #007) : décocher
+// un appareil doit vider ses champs conditionnels, sinon ils restent en base et le
+// PDF, qui est générique, décrit un appareil que le logement n'a pas.
+// Les clés sont listées explicitement : un préfixe attraperait mini_refrigerateur_*
+// depuis refrigerateur.
+const BRANCH_SCHEMAS = {
+  equipements_refrigerateur: [
+    'refrigerateur_marque', 'refrigerateur_instructions'
+  ],
+  equipements_congelateur: [
+    'congelateur_instructions'
+  ],
+  equipements_mini_refrigerateur: [
+    'mini_refrigerateur_instructions'
+  ],
+  equipements_cuisiniere: [
+    'cuisiniere_marque', 'cuisiniere_type', 'cuisiniere_nombre_feux',
+    'cuisiniere_instructions'
+  ],
+  equipements_plaque_cuisson: [
+    'plaque_cuisson_marque', 'plaque_cuisson_type', 'plaque_cuisson_nombre_feux',
+    'plaque_cuisson_instructions'
+  ],
+  equipements_four: [
+    'four_marque', 'four_type', 'four_instructions'
+  ],
+  equipements_micro_ondes: [
+    'micro_ondes_instructions'
+  ],
+  equipements_lave_vaisselle: [
+    'lave_vaisselle_instructions'
+  ],
+  equipements_cafetiere: [
+    'cafetiere_marque', 'cafetiere_instructions',
+    'cafetiere_cafe_fourni', 'cafetiere_marque_cafe',
+    'cafetiere_type_filtre', 'cafetiere_type_expresso', 'cafetiere_type_piston',
+    'cafetiere_type_keurig', 'cafetiere_type_nespresso', 'cafetiere_type_manuelle',
+    'cafetiere_type_bar_grain', 'cafetiere_type_bar_moulu'
+  ],
+  equipements_bouilloire: [
+    'bouilloire_instructions'
+  ],
+  equipements_grille_pain: [
+    'grille_pain_instructions'
+  ],
+  equipements_hotte: [
+    'hotte_instructions'
+  ],
+  equipements_blender: [
+    'blender_instructions'
+  ],
+  equipements_cuiseur_riz: [
+    'cuiseur_riz_instructions'
+  ],
+  equipements_machine_pain: [
+    'machine_pain_instructions'
+  ],
+  equipements_lave_linge: [
+    // Pas de sous-champs : le lave-linge est détaillé dans la section Équipements
+  ],
+  equipements_autre: [
+    'equipements_autre_details'
+  ]
+}
+
+// Rappels photo à décocher avec la branche (même découpage que BRANCH_SCHEMAS,
+// convention de FicheEquipExterieur). En Lite les médias ne sont pas stockés :
+// chaque upload du formulaire coordinateurs devient une case « photo prise »
+// rangée dans photos_rappels.
+const PHOTOS_SCHEMAS = {
+  equipements_refrigerateur: ['refrigerateur_taken'],
+  equipements_congelateur: ['congelateur_taken'],
+  equipements_mini_refrigerateur: ['mini_refrigerateur_taken'],
+  equipements_cuisiniere: ['cuisiniere_taken'],
+  equipements_plaque_cuisson: ['plaque_cuisson_taken'],
+  equipements_four: ['four_taken'],
+  equipements_micro_ondes: ['micro_ondes_taken'],
+  equipements_lave_vaisselle: ['lave_vaisselle_taken'],
+  equipements_cafetiere: ['cafetiere_taken'],
+  equipements_bouilloire: ['bouilloire_taken'],
+  equipements_grille_pain: ['grille_pain_taken'],
+  equipements_hotte: ['hotte_taken'],
+  equipements_blender: ['blender_taken'],
+  equipements_cuiseur_riz: ['cuiseur_riz_taken'],
+  equipements_machine_pain: ['machine_pain_taken'],
+  equipements_lave_linge: [],
+  equipements_autre: []
+}
+
 export default function FicheCuisine1() {
   const {
     getField,
@@ -21,6 +111,42 @@ export default function FicheCuisine1() {
 
   // Handler pour checkboxes (équipements principaux et types cafetière)
   const handleCheckboxChange = (field, checked) => {
+    const fieldKey = field.split('.').pop()
+
+    // Décochage d'un appareil à branche : on vide ses champs conditionnels dans la
+    // même mise à jour atomique. Ici le décochage vaut null (et non false comme
+    // côté coordinateurs), c'est la convention de cette page.
+    if (!checked && BRANCH_SCHEMAS[fieldKey]) {
+      const currentData = getField('section_cuisine_1') || {}
+      const newData = { ...currentData }
+
+      // Nettoyer tous les champs de la branche
+      BRANCH_SCHEMAS[fieldKey].forEach(key => {
+        if (Array.isArray(newData[key])) {
+          newData[key] = []
+        } else if (typeof newData[key] === 'object' && newData[key] !== null) {
+          newData[key] = {}
+        } else {
+          newData[key] = null
+        }
+      })
+
+      // Nettoyer les rappels photo associés
+      if (newData.photos_rappels) {
+        newData.photos_rappels = { ...newData.photos_rappels }
+        PHOTOS_SCHEMAS[fieldKey].forEach(photoKey => {
+          newData.photos_rappels[photoKey] = false
+        })
+      }
+
+      // Remettre explicitement le flag racine à sa valeur « décoché »
+      newData[fieldKey] = null
+
+      // Une seule mise à jour atomique
+      updateField('section_cuisine_1', newData)
+      return
+    }
+
     updateField(field, checked ? true : null)
   }
 
