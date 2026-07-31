@@ -19,9 +19,15 @@
 --     `wifi_statut = 'oui'`  → orphelins dès que le statut vaut autre chose.
 --   - `wifi_details` n'est saisissable que sous `wifi_statut = 'en_cours'`.
 -- Le nettoyage ne touche QUE les fiches dont le statut est explicitement
--- renseigné : une fiche sans statut n'a jamais répondu à la question, on ne
--- présume rien (relevé du 31/07 : 14 fiches sans statut, aucune ne porte de
+-- renseigné : une fiche sans réponse n'a jamais traité la question, on ne
+-- présume rien (relevé du 31/07 : 14 fiches dans ce cas, aucune ne porte de
 -- donnée WiFi — la condition est une précaution, pas un correctif).
+--
+-- ⚠️ Le statut non répondu vaut la chaîne VIDE, pas NULL : `wifi_statut: ""`
+-- est le défaut de formDefaults.js, sérialisé tel quel en JSONB. Un garde-fou
+-- `IS NOT NULL` ne filtrerait donc RIEN et effacerait les identifiants d'une
+-- fiche jamais renseignée. D'où l'énumération explicite des statuts répondus
+-- ci-dessous, qui exclut aussi toute valeur inattendue.
 --
 -- Relevé du 31/07/2026 sur les 52 fiches, à titre indicatif :
 --   - 1 fiche : statut « en_cours » avec SSID + mot de passe renseignés
@@ -32,17 +38,14 @@
 -- ── 1. CONTRÔLE AVANT ────────────────────────────────────────
 -- Attendu : 1 / 0 / 0
 SELECT
-  count(*) FILTER (WHERE section_equipements->>'wifi_statut' IS NOT NULL
-                     AND section_equipements->>'wifi_statut' <> 'oui'
+  count(*) FILTER (WHERE section_equipements->>'wifi_statut' IN ('en_cours','non')
                      AND coalesce(section_equipements->>'wifi_nom_reseau','')
                       || coalesce(section_equipements->>'wifi_mot_de_passe','') <> ''
                   ) AS orphelins_identifiants,
-  count(*) FILTER (WHERE section_equipements->>'wifi_statut' IS NOT NULL
-                     AND section_equipements->>'wifi_statut' <> 'en_cours'
+  count(*) FILTER (WHERE section_equipements->>'wifi_statut' IN ('oui','non')
                      AND coalesce(section_equipements->>'wifi_details','') <> ''
                   ) AS orphelins_details,
-  count(*) FILTER (WHERE section_equipements->>'wifi_statut' IS NOT NULL
-                     AND section_equipements->>'wifi_statut' <> 'oui'
+  count(*) FILTER (WHERE section_equipements->>'wifi_statut' IN ('en_cours','non')
                      AND (section_equipements->'photos_rappels'->>'wifi_routeur_photo_taken') = 'true'
                   ) AS orphelins_rappel_photo
 FROM fiche_lite;
@@ -54,8 +57,7 @@ SET section_equipements = section_equipements || jsonb_build_object(
       'wifi_nom_reseau', '',
       'wifi_mot_de_passe', ''
     )
-WHERE section_equipements->>'wifi_statut' IS NOT NULL
-  AND section_equipements->>'wifi_statut' <> 'oui'
+WHERE section_equipements->>'wifi_statut' IN ('en_cours','non')
   AND coalesce(section_equipements->>'wifi_nom_reseau','')
    || coalesce(section_equipements->>'wifi_mot_de_passe','') <> '';
 
@@ -63,8 +65,7 @@ WHERE section_equipements->>'wifi_statut' IS NOT NULL
 -- ── 3. Détails d'installation saisissables uniquement sous « En cours » ──
 UPDATE fiche_lite
 SET section_equipements = section_equipements || jsonb_build_object('wifi_details', '')
-WHERE section_equipements->>'wifi_statut' IS NOT NULL
-  AND section_equipements->>'wifi_statut' <> 'en_cours'
+WHERE section_equipements->>'wifi_statut' IN ('oui','non')
   AND coalesce(section_equipements->>'wifi_details','') <> '';
 
 
@@ -75,8 +76,7 @@ SET section_equipements = jsonb_set(
       '{photos_rappels,wifi_routeur_photo_taken}',
       'false'::jsonb
     )
-WHERE section_equipements->>'wifi_statut' IS NOT NULL
-  AND section_equipements->>'wifi_statut' <> 'oui'
+WHERE section_equipements->>'wifi_statut' IN ('en_cours','non')
   AND (section_equipements->'photos_rappels'->>'wifi_routeur_photo_taken') = 'true';
 
 
