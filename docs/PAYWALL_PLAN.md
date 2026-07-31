@@ -12,14 +12,14 @@ Système complet d'abonnement Stripe avec Customer Portal pour débloquer les 3 
 ### Configuration Sandbox Stripe
 - **Compte** : Sandbox personnel de Julien
 - **Mode** : Test uniquement - aucune transaction réelle
-- **Secret Key** : `sk_test_51RpjzBH8DRxW0tWai2z...`
+- **Secret Key** : `sk_test_VOTRE_CLE_TEST...`
 - **Publishable Key** : `pk_test_51RpjzBH8DRxW0tWa93d3l8hLLdN1X7VFAU...`
 - **Customer Portal** : Activé et configuré
 - **Produit créé** : "Plan Premium Mon Équipe IA - 4,90€/mois"
 
 ### Variables Vercel Configurées
 ```env
-STRIPE_SECRET_KEY=sk_test_51RpjzBH8DRxW0tWai2z... (côté serveur uniquement)
+STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_TEST... (côté serveur uniquement)
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51RpjzBH8DRxW0tWa93d3l8hLLdN1X7VFAU... (côté client)
 ```
 
@@ -329,7 +329,7 @@ const renderSubscriptionStatus = () => {
 ### **Variables d'Environnement Critiques**
 ```env
 # Vercel - Configuration actuelle Sandbox
-STRIPE_SECRET_KEY=sk_test_51RpjzBH8DRxW0tWai2z...     # SANS VITE_ !
+STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_TEST...     # SANS VITE_ !
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51RpjzBH8DRxW0tWa93d3l8hLLdN1X7VFAU...  # AVEC VITE_ !
 
 # Supabase

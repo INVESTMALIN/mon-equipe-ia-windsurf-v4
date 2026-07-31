@@ -18,12 +18,13 @@ export const LOGIN_PATH = '/connexion'
 // déclarée sans segment `:id`.
 export const FICHE_PATH = '/fiche'
 
-// Valeurs non secrètes, surchargeables par le .env. Le mot de passe, lui, n'a JAMAIS
-// de valeur par défaut : il vient exclusivement du .env.
+// ⚠️ CE DÉPÔT EST PUBLIC. Aucune valeur permettant d'identifier un compte ne doit
+// figurer ici : ni email, ni mot de passe. L'email du compte de test et son mot de
+// passe viennent EXCLUSIVEMENT du .env (non suivi par git), cf. .env.example.
 export const DEFAULTS = {
   baseUrl: 'http://localhost:5173',
-  email: 'jgaichet+lite1@gmail.com',
   // Fiche de démo dédiée aux agents (« AGENTS - NE PAS TOUCHER », statut Brouillon).
+  // Identifiant opaque, sans valeur hors session authentifiée (protégé par RLS).
   ficheId: 'd8f4a185-8fa0-4520-9edf-06a563224e7d',
 }
 

@@ -30,12 +30,13 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const baseUrl = (process.argv[2] || DEFAULTS.baseUrl).replace(/\/+$/, '')
 
 const env = readEnv(repoRoot)
-const email = env.DEV_AGENT_EMAIL || DEFAULTS.email
+const email = env.DEV_AGENT_EMAIL
 const password = env.DEV_AGENT_PASSWORD
 
-if (!password) {
-  console.error('ECHEC : DEV_AGENT_PASSWORD absent du .env.')
-  console.error('Ajoute la ligne DEV_AGENT_PASSWORD=... dans .env (sans préfixe VITE_).')
+// Dépôt public : ni l'email ni le mot de passe n'ont de valeur par défaut dans le code.
+if (!email || !password) {
+  console.error('ECHEC : DEV_AGENT_EMAIL ou DEV_AGENT_PASSWORD absent du .env.')
+  console.error('Renseigne les deux dans .env (sans préfixe VITE_), cf. .env.example.')
   process.exit(1)
 }
 

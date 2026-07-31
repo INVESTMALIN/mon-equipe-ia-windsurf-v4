@@ -42,7 +42,7 @@ VITE_NEGOCIATEUR_WEBHOOK_URL=your_n8n_negociateur_webhook
 
 # Stripe - SANDBOX PERSONNEL DE JULIEN ⚠️
 # Configuration de test uniquement, à remplacer en production
-STRIPE_SECRET_KEY=sk_test_51RpjzBH8DRxW0tWai2z...     # Secret key côté serveur
+STRIPE_SECRET_KEY=sk_test_VOTRE_CLE_TEST...     # Secret key côté serveur
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51RpjzBH8DRxW0tWa93d3l8hLLdN1X7VFAU...  # Public key côté client
 ```
 

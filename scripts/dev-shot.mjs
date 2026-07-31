@@ -58,7 +58,8 @@ if (!opts.check && positionnels[1]) opts.check = positionnels[1]
 const env = readEnv(repoRoot)
 const baseUrl = (opts.base || env.DEV_AGENT_BASE_URL || DEFAULTS.baseUrl).replace(/\/+$/, '')
 const ficheId = opts.fiche || env.DEV_AGENT_FICHE_ID || DEFAULTS.ficheId
-const email = env.DEV_AGENT_EMAIL || DEFAULTS.email
+// Dépôt public : aucune valeur par défaut pour l'email ni le mot de passe (cf. dev-agent-lib).
+const email = env.DEV_AGENT_EMAIL
 const password = env.DEV_AGENT_PASSWORD
 
 const cible = opts.dashboard
@@ -75,7 +76,9 @@ const errors = collectPageErrors(page)
 
 // Reconnexion silencieuse si la session en cache est absente/expirée.
 async function login() {
-  if (!password) throw new Error('session absente ou expirée et DEV_AGENT_PASSWORD absent du .env')
+  if (!email || !password) {
+    throw new Error('session absente ou expirée, et DEV_AGENT_EMAIL / DEV_AGENT_PASSWORD absents du .env')
+  }
   await page.goto(`${baseUrl}${LOGIN_PATH}`, { waitUntil: 'domcontentloaded', timeout: 30000 })
   await page.waitForSelector('form input[type="email"]', { timeout: 15000 })
   await page.fill('form input[type="email"]', email)
