@@ -564,6 +564,89 @@ const humanizeKey = (key) => {
   return mapping[key] || formatGenericKey(key)
 }
 
+// Accents des mots dérivés des clés du formulaire. Les clés sont écrites sans
+// accent en base (snake_case ASCII) : sans cette table, le PDF — un document
+// client — sort « frequence », « disponibilite », « periode ».
+// Partagée par formatGenericKey (libellés) et formatEnumValue (valeurs), qui
+// visaient déjà le même rendu mais dupliquaient chacune sa liste.
+// Remplacements par mot entier (\b…\b) → pas de faux positif dans un autre mot.
+// Volontairement absents : « sale » (souillé, correct sans accent) et « tache »
+// (une tache de linge, pas une tâche).
+const ACCENTS = {
+  abimes: 'abîmés',
+  acceptes: 'acceptés',
+  apres: 'après',
+  arret: 'arrêt',
+  batiment: 'bâtiment',
+  bloquees: 'bloquées',
+  cafe: 'café',
+  cafetiere: 'cafetière',
+  canape: 'canapé',
+  caracteristiques: 'caractéristiques',
+  cheminee: 'cheminée',
+  cinema: 'cinéma',
+  combinees: 'combinées',
+  cuilleres: 'cuillères',
+  cuisiniere: 'cuisinière',
+  dechets: 'déchets',
+  declaration: 'déclaration',
+  decoratifs: 'décoratifs',
+  decoration: 'décoration',
+  decouper: 'découper',
+  depenses: 'dépenses',
+  desarmement: 'désarmement',
+  details: 'détails',
+  differentes: 'différentes',
+  difficultes: 'difficultés',
+  disponibilite: 'disponibilité',
+  eclaboussures: 'éclaboussures',
+  econome: 'économe',
+  ecumoire: 'écumoire',
+  electrique: 'électrique',
+  elegant: 'élégant',
+  elements: 'éléments',
+  eponge: 'éponge',
+  etages: 'étages',
+  experience: 'expérience',
+  exterieure: 'extérieure',
+  flutes: 'flûtes',
+  frequence: 'fréquence',
+  gache: 'gâche',
+  glacon: 'glaçon',
+  huitre: 'huître',
+  independants: 'indépendants',
+  menage: 'ménage',
+  mobilite: 'mobilité',
+  numeriques: 'numériques',
+  patisserie: 'pâtisserie',
+  periode: 'période',
+  personnalisee: 'personnalisée',
+  pieces: 'pièces',
+  precision: 'précision',
+  precisions: 'précisions',
+  premiere: 'première',
+  prive: 'privé',
+  proprietaire: 'propriétaire',
+  quantite: 'quantité',
+  rape: 'râpe',
+  recommandes: 'recommandés',
+  reduite: 'réduite',
+  regles: 'règles',
+  renove: 'rénové',
+  repere: 'repère',
+  reseau: 'réseau',
+  residence: 'résidence',
+  resultat: 'résultat',
+  separe: 'séparé',
+  serpillere: 'serpillère',
+  societe: 'société',
+  superposes: 'superposés',
+  systeme: 'système',
+  theiere: 'théière',
+  velo: 'vélo',
+  video: 'vidéo',
+}
+
 /**
  * Formate une clé générique en transformant snake_case en libellé lisible
  */
@@ -578,7 +661,10 @@ const formatGenericKey = (key) => {
 
   // corrections ciblées (accents, termes connus). Remplacements par mot entier
   // (\b…\b, ASCII) → pas de faux positif à l'intérieur d'un autre mot.
+  // ACCENTS d'abord : les entrées ci-dessous (expressions, casse des marques)
+  // restent prioritaires.
   const replacements = {
+    ...ACCENTS,
     'a four': 'à four',
     poeles: 'poêles',
     testees: 'testées',
@@ -667,8 +753,9 @@ const formatEnumValue = (value) => {
   let cleaned = value.replace(/_/g, ' ').toLowerCase().trim()
 
   // corrections pour accents et termes fréquents (valeurs enum). Mêmes corrections
-  // d'accents que les labels, pour un rendu homogène côté valeurs.
+  // d'accents que les labels (ACCENTS), pour un rendu homogène côté valeurs.
   const replacements = {
+    ...ACCENTS,
     defavorise: 'défavorisé',
     tres: 'très',
     epure: 'épuré',

@@ -109,6 +109,19 @@ fiche_lite (id, user_id, nom, statut, section_* JSONB x24, photos_prises)
 - Composants : `FicheLogement.jsx`, `FicheAvis.jsx` (PascalCase)
 - Routes : `/fiche`, `/dashboard` (kebab-case)
 
+### Deux dossiers SQL, à ne pas mélanger
+
+| Dossier | Contenu | Format | Exécution |
+|---|---|---|---|
+| `supabase/migrations/` | migrations de **schéma** (tables, colonnes, RLS, policies) | horodaté CLI `AAAAMMJJHHMMSS_nom.sql` | fait foi pour l'état du schéma, rejouable |
+| `docs/migrations/` | scripts de **données** ponctuels (correction d'un lot de lignes) | daté `AAAA-MM-JJ_nom.sql` | **à la main par Julien**, une fois, jamais rejoué |
+
+Un `UPDATE` de correction de données ne va **jamais** dans `supabase/migrations/` : il
+n'a pas à être rejoué sur une base neuve, et son moment d'exécution est choisi par
+Julien — typiquement **après** le déploiement du correctif de code qui empêche le
+défaut de se reproduire. Inversement, un `ALTER TABLE` ne va jamais dans
+`docs/migrations/`.
+
 ### Template Sections (Conservé pour maintenance future)
 ```jsx
 // Structure fixe pour toutes les sections
