@@ -50,21 +50,34 @@ WHERE coalesce(section_cuisine_1->>'equipements_cuisiniere', '') <> 'true'
    || coalesce(section_cuisine_1->>'cuisiniere_instructions', '') <> '';
 
 -- ── 3. NETTOYAGE des rappels photo orphelins (section Équipements) ──
--- Décoche le rappel photo dont la branche parente n'est pas cochée.
+-- Décoche les rappels photo dont la branche parente n'est pas cochée.
+--
+-- ⚠️ Les paires (branche, rappel) sont AGRÉGÉES par fiche avant l'UPDATE.
+-- Un `UPDATE ... FROM (VALUES ...)` qui produit plusieurs lignes source pour la
+-- même ligne cible ne met à jour cette ligne QU'UNE FOIS, avec une seule des
+-- lignes source : une fiche portant deux rappels orphelins n'en verrait nettoyer
+-- qu'un. Le GROUP BY garantit une seule ligne source par fiche, et le patch
+-- applique toutes ses clés d'un coup.
 UPDATE fiche_lite f
 SET section_equipements = jsonb_set(
       f.section_equipements,
-      ARRAY['photos_rappels', m.taken],
-      'false'::jsonb
+      '{photos_rappels}',
+      coalesce(f.section_equipements->'photos_rappels', '{}'::jsonb) || o.patch
     )
-FROM (VALUES
-  ('tv','tv_video_taken'), ('tv','tv_consoles_video_taken'),
-  ('climatisation','climatisation_video_taken'), ('chauffage','chauffage_video_taken'),
-  ('ventilateur','ventilateur_taken'),
-  ('lave_linge','lave_linge_video_taken'), ('seche_linge','seche_linge_video_taken')
-) AS m(flag, taken)
-WHERE (f.section_equipements->'photos_rappels'->>m.taken) = 'true'
-  AND coalesce(f.section_equipements->>m.flag, '') <> 'true';
+FROM (
+  SELECT f2.id, jsonb_object_agg(m.taken, 'false'::jsonb) AS patch
+  FROM fiche_lite f2
+  JOIN (VALUES
+    ('tv','tv_video_taken'), ('tv','tv_consoles_video_taken'),
+    ('climatisation','climatisation_video_taken'), ('chauffage','chauffage_video_taken'),
+    ('ventilateur','ventilateur_taken'),
+    ('lave_linge','lave_linge_video_taken'), ('seche_linge','seche_linge_video_taken')
+  ) AS m(flag, taken) ON TRUE
+  WHERE (f2.section_equipements->'photos_rappels'->>m.taken) = 'true'
+    AND coalesce(f2.section_equipements->>m.flag, '') <> 'true'
+  GROUP BY f2.id
+) AS o
+WHERE f.id = o.id;
 
 -- ── 4. CONTRÔLE APRÈS ────────────────────────────────────────
 -- Les deux compteurs doivent être à 0.
