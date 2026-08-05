@@ -182,8 +182,12 @@ export default function FicheInstructionsMenage() {
 
   const setEtatLogementVideoTaken = (checked) => {
     handleInputChange('section_instructions_menage.photos_rappels.etat_logement_video_taken', checked)
+    // Purge à `null`, PAS à `false` : `false` est certes la valeur par défaut de la clé
+    // legacy (conservée dans formDefaults exprès pour le filtre du PDF), mais `null`
+    // dit « plus de valeur ici » sans dépendre de cette table, et c'est la convention
+    // des deux purges ci-dessus. Une valeur vide est filtrée par le PDF dans les deux cas.
     if (avis.photos_rappels?.etat_logement_video_taken) {
-      updateField('section_avis.photos_rappels.etat_logement_video_taken', false)
+      updateField('section_avis.photos_rappels.etat_logement_video_taken', null)
     }
   }
 

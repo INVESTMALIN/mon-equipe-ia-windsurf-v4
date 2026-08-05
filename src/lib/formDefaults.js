@@ -164,11 +164,17 @@ export const initialFormData = {
     explication_adaptation: "",
 
     // Rappels photos (VERSION LITE)
-    // `etat_logement_video_taken` a suivi la vidéo de l'état du logement vers
-    // section_instructions_menage. Idem : clé retirée des défauts, relue en repli.
     photos_rappels: {
       video_globale_taken: false,
-      vis_a_vis_taken: false
+      vis_a_vis_taken: false,
+      // ⚠️ Clé LEGACY, plus jamais écrite : le rappel a suivi la vidéo de l'état du
+      // logement vers section_instructions_menage. Elle est CONSERVÉE ICI À DESSEIN,
+      // uniquement pour le filtre du PDF : `isDefaultValue` s'appuie sur cette table
+      // pour distinguer une non-réponse d'une réponse. Sans elle, les 16 fiches qui
+      // portent déjà `false` verraient apparaître un « État logement vidéo : Non »
+      // fantôme sous Avis, sans que personne n'ait rien touché.
+      // À supprimer le jour où ces fiches auront été nettoyées en base.
+      etat_logement_video_taken: false
     }
   },
 
