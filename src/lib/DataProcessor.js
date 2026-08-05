@@ -112,29 +112,34 @@ export const cleanFormData = (formData) => {
       // Sécurité
       securite_equipements: equipementsSecurite,
       
-      // Statistiques
+      // Statistiques. Le total dérive de la liste ci-dessous : une section ajoutée au
+      // formulaire doit l'être aussi dans SECTIONS_COMPTEES, sinon elle ne compte jamais.
       stats: {
         sections_remplies: countFilledSections(formData),
-        total_sections: 23,
-        pourcentage_completion: Math.round((countFilledSections(formData) / 23) * 100)
+        total_sections: SECTIONS_COMPTEES.length,
+        pourcentage_completion: Math.round((countFilledSections(formData) / SECTIONS_COMPTEES.length) * 100)
       }
     }
   }
   
+  // Les sections du formulaire prises en compte dans le taux de complétion — même
+  // ordre et mêmes clés que FormContext / PdfFormatter (« Finalisation » n'en est pas
+  // une : elle ne stocke rien).
+  const SECTIONS_COMPTEES = [
+    'section_proprietaire', 'section_logement', 'section_avis', 'section_clefs',
+    'section_airbnb', 'section_booking', 'section_reglementation', 'section_exigences',
+    'section_gestion_linge', 'section_equipements', 'section_consommables',
+    'section_instructions_menage', 'section_visite',
+    'section_chambres', 'section_salle_de_bains', 'section_cuisine_1', 'section_cuisine_2',
+    'section_salon_sam', 'section_equip_spe_exterieur', 'section_communs', 'section_teletravail',
+    'section_bebe', 'section_guide_acces', 'section_securite'
+  ]
+
   /**
    * Compte le nombre de sections qui contiennent des données
    */
   const countFilledSections = (formData) => {
-    const sections = [
-      'section_proprietaire', 'section_logement', 'section_avis', 'section_clefs',
-      'section_airbnb', 'section_booking', 'section_reglementation', 'section_exigences',
-      'section_gestion_linge', 'section_equipements', 'section_consommables', 'section_visite',
-      'section_chambres', 'section_salle_de_bains', 'section_cuisine_1', 'section_cuisine_2',
-      'section_salon_sam', 'section_equip_spe_exterieur', 'section_communs', 'section_teletravail',
-      'section_bebe', 'section_guide_acces', 'section_securite'
-    ]
-    
-    return sections.filter(section => {
+    return SECTIONS_COMPTEES.filter(section => {
       const sectionData = formData[section]
       return sectionData && typeof sectionData === 'object' && Object.keys(sectionData).length > 0
     }).length

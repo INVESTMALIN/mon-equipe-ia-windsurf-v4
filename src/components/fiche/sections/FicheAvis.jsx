@@ -1,10 +1,13 @@
-import { useState } from 'react'
+// ℹ️ Les blocs « Points sensibles à filmer », le rappel vidéo de l'état du logement et
+// « Type de 1er passage » ont été déplacés vers la section Instructions Ménage
+// (alignement coordinateurs) : ce sont des informations destinées au prestataire de
+// ménage, pas une évaluation du bien. Les valeurs déjà saisies restent lisibles là-bas.
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { MessageSquare } from 'lucide-react'
-import { GRILLE_CRITERES, SECURITE_DANGERS, TYPES_PASSAGE, computeGrilleStats } from '../../../lib/avisGrilleHelpers'
+import { GRILLE_CRITERES, SECURITE_DANGERS, computeGrilleStats } from '../../../lib/avisGrilleHelpers'
 
 const StyledCheckboxGrid = ({ options, values, path, onChange }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -25,47 +28,6 @@ const StyledCheckboxGrid = ({ options, values, path, onChange }) => (
   </div>
 )
 
-const CHECKLIST_MENAGE = [
-  { title: 'Logement de manière général' },
-  { title: 'Mobilier', subtext: "(derrière, au-dessus, à l'intérieur si poussière)" },
-  { title: 'Cuisine :', items: ["État de l'évier et robinetterie", 'Four et micro-ondes', 'Hotte et filtre', 'Réfrigérateur / congélateur (moisissures ?)', 'État des placards'] },
-  { title: 'Salle de bain :', items: ['Cuvette des WC stable et fonctionnelle', 'Cabine de douche / carrelage', 'Joints / moisissures', 'Siphons qui évacuent bien'] },
-  { title: 'Linge :', items: ['Draps et serviettes en bon état, non tachés'] },
-  { title: 'Extérieurs :', items: ['Mobilier en bon état'] }
-]
-
-const CHECKLIST_MAINTENANCE = [
-  { title: 'Éclairage : ampoules fonctionnelles' },
-  { title: 'Électricité :', items: ['Prises', 'Interrupteurs', 'Télécommande / TV / Wi-Fi'] },
-  { title: 'Plomberie :', items: ['Fuites sous éviers / WC', "Pression d'eau", 'Eau chaude'] },
-  { title: 'Chauffage / climatisation opérationnels' },
-  { title: 'Fenêtres / volets / rideaux fonctionnels' },
-  { title: 'Électroménager :', items: ['Lave-linge', 'Lave-vaisselle', 'Cafetière, bouilloire, etc.'] },
-  { title: 'Détecteur de fumée présent et fonctionnel' },
-  { title: 'Mobilier :', items: ['Casse', 'Rayures', 'Mal fixé'] },
-  { title: 'Traces de nuisibles :', items: ['Insectes', 'Humidité', 'Moisissures'] },
-  { title: 'Murs et plafonds :', items: ['Tâches', 'Trous', 'Fissures'] }
-]
-
-const ChecklistColumn = ({ emoji, titre, sections }) => (
-  <div>
-    <h3 className="text-sm font-semibold text-gray-900 pb-2 mb-1 border-b border-gray-200">{emoji} {titre}</h3>
-    {sections.map((section) => (
-      <div key={section.title}>
-        <p className="text-xs font-medium text-gray-700 mt-3 mb-1">
-          {section.title}
-          {section.subtext && <span className="font-normal text-gray-500"> {section.subtext}</span>}
-        </p>
-        {section.items && (
-          <ul className="ml-5 list-disc text-xs text-gray-600 space-y-0.5">
-            {section.items.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        )}
-      </div>
-    ))}
-  </div>
-)
-
 export default function FicheAvis() {
   const {
     getField,
@@ -76,7 +38,6 @@ export default function FicheAvis() {
   const atouts = formData.atouts_logement || {}
   const voyageurs = formData.types_voyageurs || {}
 
-  const [checklistOpen, setChecklistOpen] = useState(false)
   const grilleStats = computeGrilleStats(formData)
 
   const handleInputChange = (fieldPath, value) => {
@@ -535,92 +496,6 @@ export default function FicheAvis() {
                       </p>
                     </div>
                   )}
-                </div>
-
-                {/* Pense-bête - Points sensibles à filmer */}
-                <div className="mb-6 border border-gray-200 rounded-xl overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setChecklistOpen((open) => !open)}
-                    className="w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors"
-                  >
-                    <span className="font-medium text-gray-900">Points sensibles à filmer (pense-bête)</span>
-                    <span className={`text-gray-500 transition-transform ${checklistOpen ? 'rotate-180' : ''}`}>▾</span>
-                  </button>
-
-                  {checklistOpen && (
-                    <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <ChecklistColumn emoji="🧹" titre="Ménage" sections={CHECKLIST_MENAGE} />
-                      <ChecklistColumn emoji="🔧" titre="Maintenance" sections={CHECKLIST_MAINTENANCE} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Rappel vidéo état du logement */}
-                <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="etat_logement_video_taken"
-                      checked={formData.photos_rappels?.etat_logement_video_taken || false}
-                      onChange={(e) => handleInputChange('section_avis.photos_rappels.etat_logement_video_taken', e.target.checked)}
-                      className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                    />
-                    <label htmlFor="etat_logement_video_taken" className="text-sm text-yellow-800">
-                      📹 Pensez à filmer l'état général du logement (vue d'ensemble, points sensibles, défauts constatés)
-                    </label>
-                  </div>
-                </div>
-
-                {/* Type de 1er passage */}
-                <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Type de 1er passage</h4>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-900 mb-2">Ménage</label>
-                    <div className="flex flex-wrap gap-2">
-                      {TYPES_PASSAGE.map((option) => {
-                        const active = formData.type_premier_menage === option
-                        return (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => handleInputChange('section_avis.type_premier_menage', active ? null : option)}
-                            className={`px-4 py-2 rounded-full text-sm border transition-colors ${
-                              active
-                                ? 'bg-[#dbae61] text-white border-[#dbae61]'
-                                : 'bg-white text-gray-700 border-gray-300 hover:border-[#dbae61]'
-                            }`}
-                          >
-                            {option}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">Maintenance</label>
-                    <div className="flex flex-wrap gap-2">
-                      {TYPES_PASSAGE.map((option) => {
-                        const active = formData.type_premiere_maintenance === option
-                        return (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => handleInputChange('section_avis.type_premiere_maintenance', active ? null : option)}
-                            className={`px-4 py-2 rounded-full text-sm border transition-colors ${
-                              active
-                                ? 'bg-[#dbae61] text-white border-[#dbae61]'
-                                : 'bg-white text-gray-700 border-gray-300 hover:border-[#dbae61]'
-                            }`}
-                          >
-                            {option}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
                 </div>
 
                 {/* Ambiance générale du logement */}

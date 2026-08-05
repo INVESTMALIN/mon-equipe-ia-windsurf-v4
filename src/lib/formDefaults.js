@@ -92,9 +92,10 @@ export const initialFormData = {
     // Vérification sécurité
     securite_dangers: [],
 
-    // Type de 1er passage
-    type_premier_menage: null,
-    type_premiere_maintenance: null,
+    // `type_premier_menage` et `type_premiere_maintenance` ont été déplacés vers
+    // section_instructions_menage (alignement coordinateurs). Retirés des défauts pour
+    // que les nouvelles fiches ne portent plus les clés mortes ; les fiches existantes
+    // conservent les leurs, relues en repli par FicheInstructionsMenage.
 
     // Évaluation logement - ambiance et vis-à-vis
     logement_ambiance: [],
@@ -163,10 +164,59 @@ export const initialFormData = {
     explication_adaptation: "",
 
     // Rappels photos (VERSION LITE)
+    // `etat_logement_video_taken` a suivi la vidéo de l'état du logement vers
+    // section_instructions_menage. Clé retirée des défauts pour que les nouvelles fiches
+    // ne la portent plus ; les fiches existantes gardent la leur, reprise à la lecture
+    // par lib/instructionsMenageLegacy (écran ET PDF) et retirée d'Avis à l'affichage.
     photos_rappels: {
       video_globale_taken: false,
-      vis_a_vis_taken: false,
-      etat_logement_video_taken: false
+      vis_a_vis_taken: false
+    }
+  },
+
+  // 🧹 Instructions destinées au prestataire de ménage.
+  //
+  // Portée depuis la version coordinateurs (section livrée le 04/08/2026), avec deux
+  // adaptations propres à Lite :
+  //   - les champs média deviennent des rappels (`photos_rappels.*_taken`) : Lite ne
+  //     stocke aucun fichier, il invite le concierge à prendre la photo ou la vidéo ;
+  //   - les contacts de maintenance ne sont PAS portés (pas de board Monday côté
+  //     concierge indépendant, cf. décision produit).
+  //
+  // Les trois premiers champs viennent de `section_avis` : c'est un déplacement, pas une
+  // création. FicheInstructionsMenage relit l'ancien emplacement tant que le nouveau est
+  // vide, et purge l'ancien dès que l'utilisateur répond ici (sinon le PDF, générique,
+  // afficherait la valeur deux fois).
+  //
+  // ℹ️ Le bloc « Rappel des consommables » ne stocke RIEN : il est dérivé à l'affichage
+  // depuis section_consommables (cf. lib/consommablesRecapLite.js).
+  section_instructions_menage: {
+    // 🏷️ Type de 1er passage (déplacé depuis section_avis)
+    type_premier_menage: null,
+    type_premiere_maintenance: null,
+
+    // 🧽 Consignes de ménage propres à ce logement
+    consignes_generales: "",
+
+    // 🧴 Produits et matériel : ce qu'il faut utiliser, ce qu'il ne faut surtout pas
+    produits_materiel: "",
+
+    // 🎁 Kit de bienvenue — accueil et mise en scène à l'arrivée des voyageurs.
+    // ⚠️ NE PAS confondre avec les consommables obligatoires (papier toilette, savon,
+    // café) de la section Consommables : deux notions distinctes, deux jeux de champs.
+    // Booléens : true = prestataire de ménage, false = propriétaire, null = non répondu.
+    kit_achat_par_prestataire: null,
+    kit_installation_par_prestataire: null,
+    kit_composition: "",
+
+    // ⚠️ Points de vigilance : les oublis classiques sur ce logement
+    points_vigilance: "",
+
+    // Rappels photos/vidéos (VERSION LITE)
+    photos_rappels: {
+      etat_logement_video_taken: false,
+      consignes_videos_taken: false,
+      kit_photos_taken: false
     }
   },
 
