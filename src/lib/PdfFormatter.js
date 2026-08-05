@@ -1,5 +1,6 @@
 // src/lib/PdfFormatter.js
 import { cleanFormData, extractSummary, validateDataConsistency } from './DataProcessor'
+import { resolveInstructionsMenageLegacy } from './instructionsMenageLegacy'
 
 /**
  * Formate les données de fiche pour génération PDF
@@ -21,7 +22,16 @@ export const formatForPdf = (formData) => {
   const cleanedData = cleanFormData(formData)
   const summary = extractSummary(formData)
   const validation = validateDataConsistency(formData)
-  
+
+  // Repli des 3 champs déplacés depuis Avis, MÊME RÈGLE que l'écran (module partagé) :
+  // sur une fiche remplie avant le déplacement, le PDF doit les rendre sous
+  // « Instructions ménage » — là où le concierge les voit — et non sous « Avis ».
+  // Transformation d'affichage uniquement : rien n'est écrit en base.
+  const legacy = resolveInstructionsMenageLegacy(
+    cleanedData.section_instructions_menage,
+    cleanedData.section_avis
+  )
+
   return {
     // Métadonnées pour le workflow n8n
     metadata: {
@@ -43,8 +53,8 @@ export const formatForPdf = (formData) => {
       // Section 2 - Logement  
       section_logement: enrichSection(cleanedData.section_logement, 'logement'),
       
-      // Section 3 - Avis
-      section_avis: enrichSection(cleanedData.section_avis, 'avis'),
+      // Section 3 - Avis (privée des 3 champs déplacés, cf. `legacy` ci-dessus)
+      section_avis: enrichSection(legacy.avis, 'avis'),
       
       // Section 4 - Clefs
       section_clefs: enrichSection(cleanedData.section_clefs, 'clefs'),
@@ -70,8 +80,8 @@ export const formatForPdf = (formData) => {
       // Section 11 - Consommables
       section_consommables: enrichSection(cleanedData.section_consommables, 'consommables'),
       
-      // Section 12 - Instructions Ménage
-      section_instructions_menage: enrichSection(cleanedData.section_instructions_menage, 'instructions_menage'),
+      // Section 12 - Instructions Ménage (enrichie des valeurs héritées d'Avis)
+      section_instructions_menage: enrichSection(legacy.instructions, 'instructions_menage'),
 
       // Section 13 - Visite
       section_visite: enrichSection(cleanedData.section_visite, 'visite'),

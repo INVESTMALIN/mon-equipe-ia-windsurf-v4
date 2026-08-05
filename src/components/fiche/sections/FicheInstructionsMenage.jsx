@@ -20,6 +20,7 @@ import { useForm } from '../../FormContext'
 import { Sparkles } from 'lucide-react'
 import { TYPES_PASSAGE, TYPES_MAINTENANCE } from '../../../lib/avisGrilleHelpers'
 import { buildConsommablesRecapLite } from '../../../lib/consommablesRecapLite'
+import { resolveInstructionsMenageLegacy } from '../../../lib/instructionsMenageLegacy'
 
 // Pense-bête statique : aucune donnée en base, uniquement de l'aide à l'inspection.
 // Vivait dans la section Avis, déplacé ici avec le reste du bloc ménage.
@@ -126,8 +127,10 @@ const ChoixFournisseur = ({ name, value, onChange }) => (
 export default function FicheInstructionsMenage() {
   const { getField, updateField } = useForm()
 
-  const formData = getField('section_instructions_menage') || {}
-  const avis = getField('section_avis') || {}
+  // Pas de `|| {}` : `getField` renvoie "" sur une clé absente, les lectures ci-dessous
+  // le tolèrent, et un objet neuf à chaque rendu casserait la mémoïsation du repli.
+  const formData = getField('section_instructions_menage')
+  const avis = getField('section_avis')
 
   const [checklistOpen, setChecklistOpen] = useState(false)
 
@@ -144,27 +147,19 @@ export default function FicheInstructionsMenage() {
   const recap = useMemo(() => buildConsommablesRecapLite(consommables), [consommables])
 
   // ── Reprise des valeurs saisies avant le déplacement, SANS écriture en base ────
-  // Tant que la nouvelle clé est vide, on lit l'ancienne (section_avis). Dès que
-  // l'utilisateur répond ICI, on purge l'ancienne : sinon la fiche porterait les deux
-  // valeurs et le PDF — générique, il parcourt toutes les sections — afficherait deux
-  // types de 1er ménage, potentiellement contradictoires. L'écriture est déclenchée par
-  // l'utilisateur sur SA fiche : aucune reprise de masse sur la base.
+  // La règle de repli vit dans lib/instructionsMenageLegacy, partagée avec PdfFormatter :
+  // l'écran et le PDF doivent placer la même valeur au même endroit.
   //
-  // Cas de la maintenance : Lite proposait ici les valeurs de MÉNAGE (TYPES_PASSAGE),
-  // alors que la liste métier est TYPES_MAINTENANCE. Une ancienne valeur qui n'existe
-  // pas dans la nouvelle liste n'est pas reprise — elle serait affichée sans bouton
-  // correspondant. Volume jugé négligeable, aucun script de reprise (décision produit).
-  const legacyMaintenance = TYPES_MAINTENANCE.includes(avis.type_premiere_maintenance)
-    ? avis.type_premiere_maintenance
-    : null
+  // Dès que l'utilisateur répond ICI, on purge l'ancienne clé. L'écriture est déclenchée
+  // par l'utilisateur sur SA fiche : aucune reprise de masse sur la base.
+  const resolved = useMemo(
+    () => resolveInstructionsMenageLegacy(formData, avis).instructions,
+    [formData, avis]
+  )
 
-  const typePremierMenage = formData.type_premier_menage || avis.type_premier_menage || null
-  const typePremiereMaintenance = formData.type_premiere_maintenance || legacyMaintenance
-
-  const etatLogementVideoTaken =
-    formData.photos_rappels?.etat_logement_video_taken ||
-    avis.photos_rappels?.etat_logement_video_taken ||
-    false
+  const typePremierMenage = resolved.type_premier_menage
+  const typePremiereMaintenance = resolved.type_premiere_maintenance
+  const etatLogementVideoTaken = resolved.photos_rappels.etat_logement_video_taken
 
   const setTypePremierMenage = (value) => {
     handleInputChange('section_instructions_menage.type_premier_menage', value)
