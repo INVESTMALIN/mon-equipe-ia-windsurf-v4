@@ -18,6 +18,7 @@ import FicheExigences from './sections/FicheExigences'
 import FicheGestionLinge from './sections/FicheGestionLinge'
 import FicheEquipements from './sections/FicheEquipements'
 import FicheConsommables from './sections/FicheConsommables'
+import FicheInstructionsMenage from './sections/FicheInstructionsMenage'
 import FicheVisite from './sections/FicheVisite'
 import FicheChambre from './sections/FicheChambre'
 import FicheSalleDeBains from './sections/FicheSalleDeBains'
@@ -170,6 +171,7 @@ export default function FicheWizard() {
     <FicheGestionLinge key="linge" />,
     <FicheEquipements key="equipements" />,
     <FicheConsommables key="consommables" />,
+    <FicheInstructionsMenage key="instructions-menage" />,
     <FicheVisite key="visite" />,
     <FicheChambre key="chambres" />,
     <FicheSalleDeBains key="sdb" />,

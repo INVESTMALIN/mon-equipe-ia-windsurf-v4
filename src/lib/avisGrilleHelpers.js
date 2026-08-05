@@ -125,6 +125,17 @@ export const TYPES_PASSAGE = [
   'Pas nécessaire'
 ]
 
+// Labels métier maintenance, repris de la version coordinateurs. Distincts de
+// TYPES_PASSAGE, qui est réservé au ménage : Lite proposait jusqu'ici les valeurs de
+// ménage pour la maintenance, ce qui n'a pas de sens (« Remise en état » n'est pas une
+// nature d'intervention technique). Les rares valeurs déjà en base issues de l'ancienne
+// liste ne correspondent à aucun bouton ici : elles sont simplement ignorées.
+export const TYPES_MAINTENANCE = [
+  'Intervention propriétaire',
+  'Intervention artisan',
+  "Pas d'intervention"
+]
+
 // Verdict global -> label affichable + clé legacy (état général logement)
 export const VERDICTS = [
   { key: 'excellent_etat', min: 40, label: 'Excellent état' },

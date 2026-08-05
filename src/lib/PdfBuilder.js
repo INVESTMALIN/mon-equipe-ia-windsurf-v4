@@ -22,7 +22,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import {
   User, Home, Star, Key, Building2, Globe, Scale, ClipboardCheck, Shirt, Plug,
-  ShoppingBasket, DoorOpen, BedDouble, Bath, Refrigerator, Utensils, Sofa, Trees,
+  ShoppingBasket, Sparkles, DoorOpen, BedDouble, Bath, Refrigerator, Utensils, Sofa, Trees,
   Building, Laptop, Baby, MapPin, ShieldCheck, FileText,
 } from 'lucide-react'
 
@@ -63,6 +63,7 @@ const SECTION_ICON = {
   section_gestion_linge: Shirt,
   section_equipements: Plug,
   section_consommables: ShoppingBasket,
+  section_instructions_menage: Sparkles,
   section_visite: DoorOpen,
   section_chambres: BedDouble,
   section_salle_de_bains: Bath,
@@ -356,7 +357,7 @@ export const buildDocDefinition = (formData) => {
   // On construit d'abord les sections et on ne garde que celles qui produisent
   // RÉELLEMENT du contenu (après filtrage des défauts). Le taux de complétion
   // dérive de ce résultat — cohérent avec ce qui est rendu — et non du count brut
-  // de metadata (qui compte toute section ayant des clés, donc 23/23 sur une fiche
+  // de metadata (qui compte toute section ayant des clés, donc 24/24 sur une fiche
   // vierge puisque FormContext initialise chaque section).
   const renderedSections = []
   Object.entries(pdfData.sections).forEach(([key, section]) => {
@@ -365,7 +366,7 @@ export const buildDocDefinition = (formData) => {
     if (nodes.length) renderedSections.push(...nodes)
   })
   const filledCount = renderedSections.filter((n) => n.headlineLevel === 1).length
-  const totalSections = pdfData.metadata?.total_sections || 23
+  const totalSections = pdfData.metadata?.total_sections || 24
 
   const content = []
 
@@ -485,6 +486,7 @@ const humanizeSectionTitle = (sectionKey) => {
     section_gestion_linge: 'Gestion du linge',
     section_equipements: 'Équipements',
     section_consommables: 'Consommables',
+    section_instructions_menage: 'Instructions ménage',
     section_visite: 'Visite du logement',
     section_chambres: 'Chambres',
     section_salle_de_bains: 'Salle de bains',
@@ -555,6 +557,17 @@ const humanizeKey = (key) => {
     nb_lits: 'Nombre de lits',
     superficie: 'Superficie',
 
+    // Instructions ménage — libellés métier, pour que le PDF (document client) ne dise
+    // pas « Kit achat par prestataire : Oui » là où la question est « qui achète ? ».
+    type_premier_menage: 'Type de 1er ménage',
+    type_premiere_maintenance: 'Type de 1re maintenance',
+    consignes_generales: 'Consignes générales de ménage',
+    produits_materiel: 'Produits et matériel',
+    kit_achat_par_prestataire: 'Kit de bienvenue acheté par le prestataire de ménage',
+    kit_installation_par_prestataire: 'Kit de bienvenue installé par le prestataire de ménage',
+    kit_composition: 'Composition du kit de bienvenue',
+    points_vigilance: 'Points de vigilance',
+
     // Autres champs courants
     types_voyageurs_autre: 'Autres voyageurs',
     explication_adaptation: 'Explication adaptation',
@@ -612,9 +625,11 @@ const ACCENTS = {
   flutes: 'flûtes',
   frequence: 'fréquence',
   gache: 'gâche',
+  generales: 'générales',
   glacon: 'glaçon',
   huitre: 'huître',
   independants: 'indépendants',
+  materiel: 'matériel',
   menage: 'ménage',
   mobilite: 'mobilité',
   numeriques: 'numériques',
@@ -645,6 +660,7 @@ const ACCENTS = {
   theiere: 'théière',
   velo: 'vélo',
   video: 'vidéo',
+  videos: 'vidéos',
 }
 
 /**
@@ -739,6 +755,10 @@ const cleanPhotoKey = (key) => {
     clefs: 'clés',
     linge: 'linge',
     emplacement: 'emplacement',
+    // Instructions ménage
+    etat_logement_video: "vidéo de l'état du logement",
+    consignes_videos: 'vidéos des consignes de ménage',
+    kit_photos: 'photos du kit de bienvenue',
   }
 
   return photoMapping[cleaned] || formatGenericKey(cleaned)

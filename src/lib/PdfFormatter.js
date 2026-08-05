@@ -3,12 +3,19 @@ import { cleanFormData, extractSummary, validateDataConsistency } from './DataPr
 
 /**
  * Formate les données de fiche pour génération PDF
- * RESPECTE EXACTEMENT les 23 sections du formulaire pour compatibilité n8n
+ * RESPECTE EXACTEMENT les 24 sections du formulaire pour compatibilité n8n
  */
 
 /**
- * Structure principale pour PDF - FIDÈLE aux 23 sections
+ * Structure principale pour PDF - FIDÈLE aux 24 sections
  * Nettoie et enrichit les données sans changer la structure
+ *
+ * ⚠️ CETTE LISTE EST LA SEULE PORTE D'ENTRÉE DU PDF. PdfBuilder rend ensuite
+ * génériquement toutes les clés de chaque section : une section absente d'ici
+ * disparaît du PDF EN ENTIER, sans la moindre erreur. C'est ce qui est arrivé à la
+ * section Équipements extérieurs, invisible pendant des mois (corrigé en PR #50).
+ * Toute nouvelle section du formulaire doit être ajoutée ici — et la clé écrite doit
+ * être EXACTEMENT celle de formDefaults / supabaseHelpers.
  */
 export const formatForPdf = (formData) => {
   const cleanedData = cleanFormData(formData)
@@ -28,7 +35,7 @@ export const formatForPdf = (formData) => {
       version_formatter: '1.0'
     },
 
-    // LES 23 SECTIONS EXACTES - même ordre que FormContext
+    // LES 24 SECTIONS EXACTES - même ordre que FormContext
     sections: {
       // Section 1 - Propriétaire
       section_proprietaire: enrichSection(cleanedData.section_proprietaire, 'proprietaire'),
@@ -63,43 +70,46 @@ export const formatForPdf = (formData) => {
       // Section 11 - Consommables
       section_consommables: enrichSection(cleanedData.section_consommables, 'consommables'),
       
-      // Section 12 - Visite
+      // Section 12 - Instructions Ménage
+      section_instructions_menage: enrichSection(cleanedData.section_instructions_menage, 'instructions_menage'),
+
+      // Section 13 - Visite
       section_visite: enrichSection(cleanedData.section_visite, 'visite'),
-      
-      // Section 13 - Chambres
+
+      // Section 14 - Chambres
       section_chambres: enrichSection(cleanedData.section_chambres, 'chambres'),
-      
-      // Section 14 - Salle de Bains
+
+      // Section 15 - Salle de Bains
       section_salle_de_bains: enrichSection(cleanedData.section_salle_de_bains, 'sdb'),
-      
-      // Section 15 - Cuisine 1
+
+      // Section 16 - Cuisine 1
       section_cuisine_1: enrichSection(cleanedData.section_cuisine_1, 'cuisine1'),
-      
-      // Section 16 - Cuisine 2
+
+      // Section 17 - Cuisine 2
       section_cuisine_2: enrichSection(cleanedData.section_cuisine_2, 'cuisine2'),
-      
-      // Section 17 - Salon SAM
+
+      // Section 18 - Salon SAM
       section_salon_sam: enrichSection(cleanedData.section_salon_sam, 'salon'),
-      
-      // Section 18 - Équipements Extérieur
+
+      // Section 19 - Équipements Extérieur
       // La clé du formulaire est section_equip_spe_exterieur (cf. formDefaults,
       // supabaseHelpers, DataProcessor). Lire section_equip_exterieur renvoyait
       // toujours undefined : la section sortait « vide » et disparaissait du PDF.
       section_equip_spe_exterieur: enrichSection(cleanedData.section_equip_spe_exterieur, 'exterieur'),
       
-      // Section 19 - Communs
+      // Section 20 - Communs
       section_communs: enrichSection(cleanedData.section_communs, 'communs'),
-      
-      // Section 20 - Télétravail
+
+      // Section 21 - Télétravail
       section_teletravail: enrichSection(cleanedData.section_teletravail, 'teletravail'),
-      
-      // Section 21 - Bébé
+
+      // Section 22 - Bébé
       section_bebe: enrichSection(cleanedData.section_bebe, 'bebe'),
-      
-      // Section 22 - Guide Accès
+
+      // Section 23 - Guide Accès
       section_guide_acces: enrichSection(cleanedData.section_guide_acces, 'guide'),
-      
-      // Section 23 - Sécurité
+
+      // Section 24 - Sécurité
       section_securite: enrichSection(cleanedData.section_securite, 'securite')
     },
 
@@ -308,7 +318,7 @@ export const prepareForN8nWebhook = (formData) => {
     // Métadonnées pour le workflow
     metadata: pdfData.metadata,
     
-    // Les 23 sections dans leur format original enrichi
+    // Les 24 sections dans leur format original enrichi
     fiche_data: pdfData.sections,
     
     // Analytics pour améliorer le PDF

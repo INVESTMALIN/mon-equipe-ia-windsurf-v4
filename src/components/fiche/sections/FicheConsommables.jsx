@@ -1,9 +1,18 @@
 // src/components/fiche/sections/FicheConsommables.jsx
+//
+// Les libellés des trois listes de cases à cocher vivent dans lib/consommablesRecapLite :
+// la section Instructions Ménage en affiche un rappel en lecture seule, et les deux
+// écrans doivent nommer les mêmes choses. Une seule liste, deux lecteurs.
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { ShoppingCart } from 'lucide-react'
+import {
+  CONSOMMABLES_RECOMMANDES,
+  CONSOMMABLES_SUR_DEMANDE,
+  CONSOMMABLES_CAFE
+} from '../../../lib/consommablesRecapLite'
 
 export default function FicheConsommables() {
   const {
@@ -100,123 +109,17 @@ export default function FicheConsommables() {
                     </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.papier_toilette === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.papier_toilette', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">2 rouleaux de papier toilette par toilette</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.savon_mains === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.savon_mains', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">1 savon pour les mains par lavabo</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.produit_vaisselle === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.produit_vaisselle', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">1 produit vaisselle par cuisine</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.eponge_cuisine === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.eponge_cuisine', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">1 éponge par cuisine (en bon état)</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.sel_poivre_sucre === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.sel_poivre_sucre', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Sel, poivre, sucre (en quantité adéquate)</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.cafe_the === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.cafe_the', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Café et thé (1 sachet par personne)</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.essuie_tout === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.essuie_tout', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Essuie-tout/Sopalin</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.sac_poubelle === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.sac_poubelle', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Sac poubelle</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.produit_vitres === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.produit_vitres', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Produit vitres</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.produit_sol === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.produit_sol', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Produit sol</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.produit_salle_bain === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.produit_salle_bain', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Produit salle de bain/multi-surfaces ou vinaigre ménager</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.produit_wc_javel === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.produit_wc_javel', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Produit WC / Javel</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={formData.consommables_recommandes_autre === true}
-                            onChange={(e) => handleCheckboxChange('section_consommables.consommables_recommandes_autre', e.target.checked)}
-                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                          />
-                          <span className="text-sm">Autre (précisez)</span>
-                        </label>
+                        {CONSOMMABLES_RECOMMANDES.map(({ key, label }) => (
+                          <label key={key} className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 p-2 rounded transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={formData[key] === true}
+                              onChange={(e) => handleCheckboxChange(`section_consommables.${key}`, e.target.checked)}
+                              className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                            />
+                            <span className="text-sm">{label}</span>
+                          </label>
+                        ))}
                       </div>
                       {/* Champ conditionnel "Autre recommandé" */}
                       {formData.consommables_recommandes_autre === true && (
@@ -241,51 +144,17 @@ export default function FicheConsommables() {
                       Consommables "Sur demande"
                     </label>
                     <div className="space-y-3">
-                      <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.gel_douche === true}
-                          onChange={(e) => handleCheckboxChange('section_consommables.gel_douche', e.target.checked)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                        />
-                        <span className="text-sm">Gel douche</span>
-                      </label>
-                      <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.shampoing === true}
-                          onChange={(e) => handleCheckboxChange('section_consommables.shampoing', e.target.checked)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                        />
-                        <span className="text-sm">Shampoing</span>
-                      </label>
-                      <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.apres_shampoing === true}
-                          onChange={(e) => handleCheckboxChange('section_consommables.apres_shampoing', e.target.checked)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                        />
-                        <span className="text-sm">Après Shampoing</span>
-                      </label>
-                      <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.pastilles_lave_vaisselle === true}
-                          onChange={(e) => handleCheckboxChange('section_consommables.pastilles_lave_vaisselle', e.target.checked)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                        />
-                        <span className="text-sm">Pastilles, sel et liquide de rinçage pour lave-vaisselle</span>
-                      </label>
-                      <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.autre_consommable === true}
-                          onChange={(e) => handleCheckboxChange('section_consommables.autre_consommable', e.target.checked)}
-                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                        />
-                        <span className="text-sm">Autre (précisez)</span>
-                      </label>
+                      {CONSOMMABLES_SUR_DEMANDE.map(({ key, label }) => (
+                        <label key={key} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={formData[key] === true}
+                            onChange={(e) => handleCheckboxChange(`section_consommables.${key}`, e.target.checked)}
+                            className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                          />
+                          <span className="text-sm">{label}</span>
+                        </label>
+                      ))}
                     </div>
 
                     {/* Champ conditionnel "Autre" */}
@@ -309,69 +178,17 @@ export default function FicheConsommables() {
                     Consommables "Café & Cafetière"
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_nespresso === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_nespresso', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Nespresso</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_senseo === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_senseo', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Senseo</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_tassimo === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_tassimo', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Tassimo</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_soluble === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_soluble', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Café soluble</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_moulu === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_moulu', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Café moulu</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_grain === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_grain', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Café grain</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.cafe_autre === true}
-                        onChange={(e) => handleCheckboxChange('section_consommables.cafe_autre', e.target.checked)}
-                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                      />
-                      <span className="text-sm">Autre (précisez)</span>
-                    </label>
+                    {CONSOMMABLES_CAFE.map(({ key, label }) => (
+                      <label key={key} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={formData[key] === true}
+                          onChange={(e) => handleCheckboxChange(`section_consommables.${key}`, e.target.checked)}
+                          className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                        />
+                        <span className="text-sm">{label}</span>
+                      </label>
+                    ))}
                   </div>
 
                   {/* Champ conditionnel "Autre café" */}

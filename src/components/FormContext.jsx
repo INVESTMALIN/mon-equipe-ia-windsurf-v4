@@ -6,7 +6,9 @@ import { LOCKED_FIELD_PATHS, isLockedFieldPath } from '../lib/lockedFields'
 
 const FormContext = createContext()
 
-// 🔥 SECTIONS DE FICHE LOGEMENT LITE (23 sections)
+// 🔥 SECTIONS DE FICHE LOGEMENT LITE : 24 sections de saisie + l'écran de Finalisation,
+// soit 25 étapes du wizard. Seules les 24 premières ont une colonne JSONB en base et
+// comptent dans le taux de complétion (cf. SECTIONS_COMPTEES dans DataProcessor).
 const sections = [
   "Propriétaire",
   "Logement",
@@ -19,6 +21,9 @@ const sections = [
   "Gestion Linge",
   "Équipements",
   "Consommables",
+  // Placée juste APRÈS Consommables, comme côté coordinateurs : la section affiche un
+  // rappel en lecture seule des consommables, elle n'a de sens qu'une fois ceux-ci saisis.
+  "Instructions Ménage",
   "Visite",
   "Chambres",
   "Salle de Bains",
