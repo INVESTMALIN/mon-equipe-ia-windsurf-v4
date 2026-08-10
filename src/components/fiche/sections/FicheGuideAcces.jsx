@@ -2,6 +2,7 @@
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
+import AgentGuideAcces from '../AgentGuideAcces'
 import { useForm } from '../../FormContext'
 import { MapPin, Camera, Users } from 'lucide-react'
 
@@ -225,6 +226,9 @@ export default function FicheGuideAcces() {
                     </label>
                   </div>
                 </div>
+
+                {/* Agent guide d'accès — génération depuis la vidéo d'accès */}
+                <AgentGuideAcces />
 
               </div>
 

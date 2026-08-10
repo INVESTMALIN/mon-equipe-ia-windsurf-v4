@@ -8,6 +8,14 @@ import ContextMenuButton from './ContextMenuButton'
 import FicheSelector from './FicheSelector'
 import { extractFicheContext } from '../lib/ficheContextHelper'
 import HowItWorksDrawer from './HowItWorksDrawer'
+import {
+  GUIDE_ACCES_ACCEPT,
+  GUIDE_ACCES_FORMATS_LABEL,
+  GUIDE_ACCES_TAILLES_LABEL,
+  genererGuideAcces,
+  guideAccesErrorMessage,
+  validateGuideAccesFile,
+} from '../lib/guideAccesAgent'
 
 
 export default function AssistantGuideAcces() {
@@ -22,7 +30,6 @@ export default function AssistantGuideAcces() {
   const [selectedFiche, setSelectedFiche] = useState(null)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
   const conversationIdRef = useRef(null)
-  const abortControllerRef = useRef(null)
 
   useEffect(() => {
     const initConversation = async () => {
@@ -78,41 +85,18 @@ export default function AssistantGuideAcces() {
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
-    
+
     if (!file) return
-    
-    // Validation du type de fichier (vidéos ET audio)
-    const isMp4 = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4')
-    const isWebm = file.type === 'video/webm' || file.type === 'audio/webm' || file.name.toLowerCase().endsWith('.webm')
-    const isMov = file.type === 'video/quicktime' || file.name.toLowerCase().endsWith('.mov')
-    const isMp3 = file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3')
-    const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || file.name.toLowerCase().endsWith('.wav')
-    const isM4a = file.type === 'audio/mp4' || file.type === 'audio/x-m4a' || file.name.toLowerCase().endsWith('.m4a')
-    
-    if (!isMp4 && !isWebm && !isMov && !isMp3 && !isWav && !isM4a) {
-      alert('Veuillez sélectionner une vidéo (MP4, WebM, MOV) ou un audio (MP3, WAV, M4A, WebM).')
+
+    // Validation partagée avec le bloc inline de la fiche (cf. lib/guideAccesAgent) :
+    // formats vidéo ET audio, plafonds de taille, fichier vide.
+    const erreurFichier = validateGuideAccesFile(file)
+    if (erreurFichier) {
+      alert(erreurFichier)
       e.target.value = ''
       return
     }
-    
-    // Détection si c'est un fichier audio ou vidéo
-    const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
-    const maxSize = isAudio ? 10 * 1024 * 1024 : 350 * 1024 * 1024 // 10MB audio, 350MB vidéo
-    
-    if (file.size > maxSize) {
-      const limitText = isAudio ? '10MB' : '350MB'
-      alert(`Le fichier est trop volumineux. Taille maximum autorisée : ${limitText}.`)
-      e.target.value = ''
-      return
-    }
-    
-    // Validation fichier vide
-    if (file.size === 0) {
-      alert('Le fichier sélectionné est vide.')
-      e.target.value = ''
-      return
-    }
-    
+
     setSelectedFile(file)
   }
 
@@ -156,72 +140,15 @@ export default function AssistantGuideAcces() {
     setInput('')
     setLoading(true)
 
-    abortControllerRef.current = new AbortController()
-    const timeoutId = setTimeout(() => abortControllerRef.current.abort(), 240000)
-
     try {
-      let fileData = null
-      if (selectedFile) {
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result.split(',')[1])
-          reader.onerror = reject
-          reader.readAsDataURL(selectedFile)
-        })
-
-      // Déterminer le bon mimeType
-        let mimeType = selectedFile.type
-        if (!mimeType || mimeType === '') {
-          // Fallback basé sur l'extension
-          const ext = selectedFile.name.toLowerCase().split('.').pop()
-          if (ext === 'mp3') mimeType = 'audio/mpeg'
-          else if (ext === 'mp4') mimeType = 'video/mp4'
-          else if (ext === 'webm') mimeType = 'video/webm'
-          else if (ext === 'mov') mimeType = 'video/quicktime'
-          else if (ext === 'wav') mimeType = 'audio/wav'
-          else if (ext === 'm4a') mimeType = 'audio/mp4'
-        }
-
-        fileData = {
-          data: base64,
-          fileName: selectedFile.name,
-          mimeType: mimeType
-        }
-      }
-
-      const sessionId = `guide_acces_${conversationIdRef.current}`
-      const ficheContext = selectedFiche ? extractFicheContext(selectedFiche) : null
-
-      const payload = {
-        sessionId,
+      // Conversion base64 + appel webhook + lecture de la réponse : logique partagée
+      // avec le bloc inline de la fiche (cf. lib/guideAccesAgent).
+      const botResponse = await genererGuideAcces({
+        sessionId: `guide_acces_${conversationIdRef.current}`,
         message: userMessage,
-        ...(fileData && { files: [fileData] }),
-        ...(ficheContext && { context: ficheContext })
-      }
-
-      const res = await fetch('https://hub.cardin.cloud/webhook/5ebcffdd-fee8-4525-85f1-33f57ce4d28d/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: abortControllerRef.current.signal
+        file: selectedFile,
+        context: selectedFiche ? extractFicheContext(selectedFiche) : null
       })
-
-      clearTimeout(timeoutId)
-
-      if (!res.ok) {
-        throw new Error(`Erreur HTTP: ${res.status}`)
-      }
-
-      const responseText = await res.text()
-      console.log('🔍 Réponse Guide Accès (Mon Équipe IA):', responseText)
-      
-      if (!responseText || responseText.trim() === '') {
-        throw new Error('Le webhook n\'a renvoyé aucune donnée')
-      }
-      
-      const responseData = JSON.parse(responseText)
-      const data = Array.isArray(responseData) ? responseData[0] : responseData
-      const botResponse = data.data?.output || data.output || data.response || 'Aucune réponse reçue.'
 
       setMessages(prev => [...prev, { sender: 'bot', text: botResponse }])
 
@@ -237,16 +164,7 @@ export default function AssistantGuideAcces() {
 
       removeFile()
     } catch (error) {
-      clearTimeout(timeoutId)
-      let errorMessage = 'Une erreur est survenue. Veuillez réessayer.'
-      
-      if (error.name === 'AbortError') {
-        errorMessage = 'La génération du guide a pris trop de temps (timeout 2 min). Essayez avec une vidéo plus courte.'
-      } else if (error.message.includes('Failed to fetch')) {
-        errorMessage = 'Impossible de contacter le serveur. Vérifiez votre connexion internet.'
-      }
-
-      setMessages(prev => [...prev, { sender: 'bot', text: errorMessage }])
+      setMessages(prev => [...prev, { sender: 'bot', text: guideAccesErrorMessage(error) }])
     } finally {
       setLoading(false)
     }
@@ -445,14 +363,14 @@ export default function AssistantGuideAcces() {
 
             <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
               <p className="text-xs text-gray-600">
-              <strong>Formats acceptés :</strong> MP4, WebM, MOV, MP3, WAV, M4A • <strong>Taille max :</strong> 350MB vidéo / 10MB audio              </p>
+              <strong>Formats acceptés :</strong> {GUIDE_ACCES_FORMATS_LABEL} • <strong>Taille max :</strong> {GUIDE_ACCES_TAILLES_LABEL}              </p>
             </div>
 
             <form onSubmit={sendMessage} className="flex items-center gap-2">
               <input
                 type="file"
                 ref={fileInputRef}
-                accept=".mp4,.webm,.mov,.mp3,.wav,.m4a,video/*,audio/*"
+                accept={GUIDE_ACCES_ACCEPT}
                 onChange={handleFileSelect}
                 className="hidden"
                 id="video-upload"

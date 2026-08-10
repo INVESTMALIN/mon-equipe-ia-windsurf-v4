@@ -1354,6 +1354,15 @@ export const initialFormData = {
     // Conseils supplémentaires
     conseils_voyageurs: "", // Conseils spécifiques pour faciliter l'arrivée
 
+    // 🤖 Guide rédigé par l'agent guide d'accès depuis la vidéo téléversée
+    // (cf. components/fiche/AgentGuideAcces + lib/guideAccesAgent). Déclarés ici pour
+    // un aller-retour propre save/load ; la VIDÉO, elle, n'est stockée nulle part.
+    // ⚠️ Ces deux clés sont explicitement EXCLUES du PDF de la fiche (cf. CHAMPS_HORS_PDF
+    // dans lib/PdfBuilder) : le rendu PDF est générique, sans cette exclusion le guide
+    // sortirait dans le document. Son intégration fera l'objet d'un travail dédié.
+    guide_genere: "",
+    guide_genere_at: "",
+
     // Photos rappels (version lite)
     photos_rappels: {
       photos_etapes_acces_taken: false,
