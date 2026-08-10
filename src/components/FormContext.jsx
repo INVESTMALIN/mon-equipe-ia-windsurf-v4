@@ -316,27 +316,47 @@ export function FormProvider({ children }) {
     setSaveStatus({ saving: false, saved: false, error: null })
   }, [])
 
+  // Même chaîne que handleSave : la finalisation écrit la ligne ENTIÈRE, statut compris.
+  // Hors chaîne, une sauvegarde encore en vol (auto-save, ou persistance d'un agent) —
+  // qui porte le statut « Brouillon » — pouvait terminer après elle et défaire le
+  // passage en « Complété ».
   const finaliserFiche = useCallback(async () => {
-    setSaveStatus({ saving: true, saved: false, error: null })
+    const executer = async () => {
+      setSaveStatus({ saving: true, saved: false, error: null })
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      const updatedFormData = { ...formData, statut: 'Complété' }
-      const result = await saveFiche(updatedFormData, user.id)
+      try {
+        const { data: { user: utilisateur } } = await supabase.auth.getUser()
+        const updatedFormData = { ...formDataRef.current, statut: 'Complété' }
+        const result = await saveFiche(updatedFormData, utilisateur.id)
 
-      if (result.success) {
-        setFormData(result.data)
-        setSaveStatus({ saving: false, saved: true, error: null })
-        return { success: true }
-      } else {
-        setSaveStatus({ saving: false, saved: false, error: result.message })
-        return { success: false, error: result.message }
+        if (result.success) {
+          // Même règle que handleSave : on fusionne, on ne remplace pas.
+          const champsServeur = {
+            statut: 'Complété',
+            id: result.data.id,
+            user_id: result.data.user_id,
+            created_at: result.data.created_at,
+            updated_at: result.data.updated_at,
+            fields_locked: result.data.fields_locked
+          }
+          formDataRef.current = { ...formDataRef.current, ...champsServeur }
+          setFormData(prev => ({ ...prev, ...champsServeur }))
+          setSaveStatus({ saving: false, saved: true, error: null })
+          return { success: true }
+        } else {
+          setSaveStatus({ saving: false, saved: false, error: result.message })
+          return { success: false, error: result.message }
+        }
+      } catch (error) {
+        setSaveStatus({ saving: false, saved: false, error: error.message })
+        return { success: false, error: error.message }
       }
-    } catch (error) {
-      setSaveStatus({ saving: false, saved: false, error: error.message })
-      return { success: false, error: error.message }
     }
-  }, [formData])
+
+    const enCours = saveChainRef.current.then(executer, executer)
+    saveChainRef.current = enCours.then(() => {}, () => {})
+    return enCours
+  }, [])
 
   // ── Verrou d'identité du bien (cf. lib/lockedFields + trigger DB) ──────────────
   const isFicheLocked = !!formData.fields_locked

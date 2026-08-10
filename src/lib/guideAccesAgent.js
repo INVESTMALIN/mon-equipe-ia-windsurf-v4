@@ -133,7 +133,16 @@ export async function genererGuideAcces({
 
     const responseData = JSON.parse(responseText)
     const data = Array.isArray(responseData) ? responseData[0] : responseData
-    return data.data?.output || data.output || data.response || 'Aucune réponse reçue.'
+    const sortie = data?.data?.output || data?.output || data?.response
+
+    // Un JSON valide mais sans champ de sortie (ex. `{}`) est un ÉCHEC, pas un guide.
+    // Renvoyer un texte de remplacement le ferait passer pour un succès : le bloc
+    // inline l'écrirait par-dessus le guide existant, horodaté et persisté.
+    if (typeof sortie !== 'string' || !sortie.trim()) {
+      throw new Error('Le webhook a répondu sans guide exploitable')
+    }
+
+    return sortie
   } finally {
     clearTimeout(timeoutId)
   }
