@@ -13,7 +13,7 @@
 //   dans la même session le fichier est encore en mémoire, après réouverture il ne l'est plus.
 // ⚠️ `guide_genere` / `guide_genere_at` sont explicitement EXCLUS du PDF de la fiche
 //   (cf. CHAMPS_HORS_PDF dans lib/PdfBuilder) : leur intégration fera l'objet d'un travail dédié.
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Video, Wand2, RefreshCw, X, Copy, Check, AlertCircle } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useForm } from '../FormContext'
@@ -41,7 +41,7 @@ function formatHorodatage(iso) {
 }
 
 export default function AgentGuideAcces() {
-  const { formData, getField, updateField } = useForm()
+  const { formData, getField, updateField, handleSave } = useForm()
 
   const [selectedFile, setSelectedFile] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -54,6 +54,52 @@ export default function AgentGuideAcces() {
   // de tous les utilisateurs — dans la même session n8n, et la mémoire du workflow
   // ferait fuiter les détails d'accès d'un logement dans le guide d'un autre.
   const [brouillonId] = useState(() => uuidv4())
+
+  // Demande de persistance immédiate, honorée par l'effet ci-dessous.
+  // Pourquoi un effet et non un `await` dans handleGenerate : la génération dure
+  // plusieurs minutes, pendant lesquelles la fiche continue de vivre (l'utilisateur
+  // édite les champs d'accès, l'auto-save peut créer la ligne et donc l'id). Écrire
+  // depuis handleGenerate écrirait le `formData` CAPTURÉ AU LANCEMENT — écrasant les
+  // saisies faites entre-temps et ignorant l'id apparu depuis. L'effet, lui, s'exécute
+  // au rendu qui suit et lit l'état à jour, guide compris.
+  const [aPersister, setAPersister] = useState(0)
+  const dernierePersistanceRef = useRef(0)
+
+  useEffect(() => {
+    // Ref et non state : StrictMode double-invoque les effets en dev, et la seconde
+    // invocation verrait encore l'ancien state → double écriture (voire double INSERT
+    // sur une fiche sans id).
+    if (!aPersister || dernierePersistanceRef.current === aPersister) return
+    dernierePersistanceRef.current = aPersister
+
+    ;(async () => {
+      try {
+        if (formData?.id) {
+          // Update CIBLÉ sur la seule colonne concernée, comme lockFiche.
+          const { error: erreurSave } = await supabase
+            .from('fiche_lite')
+            .update({
+              section_guide_acces: formData.section_guide_acces,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', formData.id)
+          if (erreurSave) throw erreurSave
+        } else {
+          // Fiche jamais enregistrée (création directe `/fiche` sans id, ouverte aux
+          // rôles non fiche_lite) : pas de ligne à mettre à jour. handleSave l'INSÈRE
+          // complètement — il lit le formData courant, guide inclus.
+          const res = await handleSave()
+          if (!res?.success) throw new Error(res?.error || 'échec inconnu')
+        }
+      } catch (e) {
+        // Le guide reste affiché (il a coûté cher), mais on le dit franchement plutôt
+        // que de laisser croire qu'il est en sécurité.
+        setError(
+          `Guide généré mais NON enregistré (${e?.message || 'erreur inconnue'}). Copiez-le avant de quitter la page.`
+        )
+      }
+    })()
+  }, [aPersister, formData, handleSave])
 
   const guide = getField('section_guide_acces.guide_genere') || ''
   const genereLe = formatHorodatage(getField('section_guide_acces.guide_genere_at'))
@@ -101,40 +147,14 @@ export default function AgentGuideAcces() {
         context: extractFicheContext(formData),
       })
 
-      const genereAt = new Date().toISOString()
-
-      // Persistance IMMÉDIATE, sans attendre l'auto-save : celui-ci est débounced à 5 s
-      // et son timer est annulé au démontage du provider. Quitter l'écran juste après la
-      // génération perdrait un résultat coûteux (plusieurs minutes de transcription).
-      //
-      // Update CIBLÉ sur la seule colonne section_guide_acces, comme lockFiche : on
-      // n'appelle PAS handleSave, qui capture un formData antérieur aux écritures
-      // ci-dessous et dont le setFormData(result.data) écraserait le guide.
-      if (formData?.id) {
-        const { error: erreurSave } = await supabase
-          .from('fiche_lite')
-          .update({
-            section_guide_acces: {
-              ...(formData.section_guide_acces || {}),
-              guide_genere: texte,
-              guide_genere_at: genereAt,
-            },
-            updated_at: genereAt,
-          })
-          .eq('id', formData.id)
-        // Échec d'enregistrement : le guide reste affiché (il a coûté cher), mais on le
-        // dit franchement plutôt que de laisser croire qu'il est en sécurité.
-        if (erreurSave) {
-          setError(
-            `Guide généré mais NON enregistré (${erreurSave.message}). Copiez-le avant de quitter la page.`
-          )
-        }
-      }
-
-      // État local (et, pour une fiche sans id encore, seul vecteur de persistance :
-      // l'auto-save créera la ligne avec le guide dedans).
+      // État local d'abord, puis demande de persistance IMMÉDIATE : les trois setState
+      // sont groupés par React, donc l'effet ci-dessus s'exécute sur un formData qui
+      // porte déjà le guide. On n'attend pas l'auto-save, débounced à 5 s et dont le
+      // timer est annulé au démontage : quitter l'écran juste après la génération
+      // perdrait un résultat qui coûte plusieurs minutes de transcription.
       updateField('section_guide_acces.guide_genere', texte)
-      updateField('section_guide_acces.guide_genere_at', genereAt)
+      updateField('section_guide_acces.guide_genere_at', new Date().toISOString())
+      setAPersister((n) => n + 1)
       removeFile()
     } catch (e) {
       setError(guideAccesErrorMessage(e))
