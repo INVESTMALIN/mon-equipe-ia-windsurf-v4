@@ -16,6 +16,7 @@
 
 import { formatForPdf } from './PdfFormatter'
 import { initialFormData } from './formDefaults'
+import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
 import pdfMake from 'pdfmake/build/pdfmake.js'
 import pdfFonts from 'pdfmake/build/vfs_fonts.js'
 import { createElement } from 'react'
@@ -23,7 +24,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import {
   User, Home, Star, Key, Building2, Globe, Scale, ClipboardCheck, Shirt, Plug,
   ShoppingBasket, Sparkles, DoorOpen, BedDouble, Bath, Refrigerator, Utensils, Sofa, Trees,
-  Building, Laptop, Baby, MapPin, ShieldCheck, FileText,
+  Building, Laptop, Baby, MapPin, ShieldCheck, FileText, Wand2,
 } from 'lucide-react'
 
 // Initialiser les polices pour pdfmake (version robuste)
@@ -97,6 +98,11 @@ const STYLES = {
   damagedText: { fontSize: 9.5, color: PALETTE.amber },
   footerText: { fontSize: 8, color: PALETTE.footer },
   empty: { fontSize: 11, italics: true, color: PALETTE.label, alignment: 'center' },
+  // Récapitulatif final : même palette et mêmes tailles que la fiche. Le bandeau est
+  // plus discret que celui de couverture — c'est une partie du document, pas sa une.
+  recapBannerTitle: { fontSize: 16, bold: true, color: PALETTE.white },
+  recapIntro: { fontSize: 9, italics: true, color: PALETTE.label },
+  recapGuide: { fontSize: 9.5, color: PALETTE.text },
 }
 
 const BANNER_LAYOUT = {
@@ -149,13 +155,13 @@ const isSameAsDefault = (a, b) => {
   return false
 }
 
-// Champs stockés dans une section mais VOLONTAIREMENT absents du PDF.
-// buildSectionNodes rend GÉNÉRIQUEMENT toutes les clés d'une section : sans cette
-// liste, toute nouvelle clé peuplée sort dans le document sans que personne l'ait
-// décidé. C'est le cas du guide rédigé par l'agent guide d'accès, qui est un livrable
-// distinct (destiné aux voyageurs) : son intégration au PDF fera l'objet d'un travail
-// dédié, avec une mise en page choisie plutôt qu'un bloc de texte déversé en fin de
-// section.
+// Champs stockés dans une section mais VOLONTAIREMENT absents du rendu générique des
+// sections. buildSectionNodes rend TOUTES les clés d'une section : sans cette liste,
+// toute nouvelle clé peuplée sort dans le document sans que personne l'ait décidé.
+//
+// Le guide d'accès généré est rendu — mais UNIQUEMENT dans le récapitulatif final
+// (cf. buildRecapNodes), avec une mise en page choisie. C'est cette liste qui garantit
+// qu'il n'apparaît pas AUSSI, brut, au milieu de la section « Guide d'accès ».
 const CHAMPS_HORS_PDF = {
   section_guide_acces: ['guide_genere', 'guide_genere_at'],
 }
@@ -340,6 +346,152 @@ function buildSectionNodes(sectionKey, donnees) {
   return nodes
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// Récapitulatif final — contenus produits par les agents.
+//
+// Partie DISTINCTE des sections d'inspection : elle démarre sur une nouvelle page,
+// sous son propre bandeau. Ce n'est pas une 25e section de la fiche, c'est ce que le
+// concierge a fait produire pour ce bien.
+//
+// Les deux sources ne sont pas rangées au même endroit :
+//   - le guide d'accès vit DANS la fiche (section_guide_acces.guide_genere) ;
+//   - les annonces vivent dans la table agent_outputs, une ligne par fiche ×
+//     plateforme, donc chargées en amont et passées à buildDocDefinition (qui reste
+//     pure et synchrone — cf. sa doc).
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** En-tête de sous-partie du récap : même traitement que les titres de section. */
+function enTeteRecap(icone, titre) {
+  return {
+    headlineLevel: 1,
+    columns: [
+      { svg: iconSvg(icone, PALETTE.gold), width: 15 },
+      { text: titre, style: 'sectionTitle', margin: [7, 1, 0, 0] },
+    ],
+    margin: [0, 14, 0, 6],
+  }
+}
+
+/** Champs d'une annonce → nœuds, dans l'ordre du descripteur partagé. */
+function noeudsAnnonce(donnees, plateforme) {
+  const nodes = []
+
+  CHAMPS_ANNONCE[plateforme].forEach((champ) => {
+    const valeur = valeurChamp(donnees, champ)
+    if (valeur === null) return
+
+    if (champ.type === 'liste_ordonnee') {
+      nodes.push({
+        stack: [
+          { text: champ.libelle, style: 'blockLabel' },
+          { ol: valeur, style: 'bulletText' },
+        ],
+        margin: [0, 0, 0, 8],
+      })
+    } else if (champ.type === 'nombre') {
+      nodes.push({
+        text: [
+          { text: `${champ.libelle} : `, style: 'blockLabel' },
+          { text: String(valeur), style: 'bulletText' },
+        ],
+        margin: [0, 0, 0, 8],
+      })
+    } else if (champ.type === 'mentions') {
+      nodes.push({
+        stack: [
+          { text: champ.libelle, style: 'blockLabel' },
+          { ul: valeur, style: 'bulletText' },
+        ],
+        margin: [0, 0, 0, 8],
+      })
+    } else {
+      nodes.push({
+        stack: [
+          { text: champ.libelle, style: 'blockLabel' },
+          { text: valeur, style: 'paragraphText' },
+        ],
+        margin: [0, 0, 0, 8],
+      })
+    }
+  })
+
+  return nodes
+}
+
+/**
+ * Construit le récapitulatif. Renvoie [] si RIEN n'a été généré pour ce bien : pas
+ * d'annonce, pas de guide → pas de partie récap, pas de page en plus.
+ *
+ * @param {Array<{plateforme: string, output_assemble: Object}>} annonces
+ * @param {string} guide - texte du guide d'accès généré
+ */
+function buildRecapNodes(annonces, guide) {
+  const blocs = []
+
+  // Ordre fixe airbnb puis booking, quel que soit l'ordre de chargement : deux PDF
+  // de la même fiche doivent se ressembler.
+  const ordre = ['airbnb', 'booking']
+  ordre.forEach((plateforme) => {
+    const ligne = (annonces || []).find((a) => a?.plateforme === plateforme)
+    const donnees = ligne?.output_assemble?.[plateforme]
+    if (!donnees) return
+    const nodes = noeudsAnnonce(donnees, plateforme)
+    if (!nodes.length) return
+    blocs.push(
+      enTeteRecap(plateforme === 'booking' ? Globe : Building2, `Annonce ${PLATEFORME_LABEL[plateforme]}`),
+      ...nodes
+    )
+  })
+
+  const texteGuide = (guide == null ? '' : String(guide)).trim()
+  if (texteGuide) {
+    // « Guide d'accès voyageurs » et non « Guide d'accès » : ce dernier est DÉJÀ le
+    // titre de la section d'inspection (cf. humanizeSectionTitle). Deux parties
+    // homonymes dans le même document, ce serait au lecteur de deviner laquelle est
+    // laquelle.
+    blocs.push(enTeteRecap(MapPin, "Guide d'accès voyageurs"), {
+      // Non justifié, contrairement aux paragraphes de la fiche : le guide est une
+      // suite d'étapes courtes, que la justification étirerait ligne à ligne.
+      text: texteGuide,
+      style: 'recapGuide',
+      margin: [0, 0, 0, 8],
+    })
+  }
+
+  if (!blocs.length) return []
+
+  return [
+    // Bandeau de partie, sur une page neuve : c'est ce qui sépare visuellement le
+    // récapitulatif des sections d'inspection.
+    {
+      pageBreak: 'before',
+      table: {
+        widths: ['*'],
+        body: [[
+          {
+            columns: [
+              { svg: iconSvg(Wand2, PALETTE.white), width: 20 },
+              { text: 'Contenus générés', style: 'recapBannerTitle', margin: [10, 1, 0, 0] },
+            ],
+          },
+        ]],
+      },
+      layout: BANNER_LAYOUT,
+      margin: [0, 0, 0, 0],
+    },
+    {
+      canvas: [{ type: 'rect', x: 0, y: 0, w: CONTENT_WIDTH, h: 3, color: PALETTE.gold }],
+      margin: [0, 0, 0, 10],
+    },
+    {
+      text: "Contenus produits par les agents pour ce bien, à partir de la fiche d'inspection.",
+      style: 'recapIntro',
+      margin: [0, 0, 0, 4],
+    },
+    ...blocs,
+  ]
+}
+
 function metaBox(nomBien, dateStr, filledCount, totalSections) {
   const rows = [
     [{ text: 'Bien', style: 'metaKey' }, { text: nomBien, style: 'metaVal' }],
@@ -359,8 +511,16 @@ function metaBox(nomBien, dateStr, filledCount, totalSections) {
 /**
  * Construit le docDefinition pdfmake (fonction PURE, sans effet de bord).
  * Isolée du téléchargement pour permettre une génération headless (tests).
+ *
+ * @param {Object} formData
+ * @param {Object} [options]
+ * @param {Array<{plateforme: string, output_assemble: Object}>} [options.annonces]
+ *   Lignes agent_outputs de la fiche. Passées EN PARAMÈTRE et non lues ici : les
+ *   annonces vivent en base, la lecture est asynchrone, et cette fonction doit rester
+ *   pure et synchrone (c'est ce qui permet de vérifier le PDF headless). Omises → le
+ *   récapitulatif ne portera que le guide d'accès, s'il existe.
  */
-export const buildDocDefinition = (formData) => {
+export const buildDocDefinition = (formData, options = {}) => {
   const pdfData = formatForPdf(formData)
   const nomBien =
     (formData?.nom || pdfData.sections?.section_logement?.donnees?.nom_logement || '')
@@ -417,6 +577,11 @@ export const buildDocDefinition = (formData) => {
     content.push({ text: 'Aucune donnée saisie pour le moment.', style: 'empty', margin: [0, 24, 0, 0] })
   }
 
+  // Récapitulatif final des contenus générés. Le guide d'accès n'est rendu QU'ICI :
+  // il est exclu du rendu générique des sections (cf. CHAMPS_HORS_PDF), sans quoi il
+  // sortirait deux fois — une fois dans « Guide d'accès », une fois ici.
+  content.push(...buildRecapNodes(options.annonces, formData?.section_guide_acces?.guide_genere))
+
   return {
     pageSize: 'A4',
     pageMargins: [40, 36, 40, 48],
@@ -452,11 +617,11 @@ export const buildPdfFilename = (formData) => {
 }
 
 /**
- * Génère le PDF et déclenche le téléchargement (signature inchangée : appelée
- * telle quelle depuis FicheFinalisation, happy path préservé).
+ * Génère le PDF et déclenche le téléchargement.
+ * `options` est transmis tel quel à buildDocDefinition (cf. options.annonces).
  */
-export const generatePdfClientSide = (formData) => {
-  const docDefinition = buildDocDefinition(formData)
+export const generatePdfClientSide = (formData, options = {}) => {
+  const docDefinition = buildDocDefinition(formData, options)
   pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData))
 }
 

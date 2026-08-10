@@ -241,8 +241,35 @@ export default function FicheFinalisation() {
         return
       }
 
+      // Les annonces ne sont pas dans la fiche : elles vivent dans agent_outputs, une
+      // ligne par plateforme. On les charge ICI (les DEUX, pas seulement la plateforme
+      // affichée) pour que le récapitulatif final du PDF soit complet.
+      //
+      // En cas d'échec de lecture on INTERROMPT, comme pour la sauvegarde : on ne sait
+      // pas si des annonces existent, et livrer un PDF amputé serait d'autant plus
+      // coûteux qu'il fige l'identité du bien pour un fiche_lite.
+      //
+      // L'id est lu sur la RÉPONSE de la sauvegarde, pas sur `formData` : la fermeture
+      // de cette fonction date d'avant l'appel, donc sur une fiche jamais enregistrée
+      // elle porterait encore `id: null`.
+      const ficheId = saveRes?.data?.id || formData.id
+      let annonces = []
+      if (ficheId) {
+        const { data: lignesAnnonces, error: erreurAnnonces } = await supabase
+          .from('agent_outputs')
+          .select('plateforme, output_assemble, statut')
+          .eq('fiche_id', ficheId)
+        if (erreurAnnonces) {
+          alert("Impossible de charger les annonces générées pour les joindre au PDF. Réessayez.")
+          return
+        }
+        // Même prédicat que l'affichage : une ligne en 'erreur' ou sans sortie n'est
+        // pas une annonce, on ne la joint pas.
+        annonces = (lignesAnnonces || []).filter((l) => l.statut !== 'erreur' && l.output_assemble)
+      }
+
       // PDF D'ABORD (client-side, synchrone), PUIS le verrou — jamais de lock sans PDF.
-      generatePdfClientSide(formData)
+      generatePdfClientSide(formData, { annonces })
       setPdfGenerated(true)
       if (withLock) {
         const res = await lockFiche()
