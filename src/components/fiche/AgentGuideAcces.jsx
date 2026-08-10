@@ -17,7 +17,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Video, Wand2, RefreshCw, X, Copy, Check, AlertCircle } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useForm } from '../FormContext'
-import { supabase } from '../../supabaseClient'
 import { extractFicheContext } from '../../lib/ficheContextHelper'
 import {
   GUIDE_ACCES_ACCEPT,
@@ -56,50 +55,31 @@ export default function AgentGuideAcces() {
   const [brouillonId] = useState(() => uuidv4())
 
   // Demande de persistance immédiate, honorée par l'effet ci-dessous.
-  // Pourquoi un effet et non un `await` dans handleGenerate : la génération dure
-  // plusieurs minutes, pendant lesquelles la fiche continue de vivre (l'utilisateur
-  // édite les champs d'accès, l'auto-save peut créer la ligne et donc l'id). Écrire
-  // depuis handleGenerate écrirait le `formData` CAPTURÉ AU LANCEMENT — écrasant les
-  // saisies faites entre-temps et ignorant l'id apparu depuis. L'effet, lui, s'exécute
-  // au rendu qui suit et lit l'état à jour, guide compris.
+  // Pourquoi un effet et non un `await` dans handleGenerate : les deux `updateField`
+  // ne sont visibles qu'au rendu suivant. L'effet s'exécute là, donc handleSave — qui
+  // lit l'état courant et sérialise les écritures (cf. FormContext) — écrit un état
+  // qui porte déjà le guide, ainsi que ce que l'utilisateur a saisi pendant les
+  // minutes de génération.
   const [aPersister, setAPersister] = useState(0)
   const dernierePersistanceRef = useRef(0)
 
   useEffect(() => {
     // Ref et non state : StrictMode double-invoque les effets en dev, et la seconde
-    // invocation verrait encore l'ancien state → double écriture (voire double INSERT
-    // sur une fiche sans id).
+    // invocation verrait encore l'ancien state → deuxième sauvegarde inutile.
     if (!aPersister || dernierePersistanceRef.current === aPersister) return
     dernierePersistanceRef.current = aPersister
 
     ;(async () => {
-      try {
-        if (formData?.id) {
-          // Update CIBLÉ sur la seule colonne concernée, comme lockFiche.
-          const { error: erreurSave } = await supabase
-            .from('fiche_lite')
-            .update({
-              section_guide_acces: formData.section_guide_acces,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', formData.id)
-          if (erreurSave) throw erreurSave
-        } else {
-          // Fiche jamais enregistrée (création directe `/fiche` sans id, ouverte aux
-          // rôles non fiche_lite) : pas de ligne à mettre à jour. handleSave l'INSÈRE
-          // complètement — il lit le formData courant, guide inclus.
-          const res = await handleSave()
-          if (!res?.success) throw new Error(res?.error || 'échec inconnu')
-        }
-      } catch (e) {
-        // Le guide reste affiché (il a coûté cher), mais on le dit franchement plutôt
-        // que de laisser croire qu'il est en sécurité.
+      const res = await handleSave()
+      // Le guide reste affiché (il a coûté cher), mais on le dit franchement plutôt
+      // que de laisser croire qu'il est en sécurité.
+      if (!res?.success) {
         setError(
-          `Guide généré mais NON enregistré (${e?.message || 'erreur inconnue'}). Copiez-le avant de quitter la page.`
+          `Guide généré mais NON enregistré (${res?.error || 'erreur inconnue'}). Copiez-le avant de quitter la page.`
         )
       }
     })()
-  }, [aPersister, formData, handleSave])
+  }, [aPersister, handleSave])
 
   const guide = getField('section_guide_acces.guide_genere') || ''
   const genereLe = formatHorodatage(getField('section_guide_acces.guide_genere_at'))
