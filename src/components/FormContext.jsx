@@ -92,6 +92,21 @@ export function FormProvider({ children }) {
   const isUserChangeRef = useRef(false)
   const lastSaveRef = useRef(0)
 
+  // Miroir toujours à jour de formData. handleSave le lit AU MOMENT d'écrire, et non
+  // via la fermeture de son useCallback : une sauvegarde déclenchée par un traitement
+  // long (l'agent guide d'accès met plusieurs minutes) écrirait sinon l'état d'il y a
+  // plusieurs minutes, et une sauvegarde mise en file écrirait un état d'avant celle
+  // qui la précède — donc sans l'id que l'INSERT vient d'obtenir.
+  const formDataRef = useRef(formData)
+  useEffect(() => { formDataRef.current = formData }, [formData])
+
+  // Chaîne de sauvegarde : UNE écriture à la fois, dans l'ordre d'appel. Deux
+  // sauvegardes concurrentes (auto-save débounced + sauvegarde explicite) pouvaient
+  // se croiser : la plus ancienne terminait en dernier et réécrasait la plus récente,
+  // et sur une fiche encore sans id les deux prenaient la branche INSERT de saveFiche,
+  // créant deux lignes pour la même fiche.
+  const saveChainRef = useRef(Promise.resolve())
+
   // Miroir de formData.fields_locked pour garder updateField stable (deps []) tout en
   // pouvant refuser une écriture sur un champ verrouillé sans lire un formData périmé.
   const fieldsLockedRef = useRef(false)
@@ -190,39 +205,61 @@ export function FormProvider({ children }) {
   }, [currentStep])
 
   const handleSave = useCallback(async () => {
-    if (!user?.id) {
-      setSaveStatus({ saving: false, saved: false, error: 'Utilisateur non connecté' });
-      return { success: false, error: 'Utilisateur non connecté' };
-    }
-
-    setSaveStatus({ saving: true, saved: false, error: null });
-
-    try {
-      const dataToSave = {
-        ...formData,
-        user_id: user.id,
-        updated_at: new Date().toISOString()
-      };
-
-      const result = await saveFiche(dataToSave, user.id);
-
-      if (result.success) {
-        setFormData(result.data);
-        setSaveStatus({ saving: false, saved: true, error: null });
-        setTimeout(() => {
-          setSaveStatus(prev => ({ ...prev, saved: false }))
-        }, 3000)
-        return { success: true, data: result.data };
-      } else {
-        setSaveStatus({ saving: false, saved: false, error: result.message });
-        return { success: false, error: result.message };
+    const executer = async () => {
+      if (!user?.id) {
+        setSaveStatus({ saving: false, saved: false, error: 'Utilisateur non connecté' });
+        return { success: false, error: 'Utilisateur non connecté' };
       }
-    } catch (error) {
-      const errorMessage = error.message || 'Erreur de connexion';
-      setSaveStatus({ saving: false, saved: false, error: errorMessage });
-      return { success: false, error: errorMessage };
+
+      setSaveStatus({ saving: true, saved: false, error: null });
+
+      try {
+        // État lu MAINTENANT (cf. formDataRef), pas à la création de ce callback.
+        const dataToSave = {
+          ...formDataRef.current,
+          user_id: user.id,
+          updated_at: new Date().toISOString()
+        };
+
+        const result = await saveFiche(dataToSave, user.id);
+
+        if (result.success) {
+          // On ne REMPLACE PAS l'état par la réponse serveur : entre l'envoi et la
+          // réponse, l'utilisateur a pu saisir, ou un agent poser son résultat. Écraser
+          // ferait disparaître ces valeurs de l'écran ET de la sauvegarde suivante. On
+          // ne reprend donc que les champs dont le serveur fait autorité.
+          const champsServeur = {
+            id: result.data.id,
+            user_id: result.data.user_id,
+            created_at: result.data.created_at,
+            updated_at: result.data.updated_at,
+            fields_locked: result.data.fields_locked
+          }
+          // Ref d'abord : une sauvegarde déjà en file doit voir l'id sans attendre le
+          // rendu, sinon elle repart sur un INSERT et duplique la fiche.
+          formDataRef.current = { ...formDataRef.current, ...champsServeur }
+          setFormData(prev => ({ ...prev, ...champsServeur }));
+          setSaveStatus({ saving: false, saved: true, error: null });
+          setTimeout(() => {
+            setSaveStatus(prev => ({ ...prev, saved: false }))
+          }, 3000)
+          return { success: true, data: result.data };
+        } else {
+          setSaveStatus({ saving: false, saved: false, error: result.message });
+          return { success: false, error: result.message };
+        }
+      } catch (error) {
+        const errorMessage = error.message || 'Erreur de connexion';
+        setSaveStatus({ saving: false, saved: false, error: errorMessage });
+        return { success: false, error: errorMessage };
+      }
     }
-  }, [formData, user])
+
+    // Sérialisation : on s'enchaîne à la sauvegarde en cours, succès ou échec.
+    const enCours = saveChainRef.current.then(executer, executer)
+    saveChainRef.current = enCours.then(() => {}, () => {})
+    return enCours
+  }, [user])
 
   // Auto-save automatique avec debounce
   useEffect(() => {
@@ -279,27 +316,47 @@ export function FormProvider({ children }) {
     setSaveStatus({ saving: false, saved: false, error: null })
   }, [])
 
+  // Même chaîne que handleSave : la finalisation écrit la ligne ENTIÈRE, statut compris.
+  // Hors chaîne, une sauvegarde encore en vol (auto-save, ou persistance d'un agent) —
+  // qui porte le statut « Brouillon » — pouvait terminer après elle et défaire le
+  // passage en « Complété ».
   const finaliserFiche = useCallback(async () => {
-    setSaveStatus({ saving: true, saved: false, error: null })
+    const executer = async () => {
+      setSaveStatus({ saving: true, saved: false, error: null })
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      const updatedFormData = { ...formData, statut: 'Complété' }
-      const result = await saveFiche(updatedFormData, user.id)
+      try {
+        const { data: { user: utilisateur } } = await supabase.auth.getUser()
+        const updatedFormData = { ...formDataRef.current, statut: 'Complété' }
+        const result = await saveFiche(updatedFormData, utilisateur.id)
 
-      if (result.success) {
-        setFormData(result.data)
-        setSaveStatus({ saving: false, saved: true, error: null })
-        return { success: true }
-      } else {
-        setSaveStatus({ saving: false, saved: false, error: result.message })
-        return { success: false, error: result.message }
+        if (result.success) {
+          // Même règle que handleSave : on fusionne, on ne remplace pas.
+          const champsServeur = {
+            statut: 'Complété',
+            id: result.data.id,
+            user_id: result.data.user_id,
+            created_at: result.data.created_at,
+            updated_at: result.data.updated_at,
+            fields_locked: result.data.fields_locked
+          }
+          formDataRef.current = { ...formDataRef.current, ...champsServeur }
+          setFormData(prev => ({ ...prev, ...champsServeur }))
+          setSaveStatus({ saving: false, saved: true, error: null })
+          return { success: true }
+        } else {
+          setSaveStatus({ saving: false, saved: false, error: result.message })
+          return { success: false, error: result.message }
+        }
+      } catch (error) {
+        setSaveStatus({ saving: false, saved: false, error: error.message })
+        return { success: false, error: error.message }
       }
-    } catch (error) {
-      setSaveStatus({ saving: false, saved: false, error: error.message })
-      return { success: false, error: error.message }
     }
-  }, [formData])
+
+    const enCours = saveChainRef.current.then(executer, executer)
+    saveChainRef.current = enCours.then(() => {}, () => {})
+    return enCours
+  }, [])
 
   // ── Verrou d'identité du bien (cf. lib/lockedFields + trigger DB) ──────────────
   const isFicheLocked = !!formData.fields_locked

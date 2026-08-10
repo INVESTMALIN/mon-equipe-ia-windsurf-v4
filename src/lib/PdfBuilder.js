@@ -149,6 +149,17 @@ const isSameAsDefault = (a, b) => {
   return false
 }
 
+// Champs stockés dans une section mais VOLONTAIREMENT absents du PDF.
+// buildSectionNodes rend GÉNÉRIQUEMENT toutes les clés d'une section : sans cette
+// liste, toute nouvelle clé peuplée sort dans le document sans que personne l'ait
+// décidé. C'est le cas du guide rédigé par l'agent guide d'accès, qui est un livrable
+// distinct (destiné aux voyageurs) : son intégration au PDF fera l'objet d'un travail
+// dédié, avec une mise en page choisie plutôt qu'un bloc de texte déversé en fin de
+// section.
+const CHAMPS_HORS_PDF = {
+  section_guide_acces: ['guide_genere', 'guide_genere_at'],
+}
+
 const isDefaultValue = (sectionKey, field, value) => {
   const sectionDefaults = initialFormData?.[sectionKey]
   if (!sectionDefaults || !(field in sectionDefaults)) return false
@@ -203,6 +214,9 @@ function buildSectionNodes(sectionKey, donnees) {
   const damaged = []
 
   for (const [field, value] of Object.entries(donnees)) {
+    // Champ volontairement hors PDF (cf. CHAMPS_HORS_PDF) : filtré AVANT tout autre
+    // test, pour qu'aucune valeur ne puisse le contourner.
+    if (CHAMPS_HORS_PDF[sectionKey]?.includes(field)) continue
     if (isEmptyValue(value)) continue
     // Valeur laissée au défaut FormContext (checkbox false, nombre 0, etc.) → non
     // renseignée, on ne la rend pas (cf. isDefaultValue).
