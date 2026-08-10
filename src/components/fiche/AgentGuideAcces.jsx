@@ -15,7 +15,9 @@
 //   (cf. CHAMPS_HORS_PDF dans lib/PdfBuilder) : leur intégration fera l'objet d'un travail dédié.
 import { useRef, useState } from 'react'
 import { Video, Wand2, RefreshCw, X, Copy, Check, AlertCircle } from 'lucide-react'
+import { v4 as uuidv4 } from 'uuid'
 import { useForm } from '../FormContext'
+import { supabase } from '../../supabaseClient'
 import { extractFicheContext } from '../../lib/ficheContextHelper'
 import {
   GUIDE_ACCES_ACCEPT,
@@ -46,6 +48,12 @@ export default function AgentGuideAcces() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
   const fileInputRef = useRef(null)
+
+  // Identifiant de repli pour une fiche pas encore enregistrée (donc sans id) : il doit
+  // être PROPRE À CETTE INSTANCE. Une constante partagée mettrait tous les brouillons —
+  // de tous les utilisateurs — dans la même session n8n, et la mémoire du workflow
+  // ferait fuiter les détails d'accès d'un logement dans le guide d'un autre.
+  const [brouillonId] = useState(() => uuidv4())
 
   const guide = getField('section_guide_acces.guide_genere') || ''
   const genereLe = formatHorodatage(getField('section_guide_acces.guide_genere_at'))
@@ -79,9 +87,12 @@ export default function AgentGuideAcces() {
 
     try {
       // SessionId stable par fiche : le workflow n8n garde la mémoire d'une génération
-      // à l'autre sur le même bien. Repli sur un identifiant neutre tant que la fiche
-      // n'a pas encore d'id (fiche jamais sauvegardée).
-      const sessionId = `fiche_${formData?.id || 'brouillon'}_guide_acces`
+      // à l'autre sur le même bien. Dès que la fiche a un id on s'ancre dessus — c'est
+      // la seule clé stable d'une réouverture à l'autre. Tant qu'elle n'en a pas, repli
+      // sur l'uuid de CETTE instance, jamais sur une constante partagée.
+      const sessionId = formData?.id
+        ? `fiche_${formData.id}_guide_acces`
+        : `brouillon_${brouillonId}_guide_acces`
 
       const texte = await genererGuideAcces({
         sessionId,
@@ -90,11 +101,40 @@ export default function AgentGuideAcces() {
         context: extractFicheContext(formData),
       })
 
-      // Écriture via updateField → l'auto-save du wizard persiste dans le JSONB
-      // section_guide_acces. On n'appelle PAS handleSave ici : il capture un formData
-      // antérieur à ces deux écritures et écraserait le guide qu'on vient de poser.
+      const genereAt = new Date().toISOString()
+
+      // Persistance IMMÉDIATE, sans attendre l'auto-save : celui-ci est débounced à 5 s
+      // et son timer est annulé au démontage du provider. Quitter l'écran juste après la
+      // génération perdrait un résultat coûteux (plusieurs minutes de transcription).
+      //
+      // Update CIBLÉ sur la seule colonne section_guide_acces, comme lockFiche : on
+      // n'appelle PAS handleSave, qui capture un formData antérieur aux écritures
+      // ci-dessous et dont le setFormData(result.data) écraserait le guide.
+      if (formData?.id) {
+        const { error: erreurSave } = await supabase
+          .from('fiche_lite')
+          .update({
+            section_guide_acces: {
+              ...(formData.section_guide_acces || {}),
+              guide_genere: texte,
+              guide_genere_at: genereAt,
+            },
+            updated_at: genereAt,
+          })
+          .eq('id', formData.id)
+        // Échec d'enregistrement : le guide reste affiché (il a coûté cher), mais on le
+        // dit franchement plutôt que de laisser croire qu'il est en sécurité.
+        if (erreurSave) {
+          setError(
+            `Guide généré mais NON enregistré (${erreurSave.message}). Copiez-le avant de quitter la page.`
+          )
+        }
+      }
+
+      // État local (et, pour une fiche sans id encore, seul vecteur de persistance :
+      // l'auto-save créera la ligne avec le guide dedans).
       updateField('section_guide_acces.guide_genere', texte)
-      updateField('section_guide_acces.guide_genere_at', new Date().toISOString())
+      updateField('section_guide_acces.guide_genere_at', genereAt)
       removeFile()
     } catch (e) {
       setError(guideAccesErrorMessage(e))
