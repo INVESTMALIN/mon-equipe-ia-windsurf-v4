@@ -1357,9 +1357,9 @@ export const initialFormData = {
     // 🤖 Guide rédigé par l'agent guide d'accès depuis la vidéo téléversée
     // (cf. components/fiche/AgentGuideAcces + lib/guideAccesAgent). Déclarés ici pour
     // un aller-retour propre save/load ; la VIDÉO, elle, n'est stockée nulle part.
-    // ⚠️ Ces deux clés sont explicitement EXCLUES du PDF de la fiche (cf. CHAMPS_HORS_PDF
-    // dans lib/PdfBuilder) : le rendu PDF est générique, sans cette exclusion le guide
-    // sortirait dans le document. Son intégration fera l'objet d'un travail dédié.
+    // ⚠️ Ces deux clés sont exclues du rendu GÉNÉRIQUE des sections (cf. CHAMPS_HORS_PDF
+    // dans lib/PdfBuilder). Le guide sort bien dans le PDF, mais uniquement dans le
+    // récapitulatif final « Contenus générés » — l'exclusion évite le doublon.
     guide_genere: "",
     guide_genere_at: "",
 

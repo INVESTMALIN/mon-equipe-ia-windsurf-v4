@@ -7,6 +7,7 @@
 
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
+import { CHAMPS_ANNONCE, valeurChamp } from './annonceChamps'
 
 // Initialisation des polices (même pattern robuste que PdfBuilder.js).
 if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
@@ -26,66 +27,33 @@ const slug = (s) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 60) || 'annonce'
 
-/** Bloc « titre de section + corps », ignoré si le corps est vide. */
-function bloc(titre, corps) {
-  const texte = (corps == null ? '' : String(corps)).trim()
-  if (!texte) return []
-  return [
-    { text: titre, style: 'h2', margin: [0, 12, 0, 4] },
-    { text: texte, style: 'body' },
-  ]
-}
-
-/** Mentions réglementaires (objet) → lignes lisibles, seulement si renseignées. */
-function blocReglementation(m) {
-  if (!m) return []
-  const lignes = []
-  if (m.numero_enregistrement) lignes.push(`Numéro d'enregistrement : ${m.numero_enregistrement}`)
-  if (m.dpe_classe) lignes.push(`Classe DPE : ${m.dpe_classe}`)
-  if (m.mention_consommation_excessive) lignes.push(m.mention_consommation_excessive)
-  if (m.estimation_depenses_annuelles) lignes.push(m.estimation_depenses_annuelles)
-  if (!lignes.length) return []
-  return [
-    { text: 'Mentions réglementaires', style: 'h2', margin: [0, 12, 0, 4] },
-    { ul: lignes, style: 'body' },
-  ]
-}
-
-function contenuAirbnb(a) {
+/**
+ * Champs de l'annonce → nœuds pdfmake, dans l'ordre du descripteur partagé
+ * (lib/annonceChamps). La liste des champs est commune au récapitulatif du PDF de
+ * fiche ; la MISE EN FORME ci-dessous reste propre à ce document.
+ */
+function contenuAnnonce(donnees, plateforme) {
   const content = []
-  if (Array.isArray(a.titres) && a.titres.length) {
-    content.push({ text: 'Titres proposés', style: 'h2', margin: [0, 4, 0, 4] })
-    content.push({ ol: a.titres.filter(Boolean), style: 'body' })
-  }
-  if (a.nombre_voyageurs != null) {
-    content.push({ text: `Nombre de voyageurs : ${a.nombre_voyageurs}`, style: 'meta', margin: [0, 6, 0, 0] })
-  }
-  content.push(
-    ...bloc('Description', a.description),
-    ...bloc('Le logement', a.logement),
-    ...bloc('Accès des voyageurs', a.acces_voyageurs),
-    ...bloc('Échanges avec les voyageurs', a.echanges_voyageurs),
-    ...bloc('Le quartier', a.quartier),
-    ...bloc('Comment se déplacer', a.comment_se_deplacer),
-    ...bloc('Autres remarques', a.autres_remarques),
-    ...blocReglementation(a.mentions_reglementaires),
-    ...bloc("Note sur l'état", a.note_etat),
-    ...bloc('Note sur le quartier', a.note_quartier),
-  )
-  return content
-}
 
-function contenuBooking(b) {
-  return [
-    ...bloc('Nom de l’hébergement', b.nom),
-    ...bloc('À propos du logement', b.about_property),
-    ...bloc('À propos du quartier', b.about_neighbourhood),
-    ...bloc('À propos de l’hôte', b.about_host),
-    ...blocReglementation(b.mentions_reglementaires),
-    ...bloc("Note sur l'état", b.note_etat),
-    ...bloc('Note sur le quartier', b.note_quartier),
-    ...bloc('Caméra de surveillance', b.note_camera),
-  ]
+  CHAMPS_ANNONCE[plateforme].forEach((champ) => {
+    const valeur = valeurChamp(donnees, champ)
+    if (valeur === null) return
+
+    if (champ.type === 'liste_ordonnee') {
+      content.push({ text: champ.libelle, style: 'h2', margin: [0, 4, 0, 4] })
+      content.push({ ol: valeur, style: 'body' })
+    } else if (champ.type === 'nombre') {
+      content.push({ text: `${champ.libelle} : ${valeur}`, style: 'meta', margin: [0, 6, 0, 0] })
+    } else if (champ.type === 'mentions') {
+      content.push({ text: champ.libelle, style: 'h2', margin: [0, 12, 0, 4] })
+      content.push({ ul: valeur, style: 'body' })
+    } else {
+      content.push({ text: champ.libelle, style: 'h2', margin: [0, 12, 0, 4] })
+      content.push({ text: valeur, style: 'body' })
+    }
+  })
+
+  return content
 }
 
 /**
@@ -115,7 +83,7 @@ export function generateAnnoncePdf(outputAssemble, plateforme, ficheNom) {
     },
     { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.2, lineColor: DORE }], margin: [0, 0, 0, 12] },
     ...(ficheNom ? [{ text: ficheNom, style: 'sousTitre', margin: [0, 0, 0, 8] }] : []),
-    ...(estBooking ? contenuBooking(data) : contenuAirbnb(data)),
+    ...contenuAnnonce(data, estBooking ? 'booking' : 'airbnb'),
   ]
 
   const docDef = {
