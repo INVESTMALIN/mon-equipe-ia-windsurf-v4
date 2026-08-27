@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, Coins, AlertCircle, FileText, Loader2 } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
+import { NOUVELLE_FICHE_PRESELECTIONS } from '../../lib/formDefaults'
 
 // Modale de confirmation de création (utilisateurs fiche_lite uniquement). UNE modale,
 // pas deux étapes : trois infos claires (coût, solde restant, non remboursé), puis action.
@@ -42,6 +43,24 @@ export default function CreateFicheModal({ isOpen, onClose, balance, onDebited }
       setError('La création a échoué. Réessayez dans un instant.')
       return
     }
+    // Présélections de création (pays = France), posées sur la ligne qu'on vient de
+    // créer et sur elle seule. La RPC insère une ligne nue (user_id, nom, statut) :
+    // sans ce passage, la fiche est ensuite ouverte par son id, donc chargée depuis la
+    // base, et la présélection de `nouvelleFiche()` — qui ne vaut que pour un état
+    // local jamais persisté — n'atteindrait jamais le vrai parcours de création
+    // (cf. review Codex). Les mettre dans `initialFormData` les injecterait au
+    // contraire dans TOUTES les fiches créées avant l'existence du champ.
+    //
+    // Non bloquant : la fiche est déjà créée ET débitée. Un échec ici ne doit pas
+    // faire échouer la création, le coordinateur verra simplement le champ vide.
+    const { error: preselectionError } = await supabase
+      .from('fiche_lite')
+      .update(NOUVELLE_FICHE_PRESELECTIONS)
+      .eq('id', ficheId)
+    if (preselectionError) {
+      console.warn('Présélections de création non appliquées (non bloquant) :', preselectionError)
+    }
+
     onDebited?.() // rafraîchit le solde affiché côté Dashboard
     onClose()
     navigate(`/fiche?id=${ficheId}`)

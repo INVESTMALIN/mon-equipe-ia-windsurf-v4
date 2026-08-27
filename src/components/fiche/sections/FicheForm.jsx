@@ -4,6 +4,7 @@ import { useForm } from '../../FormContext'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
+import { COUNTRY_OPTIONS } from '../../../lib/countries'
 
 const BASE_INPUT = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
 
@@ -170,6 +171,28 @@ export default function FicheForm() {
                         onChange={(e) => handleInputChange('section_proprietaire.adresse.codePostal', e.target.value)}
                       />
                     </div>
+                    {/* Liste déroulante et non saisie libre, à l'identique du repo
+                        coordinateurs : le libellé est lisible, la valeur stockée est
+                        le code à deux lettres.
+                        ⚠️ Volontairement ABSENT de LOCKED_FIELD_PATHS : cette liste
+                        doit rester synchronisée avec la projection SQL
+                        fiche_lite_locked_projection, et ce chantier ne comporte
+                        aucune migration côté Lite. Le pays reste donc modifiable
+                        après génération du PDF, contrairement au reste de l'adresse.
+                        La projection compare, elle ne réécrit pas : aucune donnée
+                        n'est perdue. À reprendre avec le SQL si le verrou doit
+                        couvrir le pays. */}
+                    <select
+                      className={fieldCls('section_proprietaire.adresse.pays')}
+                      value={formData.section_proprietaire.adresse.pays || ''}
+                      onChange={(e) => handleInputChange('section_proprietaire.adresse.pays', e.target.value)}
+                      aria-label="Pays"
+                    >
+                      <option value="">Pays…</option>
+                      {COUNTRY_OPTIONS.map(({ code, label }) => (
+                        <option key={code} value={code}>{label}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

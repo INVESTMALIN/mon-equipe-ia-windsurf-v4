@@ -15,7 +15,8 @@
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
 import { formatForPdf } from './PdfFormatter'
-import { initialFormData } from './formDefaults'
+import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from './formDefaults'
+import { getCountryLabel } from './countries'
 import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
 import pdfMake from 'pdfmake/build/pdfmake.js'
 import pdfFonts from 'pdfmake/build/vfs_fonts.js'
@@ -169,7 +170,29 @@ const CHAMPS_HORS_PDF = {
 const isDefaultValue = (sectionKey, field, value) => {
   const sectionDefaults = initialFormData?.[sectionKey]
   if (!sectionDefaults || !(field in sectionDefaults)) return false
-  return isSameAsDefault(value, sectionDefaults[field])
+  if (isSameAsDefault(value, sectionDefaults[field])) return true
+
+  // Valeur laissee a sa PRE-SELECTION de creation (ex. pays = France) : affichee a
+  // l'ecran, mais pas saisie. Sans ce test, une fiche vierge sortirait une section
+  // « Proprietaire » contenant la seule France, et compterait comme renseignee.
+  //
+  // DEUX formes a reconnaitre, parce que buildSectionNodes est alimente par
+  // formatForPdf, dont cleanFormData retire recursivement les chaines vides :
+  //   - forme NETTOYEE (le cas reel) : { pays: 'FR' }
+  //   - forme BRUTE (appel direct)   : { rue: '', ..., pays: 'FR' }
+  // Ne comparer qu'a la forme brute laissait passer la fiche vierge (cf. review Codex).
+  const preselection = NOUVELLE_FICHE_PRESELECTIONS?.[sectionKey]?.[field]
+  if (preselection) {
+    if (isSameAsDefault(value, preselection)) return true
+    const defaut = sectionDefaults[field]
+    if (defaut && typeof defaut === 'object' && !Array.isArray(defaut)) {
+      // Fusion PAR-DESSUS le defaut : l'ordre des cles est conserve, ce dont depend
+      // la comparaison par JSON.stringify.
+      return isSameAsDefault(value, { ...defaut, ...preselection })
+    }
+  }
+
+  return false
 }
 
 // Aplati un objet imbriqué (sous-formulaire type chambre_1, ou checklist) en puces
@@ -645,6 +668,9 @@ const formatAddress = (adresse) => {
     if (adresse.codePostal) parts.push(adresse.codePostal)
     if (adresse.ville) parts.push(adresse.ville)
   }
+  // Le pays est stocké en code à deux lettres : on rend le libellé, pas "GB".
+  // Les fiches créées avant ce champ n'ont pas la clé : leur adresse est inchangée.
+  if (adresse.pays) parts.push(getCountryLabel(adresse.pays))
 
   return parts.join(', ') || 'Adresse incomplète'
 }

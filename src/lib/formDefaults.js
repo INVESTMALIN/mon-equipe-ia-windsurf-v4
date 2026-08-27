@@ -3,6 +3,27 @@
 // sans side-effect (ni React, ni Supabase). Importe par FormContext.jsx (etat initial)
 // ET par PdfBuilder.js (distinguer une valeur saisie d un defaut). Garder ce module
 // libre de toute dependance runtime pour que le builder PDF reste chargeable headless.
+// (countries.js respecte la meme contrainte : donnees pures, ni React ni Supabase.)
+import { DEFAULT_COUNTRY_CODE } from './countries'
+
+// Valeurs PRE-SELECTIONNEES a la creation d'une fiche : visibles a l'ecran et
+// modifiables, mais que l'utilisateur n'a pas saisies.
+//
+// Volontairement SEPARE d'`initialFormData`, qui sert aussi de socle de fusion au
+// chargement : une preselection placee la-bas serait silencieusement injectee dans
+// toute fiche creee avant l'existence du champ.
+//
+// Deux consommateurs, et les deux comptent :
+//   - FormContext.nouvelleFiche() : etat d'une fiche neuve
+//   - PdfBuilder.isDefaultValue() : une valeur laissee a sa preselection n'est PAS
+//     une saisie. Sans ca, une fiche vierge sortirait une section « Proprietaire —
+//     France » et un taux de completion fausse.
+export const NOUVELLE_FICHE_PRESELECTIONS = {
+  section_proprietaire: {
+    adresse: { pays: DEFAULT_COUNTRY_CODE }
+  }
+}
+
 
 export const initialFormData = {
   id: null,
@@ -23,7 +44,16 @@ export const initialFormData = {
       rue: "",
       complement: "",
       ville: "",
-      codePostal: ""
+      codePostal: "",
+      // ⚠️ VIDE ici volontairement, et pas "FR".
+      // `initialFormData` sert DEUX rôles : etat d'une fiche neuve, et socle de
+      // fusion au chargement (mergeWithDefaults remplit tout scalaire absent).
+      // Un defaut "FR" ici serait donc silencieusement injecte dans TOUTE fiche
+      // creee avant l'existence du champ : le PDF afficherait France et la
+      // sauvegarde suivante le persisterait, meme pour un bien a l'etranger.
+      // Le defaut France est applique au seul chemin "nouvelle fiche"
+      // (voir `nouvelleFiche()` dans FormContext.jsx), ou il est visible et modifiable.
+      pays: ""
     }
   },
 
