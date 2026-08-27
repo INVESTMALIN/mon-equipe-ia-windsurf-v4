@@ -1,8 +1,7 @@
 import { supabase } from '../supabaseClient'
 import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
-import { initialFormData } from '../lib/formDefaults'
-import { DEFAULT_COUNTRY_CODE } from '../lib/countries'
+import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from '../lib/formDefaults'
 import { LOCKED_FIELD_PATHS, isLockedFieldPath } from '../lib/lockedFields'
 
 const FormContext = createContext()
@@ -58,9 +57,7 @@ function isPlainObject(v) {
 // avant l'existence du champ (cf. review Codex). Ici le defaut n'atteint qu'une fiche
 // vierge, ou il est affiche a l'ecran et modifiable.
 function nouvelleFiche() {
-  return mergeWithDefaults(initialFormData, {
-    section_proprietaire: { adresse: { pays: DEFAULT_COUNTRY_CODE } }
-  })
+  return mergeWithDefaults(initialFormData, NOUVELLE_FICHE_PRESELECTIONS)
 }
 
 function mergeWithDefaults(defaults, loaded) {

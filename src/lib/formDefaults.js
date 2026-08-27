@@ -3,6 +3,26 @@
 // sans side-effect (ni React, ni Supabase). Importe par FormContext.jsx (etat initial)
 // ET par PdfBuilder.js (distinguer une valeur saisie d un defaut). Garder ce module
 // libre de toute dependance runtime pour que le builder PDF reste chargeable headless.
+// (countries.js respecte la meme contrainte : donnees pures, ni React ni Supabase.)
+import { DEFAULT_COUNTRY_CODE } from './countries'
+
+// Valeurs PRE-SELECTIONNEES a la creation d'une fiche : visibles a l'ecran et
+// modifiables, mais que l'utilisateur n'a pas saisies.
+//
+// Volontairement SEPARE d'`initialFormData`, qui sert aussi de socle de fusion au
+// chargement : une preselection placee la-bas serait silencieusement injectee dans
+// toute fiche creee avant l'existence du champ.
+//
+// Deux consommateurs, et les deux comptent :
+//   - FormContext.nouvelleFiche() : etat d'une fiche neuve
+//   - PdfBuilder.isDefaultValue() : une valeur laissee a sa preselection n'est PAS
+//     une saisie. Sans ca, une fiche vierge sortirait une section « Proprietaire —
+//     France » et un taux de completion fausse.
+export const NOUVELLE_FICHE_PRESELECTIONS = {
+  section_proprietaire: {
+    adresse: { pays: DEFAULT_COUNTRY_CODE }
+  }
+}
 
 
 export const initialFormData = {

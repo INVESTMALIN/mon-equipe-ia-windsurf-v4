@@ -15,7 +15,7 @@
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
 import { formatForPdf } from './PdfFormatter'
-import { initialFormData } from './formDefaults'
+import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from './formDefaults'
 import { getCountryLabel } from './countries'
 import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
 import pdfMake from 'pdfmake/build/pdfmake.js'
@@ -170,7 +170,19 @@ const CHAMPS_HORS_PDF = {
 const isDefaultValue = (sectionKey, field, value) => {
   const sectionDefaults = initialFormData?.[sectionKey]
   if (!sectionDefaults || !(field in sectionDefaults)) return false
-  return isSameAsDefault(value, sectionDefaults[field])
+  if (isSameAsDefault(value, sectionDefaults[field])) return true
+
+  // Valeur laissee a sa PRE-SELECTION de creation (ex. pays = France) : affichee a
+  // l'ecran, mais pas saisie. Sans ce test, une fiche vierge sortirait une section
+  // « Proprietaire » contenant la seule France, et compterait comme renseignee.
+  // La preselection est fusionnee PAR-DESSUS le defaut : l'ordre des cles est
+  // conserve, ce dont depend la comparaison par JSON.stringify ci-dessus.
+  const preselection = NOUVELLE_FICHE_PRESELECTIONS?.[sectionKey]?.[field]
+  if (preselection && typeof sectionDefaults[field] === 'object' && sectionDefaults[field] !== null) {
+    return isSameAsDefault(value, { ...sectionDefaults[field], ...preselection })
+  }
+
+  return false
 }
 
 // Aplati un objet imbriqué (sous-formulaire type chambre_1, ou checklist) en puces
