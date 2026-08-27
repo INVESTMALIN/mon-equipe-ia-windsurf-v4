@@ -3,6 +3,8 @@
 // sans side-effect (ni React, ni Supabase). Importe par FormContext.jsx (etat initial)
 // ET par PdfBuilder.js (distinguer une valeur saisie d un defaut). Garder ce module
 // libre de toute dependance runtime pour que le builder PDF reste chargeable headless.
+// (countries.js respecte la meme contrainte : donnees pures, ni React ni Supabase.)
+import { DEFAULT_COUNTRY_CODE } from './countries'
 
 export const initialFormData = {
   id: null,
@@ -23,7 +25,9 @@ export const initialFormData = {
       rue: "",
       complement: "",
       ville: "",
-      codePostal: ""
+      codePostal: "",
+      // Défaut AFFICHÉ à l'écran et modifiable, pas un repli silencieux.
+      pays: DEFAULT_COUNTRY_CODE
     }
   },
 

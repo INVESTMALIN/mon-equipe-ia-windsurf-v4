@@ -16,6 +16,7 @@
 
 import { formatForPdf } from './PdfFormatter'
 import { initialFormData } from './formDefaults'
+import { getCountryLabel } from './countries'
 import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
 import pdfMake from 'pdfmake/build/pdfmake.js'
 import pdfFonts from 'pdfmake/build/vfs_fonts.js'
@@ -645,6 +646,9 @@ const formatAddress = (adresse) => {
     if (adresse.codePostal) parts.push(adresse.codePostal)
     if (adresse.ville) parts.push(adresse.ville)
   }
+  // Le pays est stocké en code à deux lettres : on rend le libellé, pas "GB".
+  // Les fiches créées avant ce champ n'ont pas la clé : leur adresse est inchangée.
+  if (adresse.pays) parts.push(getCountryLabel(adresse.pays))
 
   return parts.join(', ') || 'Adresse incomplète'
 }
