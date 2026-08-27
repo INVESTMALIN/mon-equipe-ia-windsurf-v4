@@ -2,6 +2,7 @@ import { supabase } from '../supabaseClient'
 import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { initialFormData } from '../lib/formDefaults'
+import { DEFAULT_COUNTRY_CODE } from '../lib/countries'
 import { LOCKED_FIELD_PATHS, isLockedFieldPath } from '../lib/lockedFields'
 
 const FormContext = createContext()
@@ -51,6 +52,17 @@ function isPlainObject(v) {
   return v !== null && typeof v === 'object' && !Array.isArray(v)
 }
 
+// Etat d'une fiche NEUVE : la structure par defaut, plus les valeurs pre-selectionnees
+// a la creation. Distinct d'`initialFormData`, qui sert aussi de socle de fusion au
+// chargement : y mettre "FR" injecterait silencieusement un pays dans toute fiche creee
+// avant l'existence du champ (cf. review Codex). Ici le defaut n'atteint qu'une fiche
+// vierge, ou il est affiche a l'ecran et modifiable.
+function nouvelleFiche() {
+  return mergeWithDefaults(initialFormData, {
+    section_proprietaire: { adresse: { pays: DEFAULT_COUNTRY_CODE } }
+  })
+}
+
 function mergeWithDefaults(defaults, loaded) {
   if (Array.isArray(defaults)) {
     return loaded === undefined ? [...defaults] : loaded
@@ -77,7 +89,7 @@ function mergeWithDefaults(defaults, loaded) {
 
 export function FormProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [formData, setFormData] = useState(initialFormData)
+  const [formData, setFormData] = useState(nouvelleFiche)
   const [saveStatus, setSaveStatus] = useState({
     saving: false,
     saved: false,
@@ -311,7 +323,7 @@ export function FormProvider({ children }) {
   }, []);
 
   const resetForm = useCallback(() => {
-    setFormData(initialFormData)
+    setFormData(nouvelleFiche())
     setCurrentStep(0) // Reset de l'étape
     setSaveStatus({ saving: false, saved: false, error: null })
   }, [])

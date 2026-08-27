@@ -3,8 +3,7 @@
 // sans side-effect (ni React, ni Supabase). Importe par FormContext.jsx (etat initial)
 // ET par PdfBuilder.js (distinguer une valeur saisie d un defaut). Garder ce module
 // libre de toute dependance runtime pour que le builder PDF reste chargeable headless.
-// (countries.js respecte la meme contrainte : donnees pures, ni React ni Supabase.)
-import { DEFAULT_COUNTRY_CODE } from './countries'
+
 
 export const initialFormData = {
   id: null,
@@ -26,8 +25,15 @@ export const initialFormData = {
       complement: "",
       ville: "",
       codePostal: "",
-      // Défaut AFFICHÉ à l'écran et modifiable, pas un repli silencieux.
-      pays: DEFAULT_COUNTRY_CODE
+      // ⚠️ VIDE ici volontairement, et pas "FR".
+      // `initialFormData` sert DEUX rôles : etat d'une fiche neuve, et socle de
+      // fusion au chargement (mergeWithDefaults remplit tout scalaire absent).
+      // Un defaut "FR" ici serait donc silencieusement injecte dans TOUTE fiche
+      // creee avant l'existence du champ : le PDF afficherait France et la
+      // sauvegarde suivante le persisterait, meme pour un bien a l'etranger.
+      // Le defaut France est applique au seul chemin "nouvelle fiche"
+      // (voir `nouvelleFiche()` dans FormContext.jsx), ou il est visible et modifiable.
+      pays: ""
     }
   },
 
