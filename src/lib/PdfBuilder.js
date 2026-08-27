@@ -175,11 +175,21 @@ const isDefaultValue = (sectionKey, field, value) => {
   // Valeur laissee a sa PRE-SELECTION de creation (ex. pays = France) : affichee a
   // l'ecran, mais pas saisie. Sans ce test, une fiche vierge sortirait une section
   // « Proprietaire » contenant la seule France, et compterait comme renseignee.
-  // La preselection est fusionnee PAR-DESSUS le defaut : l'ordre des cles est
-  // conserve, ce dont depend la comparaison par JSON.stringify ci-dessus.
+  //
+  // DEUX formes a reconnaitre, parce que buildSectionNodes est alimente par
+  // formatForPdf, dont cleanFormData retire recursivement les chaines vides :
+  //   - forme NETTOYEE (le cas reel) : { pays: 'FR' }
+  //   - forme BRUTE (appel direct)   : { rue: '', ..., pays: 'FR' }
+  // Ne comparer qu'a la forme brute laissait passer la fiche vierge (cf. review Codex).
   const preselection = NOUVELLE_FICHE_PRESELECTIONS?.[sectionKey]?.[field]
-  if (preselection && typeof sectionDefaults[field] === 'object' && sectionDefaults[field] !== null) {
-    return isSameAsDefault(value, { ...sectionDefaults[field], ...preselection })
+  if (preselection) {
+    if (isSameAsDefault(value, preselection)) return true
+    const defaut = sectionDefaults[field]
+    if (defaut && typeof defaut === 'object' && !Array.isArray(defaut)) {
+      // Fusion PAR-DESSUS le defaut : l'ordre des cles est conserve, ce dont depend
+      // la comparaison par JSON.stringify.
+      return isSameAsDefault(value, { ...defaut, ...preselection })
+    }
   }
 
   return false
