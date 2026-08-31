@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { APP_URL, requireEnv } from './_lib/env.js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -11,8 +12,8 @@ const supabase = createClient(
 )
 
 // 🔥 IDs Mon Équipe IA (pour metadata)
-const MON_EQUIPE_IA_PRODUCT_ID = 'prod_T4pyi8D8gPloKU'
-const MON_EQUIPE_IA_PRICE_ID = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
+const MON_EQUIPE_IA_PRODUCT_ID = requireEnv('STRIPE_SUBSCRIPTION_PRODUCT_ID')
+const MON_EQUIPE_IA_PRICE_ID = requireEnv('STRIPE_SUBSCRIPTION_PRICE_ID')
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -99,8 +100,8 @@ export default async function handler(req, res) {
       },
 
       // URLs de redirection
-      success_url: `${req.headers.origin || 'https://www.mon-equipe-ia.com'}/mon-compte?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.origin || 'https://www.mon-equipe-ia.com'}/upgrade`,
+      success_url: `${req.headers.origin || APP_URL}/mon-compte?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin || APP_URL}/upgrade`,
 
       // Paramètres pour un meilleur UX
       allow_promotion_codes: true,

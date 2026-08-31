@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { APP_URL } from './_lib/env.js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -119,7 +120,7 @@ export default async function handler(req, res) {
     // 7️⃣ Checkout Session en mode PAYMENT (paiement unique), surtout PAS subscription.
     //    Les metadata servent au webhook : `kind` = marqueur explicite d'achat de crédits,
     //    `credits`/`pack` = source de vérité posée par le serveur (jamais par le navigateur).
-    const origin = req.headers.origin || 'https://www.mon-equipe-ia.com'
+    const origin = req.headers.origin || APP_URL
     const purchaseMetadata = {
       kind: 'credit_purchase',
       user_id: user.id,

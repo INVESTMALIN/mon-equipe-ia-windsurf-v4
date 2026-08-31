@@ -1,5 +1,6 @@
 import { verifyAdmin, supabaseAdmin } from './_lib/verifyAdmin.js'
 import { sendEmail, loginLinkEmail, resetEmail } from './_lib/sendEmail.js'
+import { APP_URL } from './_lib/env.js'
 
 // Routeur unique des opérations admin sur un concierge (lecture détail + écritures),
 // dispatché sur `action`. Regroupé en UN endpoint à dessein : le plan Vercel Hobby
@@ -9,7 +10,6 @@ import { sendEmail, loginLinkEmail, resetEmail } from './_lib/sendEmail.js'
 // Toute action vérifie d'abord l'admin via verifyAdmin ; toutes les écritures passent
 // en service_role. Aucune écriture directe depuis le front sur ces données sensibles.
 
-const APP_URL = process.env.APP_URL || 'https://www.mon-equipe-ia.com'
 
 // Ban « permanent » (100 ans) pour la désactivation Auth. Le ban bloque tout NOUVEAU
 // login et le refresh de token. Le token d'accès déjà émis (stateless) reste valide

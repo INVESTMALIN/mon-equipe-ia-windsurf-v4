@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { APP_URL } from './_lib/env.js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -44,7 +45,9 @@ export default async function handler(req, res) {
     // Créer la session du Customer Portal
     const session = await stripe.billingPortal.sessions.create({
       customer: actualCustomerId,
-      return_url: req.body.return_url || 'https://www.mon-equipe-ia.com/mon-compte'
+      // `|| {}` : sur Vercel le corps est parse d'office, pas ailleurs. Sans ce garde,
+      // un corps absent leverait un TypeError au lieu d'utiliser le repli.
+      return_url: (req.body || {}).return_url || `${APP_URL}/mon-compte`
     })
 
     return res.status(200).json({ url: session.url })
