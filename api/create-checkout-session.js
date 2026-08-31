@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { APP_URL, requireEnv } from './_lib/env.js'
+import { isCustomerFromOtherStripeAccount, OTHER_ACCOUNT_STATUS, OTHER_ACCOUNT_BODY } from './_lib/stripeCustomer.js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -14,6 +15,20 @@ const supabase = createClient(
 // 🔥 IDs Mon Équipe IA (pour metadata)
 const MON_EQUIPE_IA_PRODUCT_ID = requireEnv('STRIPE_SUBSCRIPTION_PRODUCT_ID')
 const MON_EQUIPE_IA_PRICE_ID = requireEnv('STRIPE_SUBSCRIPTION_PRICE_ID')
+
+// Exécute l'appel Stripe et, si l'identifiant stocké vient de l'autre compte, répond
+// une erreur nommée plutôt qu'un 500 opaque. Renvoie null quand la réponse a déjà été
+// envoyée, pour que l'appelant s'arrête.
+async function createSessionOrExplain(res, create) {
+  try {
+    return await create()
+  } catch (err) {
+    if (!isCustomerFromOtherStripeAccount(err)) throw err
+    console.warn('Customer Stripe issu du second compte Stripe - aucune modification en base')
+    res.status(OTHER_ACCOUNT_STATUS).json(OTHER_ACCOUNT_BODY)
+    return null
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -77,7 +92,11 @@ export default async function handler(req, res) {
     }
 
     // Créer la Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    //
+    // Pas de recréation automatique du customer ici, contrairement au parcours crédits :
+    // elle écraserait en base le customer LIVE d'un utilisateur réel par un customer
+    // sandbox, donc le lien vers son abonnement payant. On échoue explicitement.
+    const session = await createSessionOrExplain(res, () => stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       payment_method_types: ['card'],
@@ -106,7 +125,8 @@ export default async function handler(req, res) {
       // Paramètres pour un meilleur UX
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
-    })
+    }))
+    if (!session) return
 
     console.log('✅ Checkout session créée:', session.id)
     return res.status(200).json({ 

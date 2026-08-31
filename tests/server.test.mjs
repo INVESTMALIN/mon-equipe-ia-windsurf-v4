@@ -327,6 +327,41 @@ test('une configuration complète ne signale rien, et le repli Supabase est acce
   assert.deepEqual(missingServerEnv({ ...base, VITE_SUPABASE_URL: 'x' }), [], 'le repli VITE_ doit suffire')
 })
 
+// ───────── Customer Stripe appartenant à l'autre compte (base partagée) ──────
+
+test('le customer issu de l\'autre compte Stripe est reconnu, et lui seul', async () => {
+  const { isCustomerFromOtherStripeAccount, OTHER_ACCOUNT_STATUS } =
+    await import('../api/_lib/stripeCustomer.js')
+
+  assert.equal(isCustomerFromOtherStripeAccount({ code: 'resource_missing', param: 'customer' }), true)
+  // Un `resource_missing` sur un AUTRE paramètre (un prix supprimé, par exemple) ne doit
+  // pas être confondu : il garde le comportement d'erreur existant.
+  assert.equal(isCustomerFromOtherStripeAccount({ code: 'resource_missing', param: 'price' }), false)
+  assert.equal(isCustomerFromOtherStripeAccount({ code: 'card_declined', param: 'customer' }), false)
+  assert.equal(isCustomerFromOtherStripeAccount(undefined), false)
+  assert.equal(OTHER_ACCOUNT_STATUS, 409, 'la requête est valide, c\'est l\'état stocké qui est incompatible')
+})
+
+test('les trois parcours Stripe partagent la même définition du cas', () => {
+  // Fermeture de classe : une seule définition de la condition, sinon les parcours
+  // divergent silencieusement le jour où Stripe change son code d'erreur.
+  for (const name of ['create-checkout-session', 'create-portal-session', 'create-credit-checkout-session']) {
+    const src = readFileSync(path.join('api', `${name}.js`), 'utf8')
+    assert.match(src, /isCustomerFromOtherStripeAccount/, `api/${name}.js doit réutiliser le prédicat partagé`)
+    assert.doesNotMatch(src, /code\s*!==\s*'resource_missing'/, `api/${name}.js ne doit pas redéfinir la condition`)
+  }
+})
+
+test('abonnement et portail ne recréent JAMAIS le customer', () => {
+  // Garde-fou métier : recréer écraserait le stripe_customer_id LIVE d'un utilisateur
+  // réel par un id sandbox, la base étant partagée entre les deux comptes Stripe.
+  for (const name of ['create-checkout-session', 'create-portal-session']) {
+    const src = readFileSync(path.join('api', `${name}.js`), 'utf8')
+    assert.doesNotMatch(src, /createFreshCustomer/,
+      `api/${name}.js ne doit pas recréer de customer : la correspondance Stripe live serait perdue`)
+  }
+})
+
 test('les identifiants Stripe d\'abonnement sont exigés au démarrage', () => {
   assert.ok(REQUIRED_SERVER_ENV.includes('STRIPE_SUBSCRIPTION_PRICE_ID'))
   assert.ok(REQUIRED_SERVER_ENV.includes('STRIPE_SUBSCRIPTION_PRODUCT_ID'))

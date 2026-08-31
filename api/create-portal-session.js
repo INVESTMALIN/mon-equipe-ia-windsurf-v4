@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { APP_URL } from './_lib/env.js'
+import { isCustomerFromOtherStripeAccount, OTHER_ACCOUNT_STATUS, OTHER_ACCOUNT_BODY } from './_lib/stripeCustomer.js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -42,13 +43,22 @@ export default async function handler(req, res) {
 
     const actualCustomerId = data.stripe_customer_id
 
-    // Créer la session du Customer Portal
-    const session = await stripe.billingPortal.sessions.create({
-      customer: actualCustomerId,
-      // `|| {}` : sur Vercel le corps est parse d'office, pas ailleurs. Sans ce garde,
-      // un corps absent leverait un TypeError au lieu d'utiliser le repli.
-      return_url: (req.body || {}).return_url || `${APP_URL}/mon-compte`
-    })
+    // Créer la session du Customer Portal.
+    // Même choix que le parcours abonnement : aucune recréation de customer, qui
+    // écraserait en base l'identifiant de l'autre compte Stripe.
+    let session
+    try {
+      session = await stripe.billingPortal.sessions.create({
+        customer: actualCustomerId,
+        // `|| {}` : sur Vercel le corps est parsé d'office, pas ailleurs. Sans ce garde,
+        // un corps absent lèverait un TypeError au lieu d'utiliser le repli.
+        return_url: (req.body || {}).return_url || `${APP_URL}/mon-compte`
+      })
+    } catch (err) {
+      if (!isCustomerFromOtherStripeAccount(err)) throw err
+      console.warn('Customer Stripe issu du second compte Stripe - aucune modification en base')
+      return res.status(OTHER_ACCOUNT_STATUS).json(OTHER_ACCOUNT_BODY)
+    }
 
     return res.status(200).json({ url: session.url })
   } catch (error) {
