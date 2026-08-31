@@ -17,7 +17,7 @@
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readdirSync, readFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readdirSync, readFileSync, utimesSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { buffer } from 'micro'
@@ -275,6 +275,78 @@ test('aucune compression quand le client ne l\'accepte pas', async () => {
     headers: { 'accept-encoding': 'identity' },
   })
   assert.equal(res.headers.get('content-encoding'), null)
+})
+
+test('un ETag de contenu survit à un redéploiement qui ne change pas le fichier', async () => {
+  const image = path.join(distDir, 'images', 'logo.png')
+  const avant = (await fetch(`${baseUrl}/images/logo.png`)).headers.get('etag')
+  assert.ok(avant, 'un validateur doit être posé')
+
+  // Ce que fait un déploiement Railway : le fichier est réécrit, sa date de modification
+  // change, son contenu non. Un ETag dérivé de mtime changerait ici — et les 7,4 Mo de
+  // public/images seraient retéléchargés à chaque mise en ligne.
+  const futur = new Date(Date.now() + 60_000)
+  utimesSync(image, futur, futur)
+
+  const apres = (await fetch(`${baseUrl}/images/logo.png`)).headers.get('etag')
+  assert.equal(apres, avant, "l'ETag doit dériver du contenu, pas de la date de modification")
+})
+
+test('un client qui a déjà la bonne version reçoit 304', async () => {
+  const first = await fetch(`${baseUrl}/images/logo.png`)
+  const etag = first.headers.get('etag')
+  const second = await fetch(`${baseUrl}/images/logo.png`, { headers: { 'if-none-match': etag } })
+  assert.equal(second.status, 304)
+  assert.equal(second.headers.get('cache-control'), 'public, max-age=3600', 'le 304 doit porter la politique de cache')
+})
+
+test('un contenu différent produit un ETag différent', async () => {
+  const a = (await fetch(`${baseUrl}/images/logo.png`)).headers.get('etag')
+  const b = (await fetch(`${baseUrl}/assets/index-DZ56lhXT.js`)).headers.get('etag')
+  assert.notEqual(a, b)
+})
+
+test('aucun fichier hors du répertoire servi ne peut fuiter', async () => {
+  // On vérifie le CONTENU, pas le statut : une route inconnue répond légitimement 200 +
+  // index.html (repli SPA). Ce qui doit être impossible, c'est de lire un fichier du
+  // dépôt situé hors de dist/.
+  for (const suspect of ['/../package.json', '/..%2Fpackage.json', '/images/../../package.json', '/%2e%2e/package.json']) {
+    const res = await fetch(`${baseUrl}${suspect}`, { redirect: 'manual' })
+    const body = res.status === 200 ? await res.text() : ''
+    assert.doesNotMatch(body, /"dependencies"/, `${suspect} ne doit jamais exposer package.json`)
+    assert.doesNotMatch(body, /mon-equipe-ia-windsurf/, `${suspect} ne doit jamais exposer package.json`)
+  }
+})
+
+// ───────────────────── Statuts d'erreur du parseur JSON ──────────────────────
+
+test('un JSON malformé est un 400, pas un 500', async () => {
+  const res = await fetch(`${baseUrl}/api/admin-list-users`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{ ceci nest pas du json',
+  })
+  assert.equal(res.status, 400, 'écraser ce 400 en 500 ferait passer une requête fautive pour une panne')
+  assert.match(res.headers.get('content-type'), /application\/json/)
+})
+
+test('un corps trop volumineux est un 413, pas un 500', async () => {
+  const res = await fetch(`${baseUrl}/api/admin-list-users`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ blob: 'x'.repeat(1_200_000) }),
+  })
+  assert.equal(res.status, 413)
+})
+
+test('le message d\'erreur ne renvoie jamais le corps reçu', async () => {
+  const res = await fetch(`${baseUrl}/api/admin-list-users`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{"secret_dans_le_corps": ',
+  })
+  const body = await res.text()
+  assert.doesNotMatch(body, /secret_dans_le_corps/, 'err.message peut contenir un fragment du corps')
 })
 
 // ──────────────── Isolation : une route cassée n'emporte pas le reste ────────

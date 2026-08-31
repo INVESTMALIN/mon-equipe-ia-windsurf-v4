@@ -19,7 +19,8 @@
 import express from 'express'
 import compression from 'compression'
 import path from 'node:path'
-import { existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { existsSync, statSync, readFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url))
@@ -138,28 +139,28 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     res.status(404).json({ error: 'Not found', path: req.originalUrl })
   })
 
-  // 6. Statique. `index: false` : la page d'accueil doit passer par le repli SPA
-  //    ci-dessous, qui pose les bons en-têtes de cache.
+  // 6. Validateurs de cache calculés sur le CONTENU, avant le service du statique.
+  //
+  //    L'ETag d'express.static dérive de la taille et de la date de modification. Chaque
+  //    déploiement recrée les fichiers : la date change, donc l'ETag change même à
+  //    contenu identique, et `public/images` (7,4 Mo de PNG non hashés) est retéléchargé
+  //    à chaque mise en ligne. `lastModified: false` ne corrige pas cela — il ne
+  //    supprime qu'un en-tête séparé. Il faut un validateur basé sur le contenu.
+  app.use(createContentEtag(distDir))
+
+  // 7. Statique. `index: false` : la page d'accueil doit passer par le repli SPA
+  //    ci-dessous, qui pose les bons en-têtes de cache. `etag: false` : le validateur
+  //    est déjà posé par le middleware précédent, celui d'Express l'écraserait.
   app.use(express.static(distDir, {
     index: false,
-    etag: true,
-    // L'ETag d'express.static dérive de mtime + taille. Chaque déploiement recrée les
-    // fichiers, donc tous les ETag changeraient à contenu identique — et `public/images`
-    // (7,4 Mo de PNG non hashés) serait retéléchargé à chaque mise en ligne. On
-    // neutralise lastModified et on s'appuie sur les noms hashés.
+    etag: false,
     lastModified: false,
     setHeaders(res, filePath) {
-      if (filePath.endsWith('index.html')) {
-        res.setHeader('Cache-Control', 'no-store')
-      } else if (isHashedAsset(filePath)) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-      } else {
-        res.setHeader('Cache-Control', 'public, max-age=3600')
-      }
+      res.setHeader('Cache-Control', cacheControlFor(filePath))
     },
   }))
 
-  // 7. Repli SPA. React Router gère les routes profondes côté client : un accès direct à
+  // 8. Repli SPA. React Router gère les routes profondes côté client : un accès direct à
   //    /admin/users/42 doit servir index.html.
   const indexHtml = path.join(distDir, 'index.html')
   app.use((req, res) => {
@@ -178,18 +179,100 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     res.set('Cache-Control', 'no-store').sendFile(indexHtml)
   })
 
-  // 8. Erreurs. Le gestionnaire par défaut d'Express répond en HTML ; sous /api on veut
+  // 9. Erreurs. Le gestionnaire par défaut d'Express répond en HTML ; sous /api on veut
   //    du JSON, sinon le front casse au parsing au lieu de lire le message.
   app.use((err, req, res, next) => {
-    console.error('[server] erreur non gérée :', err)
     if (res.headersSent) return next(err)
-    if (req.path.startsWith('/api/')) {
-      return res.status(500).json({ error: 'Erreur serveur' })
+
+    // express.json() signale un corps invalide (400) ou trop volumineux (413) via
+    // `err.status`. Les écraser en 500 ferait passer une requête client fautive pour une
+    // panne serveur : l'appelant croirait devoir réessayer, et la supervision compterait
+    // des incidents qui n'en sont pas. On préserve donc les statuts 4xx.
+    const declared = Number(err?.status ?? err?.statusCode)
+    const isClientError = Number.isInteger(declared) && declared >= 400 && declared < 500
+    const status = isClientError ? declared : 500
+
+    // Une erreur client est attendue et journalisée sobrement ; seul un 5xx est un
+    // incident méritant une trace complète.
+    if (isClientError) {
+      console.warn(`[server] requête invalide (${status}) sur ${req.originalUrl}`)
+    } else {
+      console.error('[server] erreur non gérée :', err)
     }
-    res.status(500).type('text/plain').send('Erreur serveur')
+
+    if (req.path.startsWith('/api/')) {
+      // Message générique : `err.message` peut contenir un fragment du corps reçu.
+      return res.status(status).json({
+        error: isClientError ? 'Requête invalide' : 'Erreur serveur',
+      })
+    }
+    res.status(status).type('text/plain').send(isClientError ? 'Requête invalide' : 'Erreur serveur')
   })
 
   return app
+}
+
+// Politique de cache, définie une seule fois : elle sert au service du fichier ET aux
+// réponses 304, qui ne passent pas par express.static.
+function cacheControlFor(filePath) {
+  if (filePath.endsWith('index.html')) return 'no-store'
+  if (isHashedAsset(filePath)) return 'public, max-age=31536000, immutable'
+  return 'public, max-age=3600'
+}
+
+// Pose un ETag fort dérivé du CONTENU, et répond 304 quand le client a déjà la bonne
+// version. Le hachage est paresseux et mis en cache ; la clé de cache inclut taille et
+// date de modification, de sorte qu'un fichier réécrit à l'identique par un déploiement
+// soit rehaché mais produise le MÊME ETag — c'est tout l'objet de la manœuvre.
+function createContentEtag(distDir) {
+  const root = path.resolve(distDir)
+  const cache = new Map()
+
+  return function contentEtag(req, res, next) {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+
+    const filePath = resolveWithin(root, req.path)
+    if (!filePath) return next()
+
+    let stats
+    try {
+      stats = statSync(filePath)
+    } catch {
+      return next() // fichier absent : le repli SPA décide de la suite
+    }
+    if (!stats.isFile()) return next()
+
+    const cached = cache.get(filePath)
+    let etag
+    if (cached && cached.mtimeMs === stats.mtimeMs && cached.size === stats.size) {
+      etag = cached.etag
+    } else {
+      etag = `"${createHash('sha1').update(readFileSync(filePath)).digest('base64')}"`
+      cache.set(filePath, { mtimeMs: stats.mtimeMs, size: stats.size, etag })
+    }
+
+    res.setHeader('ETag', etag)
+    res.setHeader('Cache-Control', cacheControlFor(filePath))
+
+    const ifNoneMatch = req.headers['if-none-match']
+    if (ifNoneMatch && ifNoneMatch.split(',').some((candidate) => candidate.trim() === etag)) {
+      return res.status(304).end()
+    }
+    return next()
+  }
+}
+
+// Empêche qu'un chemin d'URL sorte du répertoire servi (`../`, séquences encodées).
+function resolveWithin(root, urlPath) {
+  let decoded
+  try {
+    decoded = decodeURIComponent(urlPath)
+  } catch {
+    return null // séquence d'échappement invalide
+  }
+  if (decoded.includes('\0')) return null
+  const resolved = path.resolve(root, `.${path.posix.normalize(decoded)}`)
+  return resolved === root || resolved.startsWith(root + path.sep) ? resolved : null
 }
 
 // Les noms produits par Vite portent un hash de contenu (index-DZ56lhXT.js) : leur URL
