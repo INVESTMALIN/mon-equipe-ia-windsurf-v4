@@ -37,7 +37,7 @@ export default function FAQ() {
         {
           id: "rgpd-1",
           question: "Comment mes données sont-elles protégées ?",
-          answer: "Toutes les données sont hébergées dans l’Union Européenne et chiffrées. Nous appliquons les recommandations de la CNIL et respectons le Règlement Général sur la Protection des Données (RGPD)."
+          answer: "Vos données sont chiffrées. La base de données est hébergée dans l’Union Européenne ; l’application, elle, est hébergée aux États-Unis, avec les garanties de transfert prévues par le RGPD. Nous appliquons les recommandations de la CNIL et respectons le Règlement Général sur la Protection des Données (RGPD)."
         },
         {
           id: "rgpd-2",

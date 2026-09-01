@@ -108,7 +108,7 @@ export default function PolitiqueConfidentialite() {
               CARDIN CONCIERGERIE LLP s’engage à prendre toutes les précautions nécessaires afin de préserver la sécurité des données personnelles et notamment qu’elles ne soient pas communiquées à des personnes non autorisées. Si un incident impactant l’intégrité ou la confidentialité des données personnelles est porté à la connaissance de CARDIN CONCIERGERIE LLP, elle s’engage à informer l’utilisateur dans les meilleurs délais et lui communiquer les mesures de corrections prises. Nous ne vendons, ne louons ni ne partageons vos données personnelles avec des tiers, sauf dans les cas suivants:
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2">
-                <li><strong>Prestataires de services :</strong> hébergement (Vercel), base de données (Supabase)</li>
+                <li><strong>Prestataires de services :</strong> hébergement (Railway, avec Vercel en infrastructure de secours), base de données (Supabase)</li>
                 <li><strong>Obligations légales :</strong> si requis par la loi ou les autorités compétentes</li>
                 <li><strong>Sécurité :</strong> pour protéger nos droits et ceux de nos utilisateurs</li>
               </ul>
@@ -131,7 +131,7 @@ export default function PolitiqueConfidentialite() {
                 <li>Authentification sécurisée</li>
                 <li>Accès restreint aux données selon le principe du besoin d'en connaître</li>
                 <li>Surveillance et audit réguliers</li>
-                <li>Hébergement sur des serveurs sécurisés en Europe</li>
+                <li>Hébergement sur des infrastructures sécurisées, la base de données étant située dans l'Union européenne</li>
               </ul>
             </section>
 
@@ -171,7 +171,7 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">10. Transferts internationaux</h2>
               <p className="text-gray-700 leading-relaxed">
-                Vos données peuvent être transférées vers des pays hors de l'Union européenne, notamment vers les États-Unis (Vercel). Ces transferts sont encadrés par des garanties appropriées conformément au RGPD.
+                L'application est hébergée aux États-Unis par Railway Corporation ; la base de données est hébergée dans l'Union européenne par Supabase. Vos données peuvent donc être transférées vers les États-Unis. Ces transferts sont encadrés par des garanties appropriées conformément au RGPD. En cas d'incident technique, l'infrastructure de secours (Vercel Inc.) est également située aux États-Unis.
               </p>
             </section>
 
