@@ -22,7 +22,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { buffer } from 'micro'
 
-import { createApp, API_ROUTES, RAW_BODY_ROUTES, REQUIRED_SERVER_ENV, missingServerEnv } from '../railway-server.mjs'
+import { createApp, API_ROUTES, RAW_BODY_ROUTES, REQUIRED_SERVER_ENV, missingServerEnv, canonicalHostRedirect } from '../railway-server.mjs'
 
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
 
@@ -216,6 +216,103 @@ test('le 405 des handlers est préservé sur une mauvaise méthode', async () =>
 
 test('healthz répond sans dépendance externe', async () => {
   const res = await fetch(`${baseUrl}/healthz`)
+  assert.equal(res.status, 200)
+  assert.equal((await res.json()).status, 'ok')
+})
+
+// ────────────────────────────── Domaine canonique ────────────────────────────
+//
+// L'hôte est simulé par `X-Forwarded-Host` : c'est exactement ce que voit le serveur
+// derrière le proxy de Railway, `trust proxy` étant actif.
+
+test('l\'apex à rediriger est déduit de APP_URL, jamais écrit en dur', () => {
+  assert.deepEqual(
+    canonicalHostRedirect('https://www.mon-equipe-ia.com'),
+    { apex: 'mon-equipe-ia.com', origin: 'https://www.mon-equipe-ia.com' }
+  )
+})
+
+test('aucune redirection là où l\'URL canonique n\'a pas de www', () => {
+  // Staging Railway, développement local et URL illisible : rien n'est monté, donc ces
+  // environnements ne peuvent pas être redirigés par accident.
+  for (const url of [
+    'https://web-staging-a236.up.railway.app',
+    'http://localhost:3000',
+    'https://mon-equipe-ia.com',
+    'pas-une-url',
+    '',
+  ]) {
+    assert.equal(canonicalHostRedirect(url), null, `${url || '(vide)'} ne doit rien monter`)
+  }
+})
+
+test('une requête de lecture sur l\'apex part en 301 vers www', async () => {
+  const res = await fetch(`${baseUrl}/`, {
+    headers: { 'x-forwarded-host': 'mon-equipe-ia.com' },
+    redirect: 'manual',
+  })
+  assert.equal(res.status, 301)
+  assert.equal(res.headers.get('location'), 'https://www.mon-equipe-ia.com/')
+})
+
+test('le chemin et les paramètres de requête sont conservés intégralement', async () => {
+  const cible = '/fiche?id=d8f4a185-8fa0-4520-9edf-06a563224e7d&checkout=success&q=caf%C3%A9%20%26%20th%C3%A9'
+  const res = await fetch(`${baseUrl}${cible}`, {
+    headers: { 'x-forwarded-host': 'mon-equipe-ia.com' },
+    redirect: 'manual',
+  })
+  assert.equal(res.status, 301)
+  assert.equal(res.headers.get('location'), `https://www.mon-equipe-ia.com${cible}`)
+})
+
+test('une écriture sur l\'apex part en 308, qui préserve méthode et corps', async () => {
+  // 301 autoriserait le client à rejouer en GET : un POST signé deviendrait un GET vide
+  // et sa signature serait invalide.
+  const res = await fetch(`${baseUrl}/api/webhook`, {
+    method: 'POST',
+    headers: { 'x-forwarded-host': 'mon-equipe-ia.com', 'content-type': 'application/json' },
+    body: '{"a":1}',
+    redirect: 'manual',
+  })
+  assert.equal(res.status, 308)
+  assert.equal(res.headers.get('location'), 'https://www.mon-equipe-ia.com/api/webhook')
+})
+
+test('www, les domaines Railway, le staging et localhost ne sont jamais redirigés', async () => {
+  const hotes = [
+    'www.mon-equipe-ia.com',
+    'web-staging-a236.up.railway.app',
+    'mon-equipe-ia-windsurf-v4-git-main-julinhios-projects.vercel.app',
+    'localhost:3000',
+    '127.0.0.1',
+  ]
+  for (const host of hotes) {
+    const res = await fetch(`${baseUrl}/`, {
+      headers: { 'x-forwarded-host': host },
+      redirect: 'manual',
+    })
+    assert.equal(res.status, 200, `${host} ne doit pas être redirigé`)
+  }
+})
+
+test('un sous-domaine ressemblant à l\'apex n\'est pas redirigé', async () => {
+  // Comparaison stricte : ni un préfixe, ni un suffixe ne doivent déclencher.
+  for (const host of ['faux-mon-equipe-ia.com', 'mon-equipe-ia.com.attaquant.example']) {
+    const res = await fetch(`${baseUrl}/`, {
+      headers: { 'x-forwarded-host': host },
+      redirect: 'manual',
+    })
+    assert.equal(res.status, 200, `${host} ne doit pas être redirigé`)
+  }
+})
+
+test('la sonde de santé répond même sur l\'apex', async () => {
+  // /healthz est monté avant la redirection : la santé du conteneur ne doit dépendre
+  // d'aucune logique de domaine.
+  const res = await fetch(`${baseUrl}/healthz`, {
+    headers: { 'x-forwarded-host': 'mon-equipe-ia.com' },
+    redirect: 'manual',
+  })
   assert.equal(res.status, 200)
   assert.equal((await res.json()).status, 'ok')
 })
