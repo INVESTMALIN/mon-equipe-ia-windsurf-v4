@@ -1,5 +1,7 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { APP_URL } from './_lib/env.js'
+import { isCustomerFromOtherStripeAccount } from './_lib/stripeCustomer.js'
 
 // Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -119,7 +121,7 @@ export default async function handler(req, res) {
     // 7️⃣ Checkout Session en mode PAYMENT (paiement unique), surtout PAS subscription.
     //    Les metadata servent au webhook : `kind` = marqueur explicite d'achat de crédits,
     //    `credits`/`pack` = source de vérité posée par le serveur (jamais par le navigateur).
-    const origin = req.headers.origin || 'https://www.mon-equipe-ia.com'
+    const origin = req.headers.origin || APP_URL
     const purchaseMetadata = {
       kind: 'credit_purchase',
       user_id: user.id,
@@ -181,7 +183,7 @@ export default async function handler(req, res) {
       // (preview sandbox ↔ prod live partagent la même base). On ne rattrape QUE
       // « ce customer n'existe pas » — toute autre erreur Stripe garde le
       // comportement actuel (remontée au catch global, 500).
-      if (err?.code !== 'resource_missing' || err?.param !== 'customer') {
+      if (!isCustomerFromOtherStripeAccount(err)) {
         throw err
       }
       console.warn(`⚠️ Customer ${customerId} introuvable dans ce compte Stripe — recréation`)

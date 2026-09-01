@@ -14,8 +14,13 @@ export default function MotDePasseOublie() {
     setError('')
     setMessage('')
 
+    // L'origine courante, jamais une URL en dur : le lien de reinitialisation doit
+    // ramener l'utilisateur sur l'environnement d'ou il a fait la demande (local,
+    // staging, production). En dur, un reset demande depuis le staging renvoyait
+    // l'utilisateur en PRODUCTION. Chaque origine doit figurer dans la liste des
+    // "Redirect URLs" de Supabase Auth, sans quoi le lien est refuse.
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://www.mon-equipe-ia.com/nouveau-mot-de-passe'
+      redirectTo: `${window.location.origin}/nouveau-mot-de-passe`
     })
 
     if (error) {

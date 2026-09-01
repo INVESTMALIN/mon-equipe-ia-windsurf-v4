@@ -1,5 +1,6 @@
 import { verifyAdmin, supabaseAdmin } from './_lib/verifyAdmin.js'
 import { sendEmail, invitationEmail } from './_lib/sendEmail.js'
+import { APP_URL } from './_lib/env.js'
 
 // Création d'un compte par l'admin, AVEC choix du monde (deux mondes étanches) :
 //   - world 'fiche_lite'     → rôle fiche_lite, démarre à ZÉRO crédit (aucune ligne
@@ -11,7 +12,6 @@ import { sendEmail, invitationEmail } from './_lib/sendEmail.js'
 // SMTP Auth). Le service_role bypasse la whitelist de rôle du trigger handle_new_user,
 // donc on peut poser 'admin' directement dans le profil.
 
-const APP_URL = process.env.APP_URL || 'https://www.mon-equipe-ia.com'
 
 function addMonths(date, months) {
   const d = new Date(date)

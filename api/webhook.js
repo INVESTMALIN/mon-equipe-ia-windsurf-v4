@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { buffer } from 'micro'
+import { requireEnv } from './_lib/env.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -10,8 +11,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-const MON_EQUIPE_IA_PRODUCT_ID = 'prod_T4pyi8D8gPloKU'
-const MON_EQUIPE_IA_PRICE_ID = 'price_1S8gIcIvBgiHMciNIi9WtP8W'
+// Identifiants de l'abonnement, fournis par l'environnement : le sandbox et le live
+// sont deux comptes Stripe DISTINCTS, donc ces ids y different. Ecrits en dur, ils
+// rendaient tout evenement d'abonnement sandbox invisible du filtre ci-dessous.
+const MON_EQUIPE_IA_PRODUCT_ID = requireEnv('STRIPE_SUBSCRIPTION_PRODUCT_ID')
+const MON_EQUIPE_IA_PRICE_ID = requireEnv('STRIPE_SUBSCRIPTION_PRICE_ID')
 
 // Helper pour vérifier si une subscription contient notre price
 function subscriptionHasOurPrice(subscription) {
