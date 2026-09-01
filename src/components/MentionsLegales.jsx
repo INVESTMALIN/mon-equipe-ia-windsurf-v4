@@ -52,10 +52,13 @@ export default function MentionsLegales() {
               <h2 className="text-2xl font-bold text-black mb-4">Hébergement</h2>
               <p className="text-gray-700 leading-relaxed">
                 Ce site est hébergé par :<br />
-                <strong>Vercel Inc.</strong><br />
-                340 S Lemon Ave #4133<br />
-                Walnut, CA 91789<br />
+                <strong>Railway Corporation</strong><br />
+                548 Market St PMB 68956<br />
+                San Francisco, California 94104<br />
                 États-Unis
+              </p>
+              <p className="text-gray-700 leading-relaxed mt-4">
+                Une infrastructure de secours (Vercel Inc., États-Unis) peut être activée temporairement en cas d'incident technique.
               </p>
             </section>
 
