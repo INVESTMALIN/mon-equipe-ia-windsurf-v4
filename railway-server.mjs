@@ -22,6 +22,10 @@ import path from 'node:path'
 import { createHash } from 'node:crypto'
 import { existsSync, statSync, readFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+// Import statique volontaire, contrairement aux handlers de `api/` : ce module ne lève
+// jamais au chargement (APP_URL a un repli, requireEnv n'est qu'une fonction), il ne peut
+// donc pas emporter le processus.
+import { APP_URL } from './api/_lib/env.js'
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url))
 
@@ -60,6 +64,29 @@ export const REQUIRED_SERVER_ENV = [
   'RESEND_API_KEY',
   'APP_URL',
 ]
+
+// Hôte apex à rediriger vers l'hôte canonique, DÉDUIT de APP_URL plutôt qu'écrit en dur.
+//
+// Conséquence voulue : la redirection ne s'installe que là où l'URL canonique est un
+// `www.<domaine>`. Le staging Railway (`…up.railway.app`) et le développement local
+// (`localhost`) n'ont pas de `www.`, donc aucune redirection n'y est montée — ils ne
+// peuvent pas être touchés par accident, par construction plutôt que par une liste
+// d'exclusions à tenir à jour.
+//
+// Renvoie null quand il n'y a rien à rediriger.
+export function canonicalHostRedirect(appUrl = APP_URL) {
+  let canonical
+  try {
+    canonical = new URL(appUrl)
+  } catch {
+    return null // APP_URL illisible : on ne redirige rien plutôt que de deviner
+  }
+  if (!canonical.hostname.startsWith('www.')) return null
+  return {
+    apex: canonical.hostname.slice('www.'.length),
+    origin: canonical.origin,
+  }
+}
 
 export function missingServerEnv(env = process.env) {
   const missing = REQUIRED_SERVER_ENV.filter((name) => !env[name])
@@ -111,9 +138,28 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     res.set('Cache-Control', 'no-store').json({ status: 'ok' })
   })
 
+  // 2. Domaine canonique. Une requête reçue sur l'apex nu part vers `www`, chemin et
+  //    query préservés. Placé après /healthz pour que la sonde de Railway ne dépende
+  //    jamais de cette logique, et avant tout le reste pour qu'aucune route ne réponde
+  //    sur un hôte non canonique.
+  //
+  //    Le code diffère selon la méthode, et ce n'est pas un détail : un 301 sur un POST
+  //    autorise les clients à le rejouer en GET, en perdant le corps. Une requête signée
+  //    arrivant sur l'apex deviendrait alors un GET vide et une signature invalide.
+  //    308 conserve méthode et corps ; 301, mieux compris des vieux clients et des
+  //    moteurs de recherche, reste réservé aux lectures.
+  const canonical = canonicalHostRedirect()
+  if (canonical) {
+    app.use((req, res, next) => {
+      if (req.hostname !== canonical.apex) return next()
+      const permanent = req.method === 'GET' || req.method === 'HEAD' ? 301 : 308
+      return res.redirect(permanent, canonical.origin + req.originalUrl)
+    })
+  }
+
   app.use(compression())
 
-  // 2. Routes à corps brut — AVANT tout parseur. En Express la première pile qui
+  // 3. Routes à corps brut — AVANT tout parseur. En Express la première pile qui
   //    correspond gagne, donc express.json() plus bas ne les verra jamais. Ne JAMAIS
   //    ajouter express.raw() ici : cela consommerait le flux et `micro.buffer()` du
   //    webhook Stripe resterait suspendu jusqu'au timeout au lieu d'échouer.
@@ -121,17 +167,17 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     mountApiRoute(app, name, loadHandler)
   }
 
-  // 3. Parseur JSON. Sans lui `req.body` vaut undefined et les huit handlers restants
+  // 4. Parseur JSON. Sans lui `req.body` vaut undefined et les huit handlers restants
   //    répondent « ... requis » — une panne qui ressemble à un bug applicatif. Limite
   //    alignée sur celle que Vercel appliquait.
   app.use(express.json({ limit: '1mb' }))
 
-  // 4. Les huit autres routes.
+  // 5. Les huit autres routes.
   for (const name of API_ROUTES.filter((n) => !RAW_BODY_ROUTES.has(n))) {
     mountApiRoute(app, name, loadHandler)
   }
 
-  // 5. Garde-fou /api. Sans lui, `/api/inconnu` traverserait jusqu'au repli SPA et
+  // 6. Garde-fou /api. Sans lui, `/api/inconnu` traverserait jusqu'au repli SPA et
   //    renverrait 200 + du HTML : le front ferait `.json()` dessus et casserait sur
   //    « Unexpected token '<' » au lieu de voir un 404. Le passthrough `/api/(.*)` de
   //    vercel.json jouait ce rôle.
@@ -139,7 +185,7 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     res.status(404).json({ error: 'Not found', path: req.originalUrl })
   })
 
-  // 6. Validateurs de cache calculés sur le CONTENU, avant le service du statique.
+  // 7. Validateurs de cache calculés sur le CONTENU, avant le service du statique.
   //
   //    L'ETag d'express.static dérive de la taille et de la date de modification. Chaque
   //    déploiement recrée les fichiers : la date change, donc l'ETag change même à
@@ -148,7 +194,7 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
   //    supprime qu'un en-tête séparé. Il faut un validateur basé sur le contenu.
   app.use(createContentEtag(distDir))
 
-  // 7. Statique. `index: false` : la page d'accueil doit passer par le repli SPA
+  // 8. Statique. `index: false` : la page d'accueil doit passer par le repli SPA
   //    ci-dessous, qui pose les bons en-têtes de cache. `etag: false` : le validateur
   //    est déjà posé par le middleware précédent, celui d'Express l'écraserait.
   app.use(express.static(distDir, {
@@ -160,7 +206,7 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     },
   }))
 
-  // 8. Repli SPA. React Router gère les routes profondes côté client : un accès direct à
+  // 9. Repli SPA. React Router gère les routes profondes côté client : un accès direct à
   //    /admin/users/42 doit servir index.html.
   const indexHtml = path.join(distDir, 'index.html')
   app.use((req, res) => {
@@ -179,7 +225,7 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     res.set('Cache-Control', 'no-store').sendFile(indexHtml)
   })
 
-  // 9. Erreurs. Le gestionnaire par défaut d'Express répond en HTML ; sous /api on veut
+  // 10. Erreurs. Le gestionnaire par défaut d'Express répond en HTML ; sous /api on veut
   //    du JSON, sinon le front casse au parsing au lieu de lire le message.
   app.use((err, req, res, next) => {
     if (res.headersSent) return next(err)
