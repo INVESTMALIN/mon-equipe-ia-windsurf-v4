@@ -229,8 +229,22 @@ export default function FicheFinalisation() {
   // verrou — on ne verrouille JAMAIS sans avoir délivré le PDF. Si le lock échoue après
   // coup, la fiche reste déverrouillée (le pop-up réapparaîtra), pas de lock-sans-PDF.
   const runGeneratePDF = async ({ withLock }) => {
+    // Vrai tant que pdfmake peut encore aboutir alors qu'on a déjà rendu la main à
+    // l'interface (dépassement du délai de garde). Dans ce cas SEULEMENT, le gel de
+    // l'identité doit survivre au `finally` : la remise tardive posera le verrou, et
+    // il ne doit pas verrouiller une identité modifiée entre-temps.
+    let renduPeutEncoreAboutir = false
     try {
       setPdfLoading(true)
+
+      // Gel de l'identité DÈS L'ENTRÉE, avant la moindre attente. La sauvegarde et le
+      // chargement des annonces ci-dessous prennent du temps ; pendant ces deux
+      // attentes, la sidebar reste utilisable et l'utilisateur pouvait modifier le
+      // propriétaire ou l'adresse. `handleSave` a alors capturé l'ancienne identité, le
+      // PDF se construit sur l'ancienne, mais l'auto-save persiste la nouvelle — et la
+      // remise du fichier verrouillerait une identité absente du PDF téléchargé.
+      // Levé dans le `finally`, sauf rendu encore en cours (cf. ci-dessus).
+      setGenerationPdfEnCours(true)
 
       // La sauvegarde ne LÈVE PAS en cas d'échec (retourne { success:false }). Si elle
       // échoue, on interrompt TOUT : pas de PDF (il serait généré depuis des données
@@ -295,20 +309,32 @@ export default function FicheFinalisation() {
       await generatePdfClientSide(formData, {
         annonces,
         onDelivered: async () => {
-          // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
-          // l'instant, `formData.id` de cette fermeture vaut encore null.
-          const res = await enregistrerPdfGenere({ withLock, ficheId })
-          if (!res?.success) {
-            console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
+          try {
+            // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
+            // l'instant, `formData.id` de cette fermeture vaut encore null.
+            const res = await enregistrerPdfGenere({ withLock, ficheId })
+            if (!res?.success) {
+              console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
+            }
+          } finally {
+            // Le rendu a abouti : l'identité peut être relâchée. C'est ici, et non
+            // dans le `finally` de la fonction, que le gel se lève quand la remise
+            // arrive après le délai de garde.
+            setGenerationPdfEnCours(false)
           }
         },
       })
       setPdfGenerated(true)
     } catch (error) {
+      // Dépassement du délai de garde : l'interface reprend la main, mais pdfmake
+      // tourne toujours et peut encore livrer le fichier. On garde l'identité gelée
+      // jusqu'à `onDelivered`, sans quoi une modification faite dans cet intervalle
+      // serait verrouillée alors que le PDF ne la contient pas.
+      renduPeutEncoreAboutir = !!error?.renduEnCours
       console.error('Erreur génération PDF:', error)
       alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
     } finally {
-      setGenerationPdfEnCours(false)
+      if (!renduPeutEncoreAboutir) setGenerationPdfEnCours(false)
       setPdfLoading(false)
     }
   }

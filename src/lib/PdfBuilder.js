@@ -666,10 +666,14 @@ const PDF_RENDU_TIMEOUT_MS = 120000
 export const generatePdfClientSide = (formData, { onDelivered, ...options } = {}) => {
   const docDefinition = buildDocDefinition(formData, options)
   return new Promise((resolve, reject) => {
-    const garde = setTimeout(
-      () => reject(new Error('La génération du PDF n’a pas abouti dans le délai imparti.')),
-      PDF_RENDU_TIMEOUT_MS
-    )
+    const garde = setTimeout(() => {
+      const echec = new Error('La génération du PDF n’a pas abouti dans le délai imparti.')
+      // Le délai n'annule PAS pdfmake : le rendu peut encore aboutir et déclencher
+      // `onDelivered`. L'appelant doit le savoir pour ne pas relâcher trop tôt les
+      // garde-fous qu'il a posés pour la durée de la génération.
+      echec.renduEnCours = true
+      reject(echec)
+    }, PDF_RENDU_TIMEOUT_MS)
     try {
       pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData), () => {
         clearTimeout(garde)
