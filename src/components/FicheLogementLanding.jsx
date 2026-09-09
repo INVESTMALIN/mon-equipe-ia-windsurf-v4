@@ -197,70 +197,76 @@ export default function FicheLogementLanding() {
             donne envie de réserver.
           </p>
 
-          {/* Carte 01 — la fiche */}
-          <article
-            className="relative mt-12 overflow-hidden rounded-3xl border bg-white"
-            style={{ borderColor: FL.line, boxShadow: '0 30px 60px -50px rgba(23,23,20,0.5)' }}
-          >
-            {/* Numéro fantôme calé sur le coin de la carte, pas sur la colonne de texte. */}
-            <span className="absolute right-6 top-5 sm:right-10 sm:top-8">
-              <GhostNumber>01</GhostNumber>
-            </span>
-            <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-12">
-              <div>
-                <Eyebrow>Une fiche logement professionnelle</Eyebrow>
-                <h3
-                  className={`mt-5 ${DISPLAY_SANS}`}
-                  style={{ fontSize: 'clamp(1.5rem, 3vw, 2.1rem)' }}
-                >
-                  Prépare chaque bien avec le même niveau d’exigence.
-                </h3>
-                <p className="mt-5 text-base leading-relaxed" style={{ color: FL.muted }}>
-                  Un parcours guidé, éprouvé par notre équipe, pièce par pièce, pour centraliser tout
-                  ce qu’il faut vérifier, documenter et transmettre.
-                </p>
-                <ul className="mt-7 space-y-3">
-                  {FICHE_POINTS.map((point) => (
-                    <CheckItem key={point}>{point}</CheckItem>
-                  ))}
-                </ul>
+          {/* Les deux missions côte à côte à partir de lg, empilées en dessous.
+              `items-stretch` (défaut de la grille) donne aux deux cartes la même
+              hauteur ; à l'intérieur, `flex-col` + `mt-auto` sur l'aperçu le colle
+              en bas de chaque carte. Les deux aperçus n'ayant pas la même hauteur
+              intrinsèque, c'est ce qui les aligne sans jamais les étirer ni les
+              comprimer : le blanc de réglage est absorbé au-dessus. */}
+          <div className="mt-12 grid gap-6 lg:grid-cols-2 lg:gap-8">
+            {/* Carte 01 — la fiche */}
+            <article
+              className="relative flex flex-col overflow-hidden rounded-3xl border bg-white p-6 sm:p-10"
+              style={{ borderColor: FL.line, boxShadow: '0 30px 60px -50px rgba(23,23,20,0.5)' }}
+            >
+              {/* Numéro fantôme calé sur le coin de la carte, pas sur le texte. */}
+              <span className="absolute right-6 top-5 sm:right-10 sm:top-8">
+                <GhostNumber>01</GhostNumber>
+              </span>
+              {/* `pr-14` réserve la place du numéro : sans elle, l'intitulé passerait
+                  dessous sur les cartes étroites. */}
+              <Eyebrow className="pr-14">Une fiche logement professionnelle</Eyebrow>
+              <h3
+                className={`mt-5 pr-14 ${DISPLAY_SANS}`}
+                style={{ fontSize: 'clamp(1.5rem, 2.2vw, 2.1rem)' }}
+              >
+                Prépare chaque bien avec le même niveau d’exigence.
+              </h3>
+              <p className="mt-5 text-base leading-relaxed" style={{ color: FL.muted }}>
+                Un parcours guidé, éprouvé par notre équipe, pièce par pièce, pour centraliser tout
+                ce qu’il faut vérifier, documenter et transmettre.
+              </p>
+              <ul className="mt-7 space-y-3">
+                {FICHE_POINTS.map((point) => (
+                  <CheckItem key={point}>{point}</CheckItem>
+                ))}
+              </ul>
+
+              <div className="mt-auto pt-8">
+                <FicheProgressPreview />
               </div>
+            </article>
 
-              <FicheProgressPreview />
-            </div>
-          </article>
+            {/* Carte 02 — l'assistant */}
+            <article
+              className="relative flex flex-col overflow-hidden rounded-3xl p-6 sm:p-10"
+              style={{ backgroundColor: FL.ink, boxShadow: '0 40px 70px -55px rgba(23,23,20,0.9)' }}
+            >
+              <span className="absolute right-6 top-5 sm:right-10 sm:top-8">
+                <GhostNumber tone="light">02</GhostNumber>
+              </span>
+              <Eyebrow tone="light" className="pr-14">Assistant de création d’annonces IA</Eyebrow>
+              <h3
+                className={`mt-5 pr-14 text-white ${DISPLAY_SANS}`}
+                style={{ fontSize: 'clamp(1.5rem, 2.2vw, 2.1rem)' }}
+              >
+                Génère mieux qu’un texte générique.
+              </h3>
+              <p className="mt-5 text-base leading-relaxed text-white/65">
+                L’assistant exploite les informations de la fiche et applique les meilleures
+                pratiques identifiées sur les annonces performantes de la courte durée.
+              </p>
+              <ul className="mt-7 space-y-3">
+                {ASSISTANT_POINTS.map((point) => (
+                  <PlusItem key={point}>{point}</PlusItem>
+                ))}
+              </ul>
 
-          {/* Carte 02 — l'assistant */}
-          <article
-            className="relative mt-8 overflow-hidden rounded-3xl"
-            style={{ backgroundColor: FL.ink, boxShadow: '0 40px 70px -55px rgba(23,23,20,0.9)' }}
-          >
-            <span className="absolute right-6 top-5 sm:right-10 sm:top-8">
-              <GhostNumber tone="light">02</GhostNumber>
-            </span>
-            <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-12">
-              <div>
-                <Eyebrow tone="light">Assistant de création d’annonces IA</Eyebrow>
-                <h3
-                  className={`mt-5 text-white ${DISPLAY_SANS}`}
-                  style={{ fontSize: 'clamp(1.5rem, 3vw, 2.1rem)' }}
-                >
-                  Génère mieux qu’un texte générique.
-                </h3>
-                <p className="mt-5 text-base leading-relaxed text-white/65">
-                  L’assistant exploite les informations de la fiche et applique les meilleures
-                  pratiques identifiées sur les annonces performantes de la courte durée.
-                </p>
-                <ul className="mt-7 space-y-3">
-                  {ASSISTANT_POINTS.map((point) => (
-                    <PlusItem key={point}>{point}</PlusItem>
-                  ))}
-                </ul>
+              <div className="mt-auto pt-8">
+                <AnnoncePreview />
               </div>
-
-              <AnnoncePreview />
-            </div>
-          </article>
+            </article>
+          </div>
         </div>
       </section>
 
