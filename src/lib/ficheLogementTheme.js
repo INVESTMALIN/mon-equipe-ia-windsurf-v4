@@ -16,6 +16,15 @@
 // Palette relevée sur la maquette de référence. Seule exception : l'or, aligné sur
 // le doré de marque #dbae61 utilisé partout ailleurs dans Mon Équipe IA plutôt que
 // sur le #d1a84e de la maquette (écart imperceptible, cohérence de marque gagnée).
+//
+// ⚠️ ARBITRAGE ASSUMÉ (09/09/2026, PR #61) — limite WCAG connue et acceptée.
+// `goldDeep` sur les fonds clairs n'atteint pas le ratio de contraste 4.5:1 exigé
+// pour du petit texte : 3.29:1 sur `paper`, 2.84:1 sur `cream` (`muted` sur `cream`
+// est à 4.03:1, même cas). Sur fond `ink` en revanche, goldDeep est à 4.92:1.
+// La palette est conservée TELLE QUELLE, conformément à la direction visuelle
+// validée : ce n'est pas un oubli. Ne pas « corriger » ces valeurs sans arbitrage
+// de Julien — un doré à #7d5a1c passerait partout (5.65:1 / 4.87:1) mais changerait
+// l'identité des trois écrans de l'univers.
 export const FL = {
   paper: '#f6f3eb',
   cream: '#ebe2cf',

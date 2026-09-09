@@ -16,6 +16,14 @@ import { ProductPreview, FicheProgressPreview, AnnoncePreview } from './FicheLog
 // Page vitrine pure : aucun appel réseau, aucune lecture de session. Les seuls
 // chemins qu'elle produit sont /inscription-fiche-logement (parcours fiche_lite)
 // et /connexion-fiche-logement (connexion de l'univers), plus les pages légales.
+//
+// ⚠️ ARBITRAGE ASSUMÉ (09/09/2026, PR #61) — wording « qui convertissent le mieux ».
+// docs/agent-annonce/referentiel-agent-annonce.md sélectionne les 3 565 annonces sur
+// Superhost + note ≥ 4.8 + ≥ 20 avis + top 10 % d'occupation, et note en section
+// « Limites » que l'occupation Inside Airbnb est un proxy de performance dont la
+// corrélation avec la conversion réelle est « forte mais non parfaite ».
+// La formulation est CONSERVÉE telle quelle, conformément au brief éditorial validé.
+// Toute reformulation relève d'Olga, pas d'un ajustement technique.
 
 const SIGNUP_PATH = '/inscription-fiche-logement'
 

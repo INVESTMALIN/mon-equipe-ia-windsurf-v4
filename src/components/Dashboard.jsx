@@ -24,6 +24,14 @@ import {
 import CreateFicheModal from './fiche/CreateFicheModal'
 import DeleteFicheModal from './fiche/DeleteFicheModal'
 
+// Famille visuelle unique des actions de l'en-tête : même hauteur, même arrondi,
+// même graisse, mêmes icônes. Seul le remplissage porte la hiérarchie (doré plein
+// pour l'action principale, contour pour les secondaires).
+const ACTION_BASE =
+  'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors'
+const ACTION_SECONDARY =
+  `${ACTION_BASE} border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900`
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
@@ -44,9 +52,19 @@ export default function Dashboard() {
   // déclenche donc quand `enabled` passe à true.
   const { balance: creditsBalance, refresh: refreshCredits } = useCreditBalance(userProfile?.role === 'fiche_lite')
 
+  // Déconnexion du dashboard. Le bouton n'est rendu QUE pour le rôle fiche_lite
+  // (cf. en-tête plus bas) : on le renvoie donc vers la connexion de SON univers.
+  // Le repli /connexion couvre le cas où le bouton serait un jour rouvert à un
+  // autre rôle.
+  //
+  // ⚠️ On navigue AVANT le signOut, volontairement. ProtectedRoute écoute
+  // `SIGNED_OUT` et redirige de son côté vers /connexion : en signant d'abord, sa
+  // redirection partirait la première et le visiteur verrait passer la connexion
+  // générique avant d'arriver ici. En quittant /dashboard d'abord, ProtectedRoute
+  // est démonté et désabonné quand l'événement arrive, donc une seule redirection.
   const handleLogout = async () => {
+    navigate(userProfile?.role === 'fiche_lite' ? '/connexion-fiche-logement' : '/connexion')
     await supabase.auth.signOut()
-    navigate('/connexion')
   }
 
   useEffect(() => {
@@ -216,33 +234,47 @@ export default function Dashboard() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mes Fiches Logement</h1>
-              <p className="text-gray-600 mt-1">
-                {filteredFiches.length} fiche{filteredFiches.length > 1 ? 's' : ''}
-                {!isFicheLite && ' • Premium actif'}
+              <h1 className="text-2xl font-bold text-gray-900">Mes fiches</h1>
+              {/* Ligne d'état : le nombre de fiches, et pour fiche_lite le solde de
+                  crédits juste à côté. Le solde était un encadré doré dans la barre
+                  d'actions ; il vit mieux ici, en information, à côté de l'autre
+                  compteur — la barre d'actions ne porte plus que des actions. */}
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-600">
+                <span>
+                  {filteredFiches.length} fiche{filteredFiches.length > 1 ? 's' : ''}
+                </span>
+                {isFicheLite ? (
+                  <>
+                    <span aria-hidden="true" className="text-gray-300">·</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-[#dbae61]" />
+                      {creditsBalance ?? '—'} crédit{creditsBalance > 1 ? 's' : ''}
+                    </span>
+                  </>
+                ) : (
+                  <span>• Premium actif</span>
+                )}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Solde de crédits (placeholder partie 2) — fiche_lite uniquement */}
-              {isFicheLite && (
-                <div className="flex items-center gap-2 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] text-[#a07c32] font-semibold px-4 py-2 rounded-xl">
-                  <CreditCard className="w-4 h-4" />
-                  <span>{creditsBalance ?? '—'} crédit{creditsBalance > 1 ? 's' : ''}</span>
-                </div>
-              )}
-
+            {/* Barre d'actions. Une seule famille visuelle : même hauteur (h-11), même
+                arrondi, mêmes icônes 16px. La hiérarchie passe par le remplissage —
+                doré plein pour l'action principale, contour pour les secondaires —
+                pas par des tailles différentes.
+                Mobile : grille 2 colonnes, l'action principale sur toute la largeur
+                et les secondaires côte à côte en dessous. Desktop : une seule rangée. */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
               <button
                 onClick={() => (isFicheLite ? setShowCreateModal(true) : navigate('/fiche'))}
-                className="inline-flex items-center gap-2 bg-[#dbae61] hover:bg-[#c49a4f] text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+                className={`${ACTION_BASE} col-span-2 bg-[#dbae61] text-white hover:bg-[#c49a4f] sm:col-span-1 sm:px-5`}
               >
-                <FileText className="w-4 h-4" />
-                Nouvelle Fiche
+                <FileText className="w-4 h-4 shrink-0" />
+                Nouvelle fiche
                 {isFicheLite && (
                   <span
-                    className="inline-flex items-center gap-1 text-xs font-medium bg-white bg-opacity-20 px-2 py-0.5 rounded-full"
+                    className="inline-flex items-center gap-1 rounded-full bg-white bg-opacity-20 px-2 py-0.5 text-xs font-medium"
                     title="Créer une fiche coûte 1 crédit"
                   >
                     <Coins className="w-3.5 h-3.5" />
@@ -253,34 +285,37 @@ export default function Dashboard() {
 
               {/* fiche_lite : accès à la page crédits. Concierge : retour assistants. */}
               {isFicheLite ? (
-                <button
-                  onClick={() => navigate('/mes-credits')}
-                  className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors"
-                >
-                  <CreditCard className="w-4 h-4 mr-2 inline" />
-                  Recharger mes crédits
+                <button onClick={() => navigate('/mes-credits')} className={ACTION_SECONDARY}>
+                  <CreditCard className="w-4 h-4 shrink-0" />
+                  Recharger
                 </button>
               ) : (
                 <button
                   onClick={() => navigate('/assistants')}
-                  className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors"
+                  className={`${ACTION_SECONDARY} col-span-2 sm:col-span-1`}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2 inline" />
+                  <ArrowLeft className="w-4 h-4 shrink-0" />
                   Retour
                 </button>
               )}
 
-              {/* Déconnexion discrète : icône seule + tooltip. Utile surtout au parcours
-                  fiche_lite (le Dashboard est sa page d'accueil, sinon logout uniquement
-                  depuis /mon-compte). */}
-              <button
-                onClick={handleLogout}
-                title="Se déconnecter"
-                aria-label="Se déconnecter"
-                className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-lg transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
+              {/* Déconnexion réservée à fiche_lite : le dashboard est sa page d'accueil,
+                  il n'a pas d'autre porte de sortie. Un concierge garde la sienne dans
+                  /mon-compte, d'où l'absence du bouton ici pour Premium et Trial.
+                  Libellé visible en mobile (la grille laisse la place), icône seule en
+                  desktop pour ne pas alourdir la rangée — `aria-label` porte le nom
+                  accessible dans les deux cas. */}
+              {isFicheLite && (
+                <button
+                  onClick={handleLogout}
+                  title="Se déconnecter"
+                  aria-label="Se déconnecter"
+                  className={`${ACTION_SECONDARY} sm:w-11 sm:px-0`}
+                >
+                  <LogOut className="w-4 h-4 shrink-0" />
+                  <span className="sm:hidden">Déconnexion</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
