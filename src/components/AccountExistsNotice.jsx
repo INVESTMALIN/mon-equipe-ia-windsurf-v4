@@ -7,8 +7,15 @@ import { Link } from 'react-router-dom'
 // bordure douce, texte normal, CTA en boutons ghost (pas de remplissage plein
 // qui dupliquerait le CTA principal du formulaire).
 // Partagé par les deux flux d'inscription (concierge + fiche_lite) pour garantir
-// une formulation et des CTA STRICTEMENT identiques des deux côtés.
-export default function AccountExistsNotice() {
+// une FORMULATION et des LIBELLÉS de CTA strictement identiques des deux côtés.
+//
+// Seule la destination de « Se connecter » est paramétrable : depuis l'inscription
+// Fiche Logement, renvoyer vers /connexion générique ferait sortir le visiteur de
+// l'univers dont il vient. Le défaut vaut /connexion, donc le parcours concierge
+// est inchangé tant qu'aucun appelant ne passe la prop.
+// « Réinitialiser mon mot de passe » reste commun : /mot-de-passe-oublie est le
+// même écran pour tous les rôles.
+export default function AccountExistsNotice({ loginPath = '/connexion' }) {
   return (
     <div className="bg-[#dbae61] bg-opacity-5 border border-[#dbae61] border-opacity-25 rounded-lg p-4">
       <p className="text-sm text-gray-700 mb-3">
@@ -16,7 +23,7 @@ export default function AccountExistsNotice() {
       </p>
       <div className="flex flex-col sm:flex-row gap-2">
         <Link
-          to="/connexion"
+          to={loginPath}
           className="flex-1 flex items-center justify-center text-center border border-[#dbae61] text-[#a07c32] hover:bg-[#dbae61] hover:bg-opacity-10 text-sm font-medium py-2 px-4 rounded-lg transition-colors"
         >
           Se connecter

@@ -185,7 +185,7 @@ export default function InscriptionFicheLite() {
               </p>
             </div>
 
-            {emailExists && <AccountExistsNotice />}
+            {emailExists && <AccountExistsNotice loginPath="/connexion-fiche-logement" />}
 
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 p-4">
