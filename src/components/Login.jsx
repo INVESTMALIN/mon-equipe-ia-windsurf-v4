@@ -72,7 +72,11 @@ export default function Login({ variant = 'meia' }) {
           eyebrow="Ton espace de préparation"
           title="Reprends là où"
           accent="tu t’es arrêté"
-          text="Tes fiches, tes photos et tes annonces générées restent réunies au même endroit."
+          // « rappels photo » et non « photos » : Lite ne stocke AUCUN fichier, les
+          // champs média du parcours coordinateurs y deviennent des cases à cocher
+          // (cf. src/lib/formDefaults.js et FicheEquipements). Promettre les photos
+          // ici serait un engagement que le produit ne tient pas.
+          text="Tes fiches, tes rappels photo et tes annonces générées restent réunies au même endroit."
           points={[
             'Tes fiches en cours et terminées',
             'Tes annonces Airbnb et Booking',
