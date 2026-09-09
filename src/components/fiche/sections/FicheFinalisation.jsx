@@ -72,7 +72,8 @@ export default function FicheFinalisation() {
     back,
     finaliserFiche,
     isFicheLocked,
-    enregistrerPdfGenere
+    enregistrerPdfGenere,
+    setGenerationPdfEnCours
   } = useForm()
 
   // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
@@ -268,35 +269,46 @@ export default function FicheFinalisation() {
         annonces = (lignesAnnonces || []).filter((l) => l.statut !== 'erreur' && l.output_assemble)
       }
 
-      // PDF D'ABORD, PUIS la trace en base — jamais de verrou ni de preuve sans PDF
-      // délivré. L'`await` est indispensable : `download()` de pdfmake rend la main
-      // avant d'avoir produit le fichier, et la promesse n'est résolue que depuis son
-      // callback. Sans elle, un rendu qui échoue derrière laisserait une preuve — et un
-      // verrou d'identité — pour un PDF que l'utilisateur n'a jamais reçu. Un rejet part
-      // dans le `catch` ci-dessous et rien n'est persisté.
-      await generatePdfClientSide(formData, { annonces })
-      setPdfGenerated(true)
+      // L'identité est gelée pendant TOUTE la génération. Le verrou définitif n'est
+      // posé qu'après la remise du fichier — on ne verrouille jamais un PDF non
+      // délivré — et sans ce gel l'utilisateur pourrait, pendant le rendu, revenir en
+      // arrière et faire persister une autre identité par l'auto-save avant le verrou.
+      // Levé dans le `finally`.
+      setGenerationPdfEnCours(true)
 
-      // Trace persistante de la génération, pour TOUS LES RÔLES (premium inclus) :
-      // c'est elle, et non le verrou, qui fait apparaître le badge « PDF » du
-      // dashboard. Le verrou d'identité n'est posé qu'en plus, et dans le MÊME update
-      // (cf. enregistrerPdfGenere) : pas de fenêtre où l'un serait écrit sans l'autre.
+      // PDF D'ABORD, PUIS la trace en base — jamais de verrou ni de preuve sans PDF
+      // délivré. `download()` de pdfmake rend la main AVANT d'avoir produit le
+      // fichier : la persistance se fait donc dans `onDelivered`, appelé depuis son
+      // callback de fin, après `saveAs`. Elle a lieu même si le délai de garde a
+      // déjà rendu la main à l'interface — un fichier remis en retard reste remis.
       //
-      // ⚠️ Limite assumée : le PDF est construit dans le navigateur et remis à
-      // l'utilisateur ; on ne peut pas savoir si le fichier a réellement été
-      // enregistré sur son disque. Et si cet update échoue après coup, la fiche garde
-      // son PDF sans preuve — badge absent, pop-up de verrou qui réapparaîtra. Le
-      // défaut penche donc du côté du FAUX NÉGATIF, jamais de la fausse promesse.
-      // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
-      // l'instant, `formData.id` de cette fermeture vaut encore null.
-      const res = await enregistrerPdfGenere({ withLock, ficheId })
-      if (!res?.success) {
-        console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
-      }
+      // Cet update écrit `pdf_generated_at` pour TOUS LES RÔLES (premium inclus) :
+      // c'est lui, et non le verrou, qui fait apparaître le badge « PDF » du
+      // dashboard. Le verrou n'est posé qu'en plus, dans le MÊME update — pas de
+      // fenêtre où l'un serait écrit sans l'autre.
+      //
+      // ⚠️ Limite résiduelle : le fichier est remis au navigateur, mais savoir si
+      // l'utilisateur l'a réellement enregistré sur son disque n'est pas observable
+      // depuis une page web. Et si cet update échoue, la fiche garde son PDF sans
+      // preuve — badge absent, pop-up de verrou qui réapparaîtra. Le défaut penche
+      // donc du côté du FAUX NÉGATIF, jamais de la fausse promesse.
+      await generatePdfClientSide(formData, {
+        annonces,
+        onDelivered: async () => {
+          // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
+          // l'instant, `formData.id` de cette fermeture vaut encore null.
+          const res = await enregistrerPdfGenere({ withLock, ficheId })
+          if (!res?.success) {
+            console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
+          }
+        },
+      })
+      setPdfGenerated(true)
     } catch (error) {
       console.error('Erreur génération PDF:', error)
       alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
     } finally {
+      setGenerationPdfEnCours(false)
       setPdfLoading(false)
     }
   }

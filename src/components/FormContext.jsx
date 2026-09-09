@@ -123,6 +123,20 @@ export function FormProvider({ children }) {
     fieldsLockedRef.current = !!formData.fields_locked
   }, [formData.fields_locked])
 
+  // Génération de PDF en cours. Le verrou définitif n'est posé qu'APRÈS la remise du
+  // fichier au navigateur — on ne verrouille jamais un PDF qui n'a pas été délivré.
+  // Entre la construction du document et cette pose, l'identité du bien doit malgré
+  // tout être figée : sans cela l'utilisateur peut revenir en arrière, modifier le
+  // propriétaire ou l'adresse, et l'auto-save (5 s) persiste ces valeurs avant que le
+  // verrou n'arrive. La fiche se retrouverait verrouillée sur une identité que le PDF
+  // déjà téléchargé ne contient pas, et l'écran de finalisation autoriserait un second
+  // PDF sur cette nouvelle identité — exactement le recyclage que le verrou existe pour
+  // empêcher. Une ref, et non un state : `updateField` doit rester stable (deps []).
+  const generationPdfRef = useRef(false)
+  const setGenerationPdfEnCours = useCallback((enCours) => {
+    generationPdfRef.current = !!enCours
+  }, [])
+
   // Récupération utilisateur
   useEffect(() => {
     const getUser = async () => {
@@ -133,9 +147,12 @@ export function FormProvider({ children }) {
   }, [])
 
   const updateField = useCallback((fieldPath, value) => {
-    // Garde défensive : si la fiche est verrouillée, on ignore toute écriture sur un
-    // champ d'identité du bien (en plus du `disabled` des inputs et du trigger DB).
-    if (fieldsLockedRef.current && isLockedFieldPath(fieldPath)) return
+    // Garde défensive : si la fiche est verrouillée — ou si un PDF est en cours de
+    // génération, cf. generationPdfRef — on ignore toute écriture sur un champ
+    // d'identité du bien (en plus du `disabled` des inputs et du trigger DB).
+    // `updateField` est le SEUL chemin d'écriture de ces champs : les sections
+    // Propriétaire et Logement n'utilisent pas `updateSection`.
+    if ((fieldsLockedRef.current || generationPdfRef.current) && isLockedFieldPath(fieldPath)) return
 
     isUserChangeRef.current = true
 
@@ -429,6 +446,7 @@ export function FormProvider({ children }) {
       isFicheLocked,
       isFieldLocked,
       enregistrerPdfGenere,
+      setGenerationPdfEnCours,
       LOCKED_FIELD_PATHS,
 
       // Persistance

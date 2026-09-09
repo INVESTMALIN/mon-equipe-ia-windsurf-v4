@@ -663,7 +663,7 @@ const PDF_RENDU_TIMEOUT_MS = 120000
  * savoir si l'utilisateur a effectivement enregistré le fichier sur son disque
  * n'est pas observable depuis une page web.
  */
-export const generatePdfClientSide = (formData, options = {}) => {
+export const generatePdfClientSide = (formData, { onDelivered, ...options } = {}) => {
   const docDefinition = buildDocDefinition(formData, options)
   return new Promise((resolve, reject) => {
     const garde = setTimeout(
@@ -673,7 +673,13 @@ export const generatePdfClientSide = (formData, options = {}) => {
     try {
       pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData), () => {
         clearTimeout(garde)
-        resolve()
+        // `onDelivered` est appelé MÊME si le délai de garde a déjà rejeté la
+        // promesse. Ce délai ne sert qu'à rendre la main à l'interface ; il n'annule
+        // pas pdfmake, qui peut terminer plus tard et appeler `saveAs`. Un fichier
+        // remis en retard reste un fichier remis : sans cet appel, le PDF partirait
+        // sans preuve et la fiche resterait modifiable.
+        // `resolve` après coup est sans effet si la promesse est déjà rejetée.
+        Promise.resolve(onDelivered?.()).then(resolve, resolve)
       })
     } catch (e) {
       // Échec synchrone (document invalide, police manquante…) : on rejette tout
