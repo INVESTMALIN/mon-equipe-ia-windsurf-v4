@@ -72,10 +72,10 @@ export default function FicheFinalisation() {
     back,
     finaliserFiche,
     isFicheLocked,
-    enregistrerPdfGenere,
     demarrerGenerationPdf,
     prolongerGenerationPdf,
-    terminerGenerationPdf
+    terminerGenerationPdf,
+    persisterGenerationPdf
   } = useForm()
 
   // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
@@ -236,6 +236,10 @@ export default function FicheFinalisation() {
     // l'identité doit survivre au `finally` : la remise tardive posera le verrou, et
     // il ne doit pas verrouiller une identité modifiée entre-temps.
     let renduPeutEncoreAboutir = false
+    // Vrai dès que le fichier a été remis. À partir de là, c'est la persistance qui
+    // gouverne le voile : le `finally` ci-dessous ne doit surtout pas l'effacer, sinon
+    // un échec d'enregistrement disparaîtrait de l'écran sans que personne le voie.
+    let livraisonFaite = false
     try {
       setPdfLoading(true)
 
@@ -304,18 +308,20 @@ export default function FicheFinalisation() {
       await generatePdfClientSide(formData, {
         annonces,
         onDelivered: async () => {
-          try {
-            // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
-            // l'instant, `formData.id` de cette fermeture vaut encore null.
-            const res = await enregistrerPdfGenere({ withLock, ficheId })
-            if (!res?.success) {
-              console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
-            }
-          } finally {
-            // Le rendu a abouti : le voile tombe. C'est ici, et non dans le `finally`
-            // de la fonction, qu'il tombe quand la remise arrive après le délai de
-            // garde — y compris depuis l'état « plus long que prévu ».
-            terminerGenerationPdf()
+          livraisonFaite = true
+          // L'horodatage est celui de la REMISE, figé ici : les éventuelles reprises
+          // d'enregistrement rejoueront exactement la même preuve.
+          // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
+          // l'instant, `formData.id` de cette fermeture vaut encore null.
+          const res = await persisterGenerationPdf({
+            ficheId,
+            withLock,
+            horodatage: new Date().toISOString(),
+          })
+          if (!res?.success) {
+            // Pas d'alerte : le voile affiche déjà l'état « enregistrement non
+            // confirmé » et propose de réessayer. Une alerte doublerait le message.
+            console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
           }
         },
       })
@@ -338,7 +344,10 @@ export default function FicheFinalisation() {
         alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
       }
     } finally {
-      if (!renduPeutEncoreAboutir) terminerGenerationPdf()
+      // Le voile n'est retiré ici que si RIEN n'a été livré et que le rendu ne peut
+      // plus aboutir : sortie anticipée avant le rendu, ou échec définitif. Dès qu'une
+      // remise a eu lieu, c'est la persistance qui décide quand il tombe.
+      if (!renduPeutEncoreAboutir && !livraisonFaite) terminerGenerationPdf()
       setPdfLoading(false)
     }
   }

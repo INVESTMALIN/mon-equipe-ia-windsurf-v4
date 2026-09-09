@@ -7,7 +7,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { livrerPdf, construirePatchPdf, PDF_RENDU_TIMEOUT_MS } from '../src/lib/pdfLivraison.js'
+import {
+  livrerPdf,
+  construirePatchPdf,
+  enregistrerAvecDelai,
+  persisterPreuvePdf,
+  PDF_RENDU_TIMEOUT_MS,
+  PDF_ENREGISTREMENT_TIMEOUT_MS,
+} from '../src/lib/pdfLivraison.js'
 
 const attendreUnPeu = (ms = 20) => new Promise((r) => setTimeout(r, ms))
 
@@ -136,4 +143,140 @@ test('l’horodatage par défaut est une date ISO courante', () => {
   assert.match(h, /^\d{4}-\d{2}-\d{2}T/)
   const t = Date.parse(h)
   assert.ok(t >= avant - 1000 && t <= Date.now() + 1000)
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enregistrement de la preuve : borné, explicite, rejouable à l'identique.
+// Supabase est SIMULÉ (`ecrire` est injecté) : aucune écriture réelle.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test('écriture réussie : résultat rendu tel quel', async () => {
+  const r = await enregistrerAvecDelai({ ecrire: async () => ({ success: true }), timeoutMs: 50 })
+  assert.deepEqual(r, { success: true })
+})
+
+test('écriture en échec : rendue en résultat, jamais en exception', async () => {
+  // L'appelant n'a qu'un seul chemin à traiter, et un échec d'écriture est un état
+  // à afficher, pas une exception à rattraper.
+  const r = await enregistrerAvecDelai({ ecrire: async () => ({ success: false, error: 'RLS' }), timeoutMs: 50 })
+  assert.deepEqual(r, { success: false, error: 'RLS' })
+})
+
+test('écriture qui lève : convertie en résultat d’échec', async () => {
+  const r = await enregistrerAvecDelai({ ecrire: async () => { throw new Error('réseau') }, timeoutMs: 50 })
+  assert.equal(r.success, false)
+  assert.equal(r.error, 'réseau')
+})
+
+test('écriture qui ne répond JAMAIS : bornée, et le signal est avorté', async () => {
+  // C'est le cas qui bloquait l'utilisateur derrière le voile, PDF déjà téléchargé :
+  // supabase-js n'impose aucun délai à ses requêtes.
+  let signalVu = null
+  const r = await enregistrerAvecDelai({
+    ecrire: (signal) => { signalVu = signal; return new Promise(() => {}) }, // ne se règle jamais
+    timeoutMs: 20,
+  })
+  assert.equal(r.success, false)
+  assert.equal(r.expire, true)
+  assert.equal(signalVu.aborted, true, 'la requête doit être avortée, pas seulement abandonnée')
+})
+
+test('écriture qui IGNORE le signal : la promesse se règle quand même', async () => {
+  // Ceinture et bretelles : la course est faite ici, on ne dépend pas du fait que
+  // la couche réseau honore l'abort.
+  const r = await enregistrerAvecDelai({
+    ecrire: () => new Promise((res) => setTimeout(() => res({ success: true }), 200)),
+    timeoutMs: 20,
+  })
+  assert.equal(r.expire, true)
+})
+
+test('persistance réussie : enregistrement puis inactif, le voile tombe', async () => {
+  const etats = []
+  const r = await persisterPreuvePdf({
+    ecrire: async () => ({ success: true }),
+    onEtat: (e) => etats.push(e),
+    timeoutMs: 50,
+  })
+  assert.equal(r.success, true)
+  assert.deepEqual(etats, ['enregistrement', 'inactif'])
+})
+
+test('persistance échouée : le voile reste, sur un état d’échec explicite', async () => {
+  // Le point du finding : sans cet état, le voile disparaissait et l'utilisateur
+  // croyait tout enregistré alors que le badge et le verrou manquaient.
+  const etats = []
+  const r = await persisterPreuvePdf({
+    ecrire: async () => ({ success: false, error: 'RLS' }),
+    onEtat: (e) => etats.push(e),
+    timeoutMs: 50,
+  })
+  assert.equal(r.success, false)
+  assert.deepEqual(etats, ['enregistrement', 'enregistrement_echoue'])
+})
+
+test('persistance qui n’aboutit jamais : ne reste PAS bloquée', async () => {
+  const etats = []
+  await persisterPreuvePdf({
+    ecrire: () => new Promise(() => {}),
+    onEtat: (e) => etats.push(e),
+    timeoutMs: 20,
+  })
+  assert.deepEqual(etats, ['enregistrement', 'enregistrement_echoue'])
+})
+
+test('reprise idempotente : même preuve, même horodatage entre tentatives', async () => {
+  // L'horodatage date la GÉNÉRATION, pas la réussite de l'écriture : il ne doit pas
+  // bouger d'une tentative à l'autre.
+  const reprise = { withLock: true, horodatage: '2026-09-09T10:00:00.000Z' }
+  const patchs = []
+  const ecrire = async () => { patchs.push(construirePatchPdf(reprise)); return { success: patchs.length > 1 } }
+
+  const premier = await persisterPreuvePdf({ ecrire, timeoutMs: 50 })
+  assert.equal(premier.success, false)
+  const second = await persisterPreuvePdf({ ecrire, timeoutMs: 50 })
+  assert.equal(second.success, true, 'la reprise doit pouvoir aboutir')
+
+  assert.deepEqual(patchs[0], patchs[1], 'les deux tentatives écrivent exactement la même preuve')
+  assert.equal(patchs[1].pdf_generated_at, '2026-09-09T10:00:00.000Z')
+  assert.equal(patchs[1].fields_locked, true)
+})
+
+test('chaîne complète : remise tardive PUIS persistance, le voile suit', async () => {
+  // Le scénario le plus retors : le rendu dépasse le délai, l'interface reprend la
+  // main, le fichier arrive quand même, et la preuve doit alors s'écrire.
+  const etats = []
+  const promesse = livrerPdf({
+    demarrerRendu: (fini) => setTimeout(fini, 40),
+    onDelivered: () => persisterPreuvePdf({
+      ecrire: async () => ({ success: true }),
+      onEtat: (e) => etats.push(e),
+      timeoutMs: 50,
+    }),
+    timeoutMs: 10,
+  })
+  await assert.rejects(promesse, (e) => e.renduEnCours === true)
+  assert.deepEqual(etats, [], 'rien n’est enregistré tant que rien n’est remis')
+  await attendreUnPeu(80)
+  assert.deepEqual(etats, ['enregistrement', 'inactif'])
+})
+
+test('chaîne complète : remise normale mais écriture bloquée, sortie garantie', async () => {
+  const etats = []
+  await livrerPdf({
+    demarrerRendu: (fini) => fini(),
+    onDelivered: () => persisterPreuvePdf({
+      ecrire: () => new Promise(() => {}),
+      onEtat: (e) => etats.push(e),
+      timeoutMs: 20,
+    }),
+  })
+  assert.deepEqual(etats, ['enregistrement', 'enregistrement_echoue'])
+})
+
+test('le délai d’enregistrement est distinct de celui du rendu', () => {
+  // Écrire deux colonnes est une requête courte, pas un calcul : borner l'écriture
+  // sur 120 s laisserait l'utilisateur bloqué deux minutes pour rien.
+  assert.equal(PDF_ENREGISTREMENT_TIMEOUT_MS, 15000)
+  assert.ok(PDF_ENREGISTREMENT_TIMEOUT_MS < PDF_RENDU_TIMEOUT_MS)
 })

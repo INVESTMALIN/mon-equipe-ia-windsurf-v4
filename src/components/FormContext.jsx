@@ -3,8 +3,8 @@ import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from '../lib/formDefaults'
 import { LOCKED_FIELD_PATHS, isLockedFieldPath } from '../lib/lockedFields'
-import { GENERATION_PDF } from '../lib/pdfEtats'
-import { construirePatchPdf } from '../lib/pdfLivraison'
+import { GENERATION_PDF, GENERATION_PDF_BLOQUANTS } from '../lib/pdfEtats'
+import { construirePatchPdf, persisterPreuvePdf } from '../lib/pdfLivraison'
 
 const FormContext = createContext()
 
@@ -144,22 +144,32 @@ export function FormProvider({ children }) {
   const [generationPdf, setGenerationPdf] = useState({ statut: GENERATION_PDF.INACTIF })
   const generationPdfRef = useRef(false)
 
-  const demarrerGenerationPdf = useCallback(() => {
-    generationPdfRef.current = true
-    setGenerationPdf({ statut: GENERATION_PDF.EN_COURS })
+  // Une seule fonction pose l'état ET son miroir, pour qu'ils ne puissent pas
+  // diverger : le miroir vaut « bloquant », pas « en cours ».
+  const poserEtatGenerationPdf = useCallback((statut) => {
+    generationPdfRef.current = GENERATION_PDF_BLOQUANTS.includes(statut)
+    setGenerationPdf({ statut })
   }, [])
 
-  // Le délai de garde a expiré, mais pdfmake peut encore aboutir : ce n'est pas un
-  // échec, et l'identité reste gelée. On change seulement ce qui est affiché.
+  const demarrerGenerationPdf = useCallback(() => {
+    poserEtatGenerationPdf(GENERATION_PDF.EN_COURS)
+  }, [poserEtatGenerationPdf])
+
+  // Le délai de garde du RENDU a expiré, mais pdfmake peut encore aboutir : ce n'est
+  // pas un échec, et l'identité reste gelée. On change seulement ce qui est affiché.
   const prolongerGenerationPdf = useCallback(() => {
-    generationPdfRef.current = true
-    setGenerationPdf({ statut: GENERATION_PDF.PROLONGE })
-  }, [])
+    poserEtatGenerationPdf(GENERATION_PDF.PROLONGE)
+  }, [poserEtatGenerationPdf])
 
   const terminerGenerationPdf = useCallback(() => {
-    generationPdfRef.current = false
-    setGenerationPdf({ statut: GENERATION_PDF.INACTIF })
-  }, [])
+    poserEtatGenerationPdf(GENERATION_PDF.INACTIF)
+  }, [poserEtatGenerationPdf])
+
+  // Ce qu'il faut pour REJOUER l'enregistrement à l'identique. Conservé en ref : la
+  // reprise doit écrire EXACTEMENT la même preuve — même fiche, même verrou, même
+  // horodatage, celui de la remise du fichier. Un nouvel horodatage à chaque tentative
+  // ferait varier une donnée censée dater la génération, pas la réussite de l'écriture.
+  const repriseEnregistrementRef = useRef(null)
 
   // Récupération utilisateur
   useEffect(() => {
@@ -437,16 +447,18 @@ export function FormProvider({ children }) {
   // fiche CRÉÉE pendant la même action : ce callback a été capturé au rendu précédent,
   // où l'id était encore null — le PDF serait délivré sans preuve, et sans verrou.
   // Repli sur le miroir `formDataRef` puis sur la fermeture, dans cet ordre.
-  const enregistrerPdfGenere = useCallback(async ({ withLock = false, ficheId } = {}) => {
+  const enregistrerPdfGenere = useCallback(async ({ withLock = false, ficheId, horodatage, signal } = {}) => {
     const id = ficheId || formDataRef.current?.id || formData.id
     if (!id) return { success: false, error: 'Fiche non enregistrée' }
 
-    const patch = construirePatchPdf({ withLock })
+    const patch = construirePatchPdf({ withLock, horodatage })
 
-    const { error } = await supabase
-      .from('fiche_lite')
-      .update(patch)
-      .eq('id', id)
+    // `abortSignal` : sans lui, supabase-js n'impose aucune limite de temps et une
+    // requête qui ne répond jamais bloquerait l'utilisateur derrière le voile, PDF
+    // déjà téléchargé. La borne elle-même est posée par `enregistrerAvecDelai`.
+    let requete = supabase.from('fiche_lite').update(patch).eq('id', id)
+    if (signal) requete = requete.abortSignal(signal)
+    const { error } = await requete
     if (error) return { success: false, error: error.message }
 
     // MàJ locale sans déclencher d'auto-save (ce n'est pas une saisie utilisateur).
@@ -454,6 +466,39 @@ export function FormProvider({ children }) {
     setFormData(prev => ({ ...prev, ...patch }))
     return { success: true }
   }, [formData.id])
+
+  // Enregistrement de la preuve APRÈS remise du fichier, borné dans le temps, et
+  // rejouable à l'identique.
+  //
+  // Le voile ne tombe qu'une fois l'écriture CONFIRMÉE. Si elle échoue ou expire, on
+  // passe à un état d'échec explicite au lieu de disparaître en laissant croire que
+  // tout est enregistré : le PDF est bien téléchargé, mais son badge — et le verrou
+  // côté Lite — manquent, et l'utilisateur doit pouvoir le savoir et réessayer.
+  const persisterGenerationPdf = useCallback(async ({ ficheId, withLock = false, horodatage }) => {
+    // Figé ici pour que toutes les tentatives écrivent la MÊME preuve.
+    const reprise = {
+      ficheId: ficheId || formDataRef.current?.id || null,
+      withLock,
+      horodatage: horodatage || new Date().toISOString(),
+    }
+    repriseEnregistrementRef.current = reprise
+
+    return persisterPreuvePdf({
+      ecrire: (signal) => enregistrerPdfGenere({ ...reprise, signal }),
+      onEtat: (statut) => poserEtatGenerationPdf(statut),
+    })
+  }, [enregistrerPdfGenere, poserEtatGenerationPdf])
+
+  // Réessaie l'ENREGISTREMENT SEUL. Ne régénère ni ne retélécharge le PDF : le
+  // fichier est déjà chez l'utilisateur, seule sa trace manque.
+  const reessayerEnregistrementPdf = useCallback(async () => {
+    const reprise = repriseEnregistrementRef.current
+    if (!reprise) {
+      poserEtatGenerationPdf(GENERATION_PDF.INACTIF)
+      return { success: false, error: 'Aucun enregistrement à reprendre' }
+    }
+    return persisterGenerationPdf(reprise)
+  }, [persisterGenerationPdf, poserEtatGenerationPdf])
 
   return (
     <FormContext.Provider value={{
@@ -466,11 +511,15 @@ export function FormProvider({ children }) {
       // Verrou d'identité du bien
       isFicheLocked,
       isFieldLocked,
-      enregistrerPdfGenere,
+      // Un seul chemin public d'écriture de la preuve : `persisterGenerationPdf`.
+      // `enregistrerPdfGenere` reste interne, pour qu'aucun appelant ne puisse écrire
+      // sans passer par la borne de temps ni par la gestion d'état.
       generationPdf,
       demarrerGenerationPdf,
       prolongerGenerationPdf,
       terminerGenerationPdf,
+      persisterGenerationPdf,
+      reessayerEnregistrementPdf,
       LOCKED_FIELD_PATHS,
 
       // Persistance

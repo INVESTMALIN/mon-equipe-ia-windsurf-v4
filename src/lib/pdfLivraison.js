@@ -59,6 +59,58 @@ export function livrerPdf({ demarrerRendu, onDelivered, timeoutMs = PDF_RENDU_TI
   })
 }
 
+// Délai de garde de l'ÉCRITURE de la preuve. Sans rapport avec celui du rendu :
+// écrire deux colonnes est une requête courte, pas un calcul. supabase-js n'impose
+// aucun délai à ses requêtes — sans cette borne, une écriture qui ne répond jamais
+// laisse l'utilisateur devant un voile qu'il ne peut plus quitter, alors que son PDF
+// est déjà téléchargé.
+export const PDF_ENREGISTREMENT_TIMEOUT_MS = 15000
+
+/**
+ * Exécute l'écriture de la preuve en la bornant dans le temps.
+ *
+ * @param ecrire     (signal) => Promise<{ success, error }> — reçoit un AbortSignal.
+ * @param timeoutMs  au-delà, on abandonne et on rend la main.
+ *
+ * La course est faite ICI et pas seulement via le signal : si l'écriture ignore le
+ * signal ou ne se règle jamais, la promesse retournée se règle quand même. Ne rejette
+ * jamais — l'appelant n'a qu'un seul chemin à traiter, et une écriture ratée n'est pas
+ * une exception, c'est un résultat à afficher.
+ */
+export function enregistrerAvecDelai({ ecrire, timeoutMs = PDF_ENREGISTREMENT_TIMEOUT_MS }) {
+  const controleur = new AbortController()
+  return new Promise((resolve) => {
+    const garde = setTimeout(() => {
+      controleur.abort()
+      resolve({ success: false, expire: true, error: 'délai d’enregistrement dépassé' })
+    }, timeoutMs)
+
+    Promise.resolve()
+      .then(() => ecrire(controleur.signal))
+      .then(
+        (r) => { clearTimeout(garde); resolve(r || { success: false, error: 'réponse vide' }) },
+        (e) => { clearTimeout(garde); resolve({ success: false, error: e?.message || String(e) }) }
+      )
+  })
+}
+
+/**
+ * Écrit la preuve et annonce l'état à l'appelant.
+ *
+ * Le voile ne tombe qu'une fois la persistance CONFIRMÉE : si elle échoue, on passe à
+ * un état d'échec explicite plutôt que de disparaître en silence. Sans cela,
+ * l'utilisateur croirait tout enregistré alors que le badge PDF — et, côté Lite, le
+ * verrou — manquent.
+ *
+ * @param onEtat  reçoit 'enregistrement' puis 'inactif' ou 'enregistrement_echoue'.
+ */
+export async function persisterPreuvePdf({ ecrire, onEtat, timeoutMs }) {
+  onEtat?.('enregistrement')
+  const resultat = await enregistrerAvecDelai({ ecrire, timeoutMs })
+  onEtat?.(resultat?.success ? 'inactif' : 'enregistrement_echoue')
+  return resultat
+}
+
 /**
  * Champs écrits sur la fiche après une génération réussie.
  *
