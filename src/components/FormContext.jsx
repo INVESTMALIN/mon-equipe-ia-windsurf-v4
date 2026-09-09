@@ -3,6 +3,8 @@ import { saveFiche, loadFiche } from '../lib/supabaseHelpers'
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from '../lib/formDefaults'
 import { LOCKED_FIELD_PATHS, isLockedFieldPath } from '../lib/lockedFields'
+import { GENERATION_PDF } from '../lib/pdfEtats'
+import { construirePatchPdf } from '../lib/pdfLivraison'
 
 const FormContext = createContext()
 
@@ -125,16 +127,38 @@ export function FormProvider({ children }) {
 
   // Génération de PDF en cours. Le verrou définitif n'est posé qu'APRÈS la remise du
   // fichier au navigateur — on ne verrouille jamais un PDF qui n'a pas été délivré.
-  // Entre la construction du document et cette pose, l'identité du bien doit malgré
-  // tout être figée : sans cela l'utilisateur peut revenir en arrière, modifier le
-  // propriétaire ou l'adresse, et l'auto-save (5 s) persiste ces valeurs avant que le
-  // verrou n'arrive. La fiche se retrouverait verrouillée sur une identité que le PDF
-  // déjà téléchargé ne contient pas, et l'écran de finalisation autoriserait un second
-  // PDF sur cette nouvelle identité — exactement le recyclage que le verrou existe pour
-  // empêcher. Une ref, et non un state : `updateField` doit rester stable (deps []).
+  // Entre le lancement et cette pose, l'identité du bien doit malgré tout être figée :
+  // sans cela l'utilisateur peut revenir en arrière, modifier le propriétaire ou
+  // l'adresse, et l'auto-save (5 s) persiste ces valeurs avant que le verrou n'arrive.
+  // La fiche se retrouverait verrouillée sur une identité que le PDF déjà téléchargé
+  // ne contient pas, et la finalisation autoriserait un second PDF sur cette nouvelle
+  // identité — exactement le recyclage que le verrou existe pour empêcher.
+  //
+  // L'état vit ICI, et pas dans l'écran de finalisation, pour deux raisons : le voile
+  // bloquant est monté par FicheWizard (il couvre donc la navigation et toutes les
+  // sections d'un coup), et il doit survivre à un changement de section.
+  //
+  // Le miroir en ref sert `updateField`, qui doit rester stable (deps []) : il est
+  // posé de façon SYNCHRONE par les actions ci-dessous, pas via un effet, pour
+  // qu'aucune frappe ne passe entre le lancement et la mise à jour du garde-fou.
+  const [generationPdf, setGenerationPdf] = useState({ statut: GENERATION_PDF.INACTIF })
   const generationPdfRef = useRef(false)
-  const setGenerationPdfEnCours = useCallback((enCours) => {
-    generationPdfRef.current = !!enCours
+
+  const demarrerGenerationPdf = useCallback(() => {
+    generationPdfRef.current = true
+    setGenerationPdf({ statut: GENERATION_PDF.EN_COURS })
+  }, [])
+
+  // Le délai de garde a expiré, mais pdfmake peut encore aboutir : ce n'est pas un
+  // échec, et l'identité reste gelée. On change seulement ce qui est affiché.
+  const prolongerGenerationPdf = useCallback(() => {
+    generationPdfRef.current = true
+    setGenerationPdf({ statut: GENERATION_PDF.PROLONGE })
+  }, [])
+
+  const terminerGenerationPdf = useCallback(() => {
+    generationPdfRef.current = false
+    setGenerationPdf({ statut: GENERATION_PDF.INACTIF })
   }, [])
 
   // Récupération utilisateur
@@ -417,10 +441,7 @@ export function FormProvider({ children }) {
     const id = ficheId || formDataRef.current?.id || formData.id
     if (!id) return { success: false, error: 'Fiche non enregistrée' }
 
-    const horodatage = new Date().toISOString()
-    const patch = withLock
-      ? { pdf_generated_at: horodatage, fields_locked: true }
-      : { pdf_generated_at: horodatage }
+    const patch = construirePatchPdf({ withLock })
 
     const { error } = await supabase
       .from('fiche_lite')
@@ -446,7 +467,10 @@ export function FormProvider({ children }) {
       isFicheLocked,
       isFieldLocked,
       enregistrerPdfGenere,
-      setGenerationPdfEnCours,
+      generationPdf,
+      demarrerGenerationPdf,
+      prolongerGenerationPdf,
+      terminerGenerationPdf,
       LOCKED_FIELD_PATHS,
 
       // Persistance

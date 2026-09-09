@@ -32,6 +32,7 @@ import FicheBebe from './sections/FicheBebe'
 import FicheGuideAcces from './sections/FicheGuideAcces'
 import FicheSécurité from './sections/FicheSécurité'
 import FicheFinalisation from './sections/FicheFinalisation'
+import GenerationPdfOverlay from './GenerationPdfOverlay'
 
 
 
@@ -199,5 +200,13 @@ export default function FicheWizard() {
     )
   }
 
-  return steps[currentStep]
+  // Le voile est monté ICI, au-dessus de l'étape courante : un seul composant couvre
+  // la sidebar, les boutons de navigation et tous les champs, sans avoir à désactiver
+  // quoi que ce soit section par section. Il ne rend rien hors génération.
+  return (
+    <>
+      {steps[currentStep]}
+      <GenerationPdfOverlay />
+    </>
+  )
 }

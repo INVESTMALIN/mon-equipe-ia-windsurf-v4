@@ -73,7 +73,9 @@ export default function FicheFinalisation() {
     finaliserFiche,
     isFicheLocked,
     enregistrerPdfGenere,
-    setGenerationPdfEnCours
+    demarrerGenerationPdf,
+    prolongerGenerationPdf,
+    terminerGenerationPdf
   } = useForm()
 
   // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
@@ -237,14 +239,14 @@ export default function FicheFinalisation() {
     try {
       setPdfLoading(true)
 
-      // Gel de l'identité DÈS L'ENTRÉE, avant la moindre attente. La sauvegarde et le
-      // chargement des annonces ci-dessous prennent du temps ; pendant ces deux
-      // attentes, la sidebar reste utilisable et l'utilisateur pouvait modifier le
-      // propriétaire ou l'adresse. `handleSave` a alors capturé l'ancienne identité, le
-      // PDF se construit sur l'ancienne, mais l'auto-save persiste la nouvelle — et la
-      // remise du fichier verrouillerait une identité absente du PDF téléchargé.
+      // Voile bloquant DÈS L'ENTRÉE, avant la moindre attente. La sauvegarde et le
+      // chargement des annonces ci-dessous prennent du temps ; sans lui, la sidebar
+      // reste utilisable et l'utilisateur peut modifier le propriétaire ou l'adresse.
+      // `handleSave` a alors capturé l'ancienne identité, le PDF se construit sur
+      // l'ancienne, mais l'auto-save persiste la nouvelle — et la remise du fichier
+      // verrouillerait une identité absente du PDF téléchargé.
       // Levé dans le `finally`, sauf rendu encore en cours (cf. ci-dessus).
-      setGenerationPdfEnCours(true)
+      demarrerGenerationPdf()
 
       // La sauvegarde ne LÈVE PAS en cas d'échec (retourne { success:false }). Si elle
       // échoue, on interrompt TOUT : pas de PDF (il serait généré depuis des données
@@ -283,13 +285,6 @@ export default function FicheFinalisation() {
         annonces = (lignesAnnonces || []).filter((l) => l.statut !== 'erreur' && l.output_assemble)
       }
 
-      // L'identité est gelée pendant TOUTE la génération. Le verrou définitif n'est
-      // posé qu'après la remise du fichier — on ne verrouille jamais un PDF non
-      // délivré — et sans ce gel l'utilisateur pourrait, pendant le rendu, revenir en
-      // arrière et faire persister une autre identité par l'auto-save avant le verrou.
-      // Levé dans le `finally`.
-      setGenerationPdfEnCours(true)
-
       // PDF D'ABORD, PUIS la trace en base — jamais de verrou ni de preuve sans PDF
       // délivré. `download()` de pdfmake rend la main AVANT d'avoir produit le
       // fichier : la persistance se fait donc dans `onDelivered`, appelé depuis son
@@ -317,24 +312,33 @@ export default function FicheFinalisation() {
               console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
             }
           } finally {
-            // Le rendu a abouti : l'identité peut être relâchée. C'est ici, et non
-            // dans le `finally` de la fonction, que le gel se lève quand la remise
-            // arrive après le délai de garde.
-            setGenerationPdfEnCours(false)
+            // Le rendu a abouti : le voile tombe. C'est ici, et non dans le `finally`
+            // de la fonction, qu'il tombe quand la remise arrive après le délai de
+            // garde — y compris depuis l'état « plus long que prévu ».
+            terminerGenerationPdf()
           }
         },
       })
       setPdfGenerated(true)
     } catch (error) {
-      // Dépassement du délai de garde : l'interface reprend la main, mais pdfmake
-      // tourne toujours et peut encore livrer le fichier. On garde l'identité gelée
-      // jusqu'à `onDelivered`, sans quoi une modification faite dans cet intervalle
-      // serait verrouillée alors que le PDF ne la contient pas.
-      renduPeutEncoreAboutir = !!error?.renduEnCours
       console.error('Erreur génération PDF:', error)
-      alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
+      // Dépassement du délai de garde : pdfmake tourne toujours et peut encore livrer
+      // le fichier. Ce n'est donc PAS un échec définitif — pas d'alerte d'erreur. Le
+      // voile passe à l'état « plus long que prévu », qui explique la situation et
+      // offre une sortie sûre (recharger la fiche, sans écrire ni verrouiller).
+      // L'identité reste gelée jusqu'à `onDelivered`, sans quoi une modification
+      // faite dans cet intervalle serait verrouillée alors que le PDF ne la contient
+      // pas.
+      renduPeutEncoreAboutir = !!error?.renduEnCours
+      if (renduPeutEncoreAboutir) {
+        prolongerGenerationPdf()
+      } else {
+        // Échec définitif : le voile tombe et l'utilisateur reprend la main.
+        terminerGenerationPdf()
+        alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
+      }
     } finally {
-      if (!renduPeutEncoreAboutir) setGenerationPdfEnCours(false)
+      if (!renduPeutEncoreAboutir) terminerGenerationPdf()
       setPdfLoading(false)
     }
   }

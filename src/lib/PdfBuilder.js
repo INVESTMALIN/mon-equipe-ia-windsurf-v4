@@ -15,6 +15,7 @@
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
 import { formatForPdf } from './PdfFormatter'
+import { livrerPdf } from './pdfLivraison'
 import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from './formDefaults'
 import { getCountryLabel } from './countries'
 import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
@@ -643,11 +644,6 @@ export const buildPdfFilename = (formData) => {
  * Génère le PDF et déclenche le téléchargement.
  * `options` est transmis tel quel à buildDocDefinition (cf. options.annonces).
  */
-// Délai de garde du rendu pdfmake. Il ne sert qu'à ne jamais rester bloqué : un
-// rendu qui n'aboutit pas ne doit pas laisser l'écran en chargement éternel, ni
-// laisser croire à l'appelant que le PDF a été délivré.
-const PDF_RENDU_TIMEOUT_MS = 120000
-
 /**
  * Génère le PDF et le remet au navigateur.
  *
@@ -665,32 +661,13 @@ const PDF_RENDU_TIMEOUT_MS = 120000
  */
 export const generatePdfClientSide = (formData, { onDelivered, ...options } = {}) => {
   const docDefinition = buildDocDefinition(formData, options)
-  return new Promise((resolve, reject) => {
-    const garde = setTimeout(() => {
-      const echec = new Error('La génération du PDF n’a pas abouti dans le délai imparti.')
-      // Le délai n'annule PAS pdfmake : le rendu peut encore aboutir et déclencher
-      // `onDelivered`. L'appelant doit le savoir pour ne pas relâcher trop tôt les
-      // garde-fous qu'il a posés pour la durée de la génération.
-      echec.renduEnCours = true
-      reject(echec)
-    }, PDF_RENDU_TIMEOUT_MS)
-    try {
-      pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData), () => {
-        clearTimeout(garde)
-        // `onDelivered` est appelé MÊME si le délai de garde a déjà rejeté la
-        // promesse. Ce délai ne sert qu'à rendre la main à l'interface ; il n'annule
-        // pas pdfmake, qui peut terminer plus tard et appeler `saveAs`. Un fichier
-        // remis en retard reste un fichier remis : sans cet appel, le PDF partirait
-        // sans preuve et la fiche resterait modifiable.
-        // `resolve` après coup est sans effet si la promesse est déjà rejetée.
-        Promise.resolve(onDelivered?.()).then(resolve, resolve)
-      })
-    } catch (e) {
-      // Échec synchrone (document invalide, police manquante…) : on rejette tout
-      // de suite plutôt que d'attendre le délai de garde.
-      clearTimeout(garde)
-      reject(e)
-    }
+  // `download()` de pdfmake n'est PAS synchrone : il lance `getBlob()` et rend la
+  // main, le `saveAs` n'ayant lieu que dans son callback. C'est donc ce callback,
+  // et lui seul, qui atteste la remise du fichier — d'où l'enveloppe `livrerPdf`,
+  // qui en fait une promesse et gère le délai de garde et la remise tardive.
+  return livrerPdf({
+    demarrerRendu: (fini) => pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData), fini),
+    onDelivered,
   })
 }
 
