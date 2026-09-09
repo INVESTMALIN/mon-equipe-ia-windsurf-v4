@@ -15,6 +15,7 @@
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
 import { formatForPdf } from './PdfFormatter'
+import { livrerPdf } from './pdfLivraison'
 import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from './formDefaults'
 import { getCountryLabel } from './countries'
 import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
@@ -643,9 +644,31 @@ export const buildPdfFilename = (formData) => {
  * Génère le PDF et déclenche le téléchargement.
  * `options` est transmis tel quel à buildDocDefinition (cf. options.annonces).
  */
-export const generatePdfClientSide = (formData, options = {}) => {
+/**
+ * Génère le PDF et le remet au navigateur.
+ *
+ * ⚠️ Retourne une PROMESSE, à attendre. `download()` de pdfmake n'est PAS
+ * synchrone : il appelle `getBlob()` puis rend la main immédiatement, et ce n'est
+ * que dans le callback, après `saveAs`, que le fichier est réellement produit.
+ * Considérer le retour de cette fonction comme une réussite écrirait donc une
+ * preuve de génération — et, pour un fiche_lite, poserait le verrou d'identité —
+ * alors que le rendu peut encore échouer derrière.
+ *
+ * La promesse est résolue depuis le callback de pdfmake, donc APRÈS la remise du
+ * fichier au navigateur. C'est le signal le plus fort disponible côté client :
+ * savoir si l'utilisateur a effectivement enregistré le fichier sur son disque
+ * n'est pas observable depuis une page web.
+ */
+export const generatePdfClientSide = (formData, { onDelivered, ...options } = {}) => {
   const docDefinition = buildDocDefinition(formData, options)
-  pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData))
+  // `download()` de pdfmake n'est PAS synchrone : il lance `getBlob()` et rend la
+  // main, le `saveAs` n'ayant lieu que dans son callback. C'est donc ce callback,
+  // et lui seul, qui atteste la remise du fichier — d'où l'enveloppe `livrerPdf`,
+  // qui en fait une promesse et gère le délai de garde et la remise tardive.
+  return livrerPdf({
+    demarrerRendu: (fini) => pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData), fini),
+    onDelivered,
+  })
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

@@ -52,7 +52,9 @@ export const mapSupabaseToFormData = (supabaseData) => {
     updated_at: supabaseData.updated_at,
     // Verrou d'identité du bien (posé après la 1re génération de PDF, rôle fiche_lite).
     // LECTURE seule ici : jamais réécrit par mapFormDataToSupabase / saveFiche — il
-    // n'est posé que par l'update dédié `lockFiche` (ou l'admin en service_role).
+    // n'est posé que par l'update dédié `enregistrerPdfGenere` du FormContext, qui
+    // écrit dans le MÊME update la preuve `pdf_generated_at` (ou par l'admin en
+    // service_role).
     fields_locked: supabaseData.fields_locked ?? false,
     
     // Sections JSONB (directement)
@@ -83,7 +85,12 @@ export const mapSupabaseToFormData = (supabaseData) => {
     
     // Gestion photos version lite
     photos_prises: supabaseData.photos_prises || {},
-    rappels_photos: supabaseData.rappels_photos || []
+    rappels_photos: supabaseData.rappels_photos || [],
+
+    // Champ CALCULÉ, pas une colonne : jamais réécrit (mapFormDataToSupabase ne le
+    // contient pas). Transporté pour que l'appelant de saveFiche dispose de l'identité
+    // du bien telle que SA propre écriture vient de la poser.
+    identite_verrouillee: supabaseData.identite_verrouillee ?? null
   }
 }
 
@@ -102,7 +109,12 @@ export const saveFiche = async (formData, userId) => {
           .from('fiche_lite')  // ← CHANGÉ ICI
           .update(supabaseData)
           .eq('id', formData.id)
-          .select()
+          // `identite_verrouillee` est un champ CALCULÉ (migration 20260909080000) :
+          // il renvoie, dans le RETURNING de CETTE écriture, l'identité du bien telle
+          // qu'elle vient d'être posée. C'est la seule valeur dont on puisse affirmer
+          // qu'elle correspond au PDF qui va être produit — la relire ensuite laisserait
+          // un autre onglet s'intercaler.
+          .select('*, identite_verrouillee')
           .single()
       )
     } else {
@@ -111,7 +123,7 @@ export const saveFiche = async (formData, userId) => {
         supabase
           .from('fiche_lite')  // ← CHANGÉ ICI
           .insert(supabaseData)
-          .select()
+          .select('*, identite_verrouillee')
           .single()
       )
     }
@@ -264,7 +276,21 @@ export const setFicheArchived = async (ficheId, archived) => {
         supabase
           .from('fiche_lite')
           // archived_at : NULL = fiche active, non NULL = fiche archivée (filtre « Archivé »).
-          .select('id, nom, statut, created_at, updated_at, archived_at')
+          //
+          // `fields_locked` : état d'édition de l'identité du bien, affiché sur la carte.
+          //
+          // `guide_genere_at` est extrait du JSONB plutôt que la colonne entière :
+          // `section_guide_acces.guide_genere` contient le TEXTE INTÉGRAL du guide,
+          // qu'on ne veut surtout pas rapatrier pour chaque fiche de la liste.
+          //
+          // `pdf_generated_at` : preuve dédiée de génération du PDF (migration
+          // 20260909060000). La colonne DOIT exister avant qu'un front la sélectionne —
+          // PostgREST rejette la requête entière sur une colonne inconnue (42703) et
+          // la liste des fiches se viderait.
+          .select(
+            'id, nom, statut, created_at, updated_at, archived_at, fields_locked, ' +
+            'pdf_generated_at, guide_genere_at:section_guide_acces->>guide_genere_at'
+          )
           .eq('user_id', userId)
           .order('updated_at', { ascending: false })
       )
@@ -286,6 +312,36 @@ export const setFicheArchived = async (ficheId, archived) => {
         message: 'Erreur lors de la récupération'
       }
     }
+  }
+
+  // Quelles fiches ont une annonce exploitable ? UNE seule requête pour toute la
+  // liste, jamais une par carte.
+  //
+  // Le filtrage est fait CÔTÉ SERVEUR (`output_assemble` non nul, statut ≠ 'erreur')
+  // et la projection se limite à `fiche_id` : le JSON des annonces, qui est
+  // volumineux, ne traverse jamais le réseau. On ne récupère qu'une liste d'ids.
+  //
+  // Échec non bloquant : le dashboard doit s'afficher même si cette requête
+  // annexe tombe. On renvoie alors un ensemble vide, donc aucun badge « Annonce »
+  // — une absence, pas une fausse information.
+  export const getFichesAvecAnnonce = async (ficheIds) => {
+    if (!Array.isArray(ficheIds) || ficheIds.length === 0) return new Set()
+
+    const result = await safeSupabaseQuery(
+      supabase
+        .from('agent_outputs')
+        .select('fiche_id')
+        .in('fiche_id', ficheIds)
+        .not('output_assemble', 'is', null)
+        .neq('statut', 'erreur')
+    )
+
+    if (result.error) {
+      console.error('Erreur lecture agent_outputs (badges annonce):', result.error)
+      return new Set()
+    }
+
+    return new Set((result.data || []).map((ligne) => ligne.fiche_id))
   }
 
   // ============================================

@@ -72,7 +72,10 @@ export default function FicheFinalisation() {
     back,
     finaliserFiche,
     isFicheLocked,
-    lockFiche
+    demarrerGenerationPdf,
+    prolongerGenerationPdf,
+    terminerGenerationPdf,
+    persisterGenerationPdf
   } = useForm()
 
   // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
@@ -228,8 +231,26 @@ export default function FicheFinalisation() {
   // verrou — on ne verrouille JAMAIS sans avoir délivré le PDF. Si le lock échoue après
   // coup, la fiche reste déverrouillée (le pop-up réapparaîtra), pas de lock-sans-PDF.
   const runGeneratePDF = async ({ withLock }) => {
+    // Vrai tant que pdfmake peut encore aboutir alors qu'on a déjà rendu la main à
+    // l'interface (dépassement du délai de garde). Dans ce cas SEULEMENT, le gel de
+    // l'identité doit survivre au `finally` : la remise tardive posera le verrou, et
+    // il ne doit pas verrouiller une identité modifiée entre-temps.
+    let renduPeutEncoreAboutir = false
+    // Vrai dès que le fichier a été remis. À partir de là, c'est la persistance qui
+    // gouverne le voile : le `finally` ci-dessous ne doit surtout pas l'effacer, sinon
+    // un échec d'enregistrement disparaîtrait de l'écran sans que personne le voie.
+    let livraisonFaite = false
     try {
       setPdfLoading(true)
+
+      // Voile bloquant DÈS L'ENTRÉE, avant la moindre attente. La sauvegarde et le
+      // chargement des annonces ci-dessous prennent du temps ; sans lui, la sidebar
+      // reste utilisable et l'utilisateur peut modifier le propriétaire ou l'adresse.
+      // `handleSave` a alors capturé l'ancienne identité, le PDF se construit sur
+      // l'ancienne, mais l'auto-save persiste la nouvelle — et la remise du fichier
+      // verrouillerait une identité absente du PDF téléchargé.
+      // Levé dans le `finally`, sauf rendu encore en cours (cf. ci-dessus).
+      demarrerGenerationPdf()
 
       // La sauvegarde ne LÈVE PAS en cas d'échec (retourne { success:false }). Si elle
       // échoue, on interrompt TOUT : pas de PDF (il serait généré depuis des données
@@ -253,6 +274,11 @@ export default function FicheFinalisation() {
       // de cette fonction date d'avant l'appel, donc sur une fiche jamais enregistrée
       // elle porterait encore `id: null`.
       const ficheId = saveRes?.data?.id || formData.id
+      // Identité du bien telle que LA SAUVEGARDE CI-DESSUS vient de l'écrire, renvoyée
+      // par son propre RETURNING (champ calculé `identite_verrouillee`). C'est celle
+      // que le PDF va contenir. La relire dans un second appel laisserait un autre
+      // onglet s'intercaler et on comparerait alors contre SA version.
+      const identiteDuPdf = saveRes?.data?.identite_verrouillee
       let annonces = []
       if (ficheId) {
         const { data: lignesAnnonces, error: erreurAnnonces } = await supabase
@@ -268,17 +294,66 @@ export default function FicheFinalisation() {
         annonces = (lignesAnnonces || []).filter((l) => l.statut !== 'erreur' && l.output_assemble)
       }
 
-      // PDF D'ABORD (client-side, synchrone), PUIS le verrou — jamais de lock sans PDF.
-      generatePdfClientSide(formData, { annonces })
+      // PDF D'ABORD, PUIS la trace en base — jamais de verrou ni de preuve sans PDF
+      // délivré. `download()` de pdfmake rend la main AVANT d'avoir produit le
+      // fichier : la persistance se fait donc dans `onDelivered`, appelé depuis son
+      // callback de fin, après `saveAs`. Elle a lieu même si le délai de garde a
+      // déjà rendu la main à l'interface — un fichier remis en retard reste remis.
+      //
+      // Cet update écrit `pdf_generated_at` pour TOUS LES RÔLES (premium inclus) :
+      // c'est lui, et non le verrou, qui fait apparaître le badge « PDF » du
+      // dashboard. Le verrou n'est posé qu'en plus, dans le MÊME update — pas de
+      // fenêtre où l'un serait écrit sans l'autre.
+      //
+      // ⚠️ Limite résiduelle : le fichier est remis au navigateur, mais savoir si
+      // l'utilisateur l'a réellement enregistré sur son disque n'est pas observable
+      // depuis une page web. Et si cet update échoue, la fiche garde son PDF sans
+      // preuve — badge absent, pop-up de verrou qui réapparaîtra. Le défaut penche
+      // donc du côté du FAUX NÉGATIF, jamais de la fausse promesse.
+      await generatePdfClientSide(formData, {
+        annonces,
+        onDelivered: async () => {
+          livraisonFaite = true
+          // L'horodatage est celui de la REMISE, figé ici : les éventuelles reprises
+          // d'enregistrement rejoueront exactement la même preuve.
+          // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
+          // l'instant, `formData.id` de cette fermeture vaut encore null.
+          const res = await persisterGenerationPdf({
+            ficheId,
+            withLock,
+            horodatage: new Date().toISOString(),
+            identite: identiteDuPdf,
+          })
+          if (!res?.success) {
+            // Pas d'alerte : le voile affiche déjà l'état « enregistrement non
+            // confirmé » et propose de réessayer. Une alerte doublerait le message.
+            console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
+          }
+        },
+      })
       setPdfGenerated(true)
-      if (withLock) {
-        const res = await lockFiche()
-        if (!res?.success) console.error('Verrouillage de la fiche échoué (PDF déjà généré) :', res?.error)
-      }
     } catch (error) {
       console.error('Erreur génération PDF:', error)
-      alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
+      // Dépassement du délai de garde : pdfmake tourne toujours et peut encore livrer
+      // le fichier. Ce n'est donc PAS un échec définitif — pas d'alerte d'erreur. Le
+      // voile passe à l'état « plus long que prévu », qui explique la situation et
+      // offre une sortie sûre (recharger la fiche, sans écrire ni verrouiller).
+      // L'identité reste gelée jusqu'à `onDelivered`, sans quoi une modification
+      // faite dans cet intervalle serait verrouillée alors que le PDF ne la contient
+      // pas.
+      renduPeutEncoreAboutir = !!error?.renduEnCours
+      if (renduPeutEncoreAboutir) {
+        prolongerGenerationPdf()
+      } else {
+        // Échec définitif : le voile tombe et l'utilisateur reprend la main.
+        terminerGenerationPdf()
+        alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
+      }
     } finally {
+      // Le voile n'est retiré ici que si RIEN n'a été livré et que le rendu ne peut
+      // plus aboutir : sortie anticipée avant le rendu, ou échec définitif. Dès qu'une
+      // remise a eu lieu, c'est la persistance qui décide quand il tombe.
+      if (!renduPeutEncoreAboutir && !livraisonFaite) terminerGenerationPdf()
       setPdfLoading(false)
     }
   }
