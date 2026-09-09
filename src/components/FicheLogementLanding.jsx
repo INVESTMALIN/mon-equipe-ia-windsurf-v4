@@ -1,5 +1,5 @@
 import { ClipboardList, Sparkles, FileCheck2 } from 'lucide-react'
-import { FL, DISPLAY_SANS, DISPLAY_SERIF } from '../lib/ficheLogementTheme'
+import { FL, DISPLAY_SANS, DISPLAY_SERIF, LANDING_SHELL } from '../lib/ficheLogementTheme'
 import {
   Eyebrow,
   BrandHeader,
@@ -26,6 +26,12 @@ import { ProductPreview, FicheProgressPreview, AnnoncePreview } from './FicheLog
 // Toute reformulation relève d'Olga, pas d'un ajustement technique.
 
 const SIGNUP_PATH = '/inscription-fiche-logement'
+
+// Échelles typographiques calées sur la maquette de référence, mesurée à deux
+// largeurs : titre de hero à 78 px sur un écran de 1440 et 82 px au-delà.
+// Le plancher de 2,5rem est celui qui tenait déjà sur mobile.
+const HERO_TITLE_SIZE = 'clamp(2.5rem, 5.4vw, 5.125rem)'
+const SECTION_TITLE_SIZE = 'clamp(2rem, 4.1vw, 3.5rem)'
 
 const HERO_PROOFS = ['Fiche complète', 'Annonce optimisée', 'Synthèse prête pour ton équipe']
 
@@ -93,26 +99,26 @@ export default function FicheLogementLanding() {
           }}
         />
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center">
+        <div className={`${LANDING_SHELL} relative grid gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1fr)] lg:items-center lg:gap-16 xl:gap-24`}>
           <div>
             <Eyebrow>L’outil métier des patrons de conciergerie</Eyebrow>
 
             <h1 className="mt-6">
               <span
                 className={`block ${DISPLAY_SANS}`}
-                style={{ fontSize: 'clamp(2.5rem, 6.4vw, 4rem)' }}
+                style={{ fontSize: HERO_TITLE_SIZE }}
               >
                 Prépare tes logements
               </span>
               <span
                 className={`mt-1 block italic ${DISPLAY_SERIF}`}
-                style={{ fontSize: 'clamp(2.5rem, 6.4vw, 4rem)', color: FL.goldDeep }}
+                style={{ fontSize: HERO_TITLE_SIZE, color: FL.goldDeep }}
               >
                 comme un pro
               </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed" style={{ color: FL.muted }}>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed lg:text-[1.3125rem]" style={{ color: FL.muted }}>
               N’oublie rien lors de la préparation de tes logements et transforme tes informations
               terrain en annonces Airbnb et Booking optimisées par notre assistant IA.
             </p>
@@ -137,9 +143,14 @@ export default function FicheLogementLanding() {
               <SecondaryCta href="#outil">Voir comment ça marche</SecondaryCta>
             </div>
 
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+            {/* Ligne de réassurance : une seule ligne dès le desktop, avec de la marge.
+                Montserrat est ~8 % plus large que la police de la maquette, d'où le
+                13 px et l'écart resserré — sans quoi les trois items débordent de la
+                colonne et repassent à la ligne. `flex-wrap` reste là pour les écrans
+                intermédiaires et le mobile, où le retour à la ligne est normal. */}
+            <ul className="mt-8 flex flex-wrap gap-x-4 gap-y-2">
               {HERO_PROOFS.map((proof) => (
-                <li key={proof} className="flex items-center gap-2 text-sm font-semibold" style={{ color: FL.muted }}>
+                <li key={proof} className="flex items-center gap-2 whitespace-nowrap text-[13px] font-semibold" style={{ color: FL.muted }}>
                   <span aria-hidden="true" style={{ color: FL.goldDeep }}>
                     &#10003;
                   </span>
@@ -155,7 +166,7 @@ export default function FicheLogementLanding() {
 
       {/* ─────────────────── Bandeau de rappel ─────────────────── */}
       <section style={{ backgroundColor: FL.ink }}>
-        <ul className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-5 gap-y-2 px-5 py-6 sm:px-8">
+        <ul className={`${LANDING_SHELL} flex flex-wrap items-center justify-center gap-x-5 gap-y-2 py-6`}>
           {STRIP_ITEMS.map((item, i) => (
             <li key={item} className="flex items-center gap-5">
               {i > 0 && (
@@ -171,16 +182,16 @@ export default function FicheLogementLanding() {
 
       {/* ──────────────────── Les deux missions ──────────────────── */}
       <section id="outil" className="scroll-mt-8">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+        <div className={`${LANDING_SHELL} py-16 sm:py-24`}>
           <Eyebrow>Un seul outil. Deux missions critiques.</Eyebrow>
           <h2
-            className={`mt-6 max-w-3xl ${DISPLAY_SERIF}`}
-            style={{ fontSize: 'clamp(2rem, 4.6vw, 3.1rem)' }}
+            className={`mt-6 max-w-4xl ${DISPLAY_SERIF}`}
+            style={{ fontSize: SECTION_TITLE_SIZE }}
           >
             De la porte d’entrée
             <br className="hidden sm:block" /> au clic de réservation.
           </h2>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed sm:text-lg" style={{ color: FL.muted }}>
+          <p className="mt-6 max-w-3xl text-base leading-relaxed sm:text-lg lg:text-xl" style={{ color: FL.muted }}>
             Tu ne fais pas une simple préparation de logement. Tu poses les fondations d’un logement
             prêt à être exploité. Puis tu transformes chaque information utile en une annonce qui
             donne envie de réserver.
@@ -255,7 +266,7 @@ export default function FicheLogementLanding() {
 
       {/* ─────────────────── L'expertise derrière ─────────────────── */}
       <section style={{ backgroundColor: FL.ink }}>
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+        <div className={`${LANDING_SHELL} py-16 sm:py-24`}>
           <div
             className="relative overflow-hidden rounded-3xl border p-8 sm:p-12"
             style={{ borderColor: FL.lineDark }}
@@ -291,13 +302,13 @@ export default function FicheLogementLanding() {
           <div className="mt-14">
             <Eyebrow tone="light">L’expertise derrière l’assistant</Eyebrow>
             <h2
-              className={`mt-6 max-w-3xl text-white ${DISPLAY_SERIF}`}
-              style={{ fontSize: 'clamp(2rem, 4.6vw, 3.1rem)' }}
+              className={`mt-6 max-w-4xl text-white ${DISPLAY_SERIF}`}
+              style={{ fontSize: SECTION_TITLE_SIZE }}
             >
               Pas une IA qui improvise.
               <br className="hidden sm:block" /> Une méthode qui sait quoi chercher.
             </h2>
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg">
+            <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/60 sm:text-lg lg:text-xl">
               Nous avons étudié les 3 565 annonces qui convertissent le mieux pour comprendre ce qui
               capte l’attention, rassure et transforme une visite en réservation.
             </p>
@@ -324,16 +335,16 @@ export default function FicheLogementLanding() {
 
       {/* ─────────────────────── Le parcours ─────────────────────── */}
       <section>
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+        <div className={`${LANDING_SHELL} py-16 sm:py-24`}>
           <Eyebrow>Simple à utiliser. Difficile à oublier.</Eyebrow>
           <h2
-            className={`mt-6 max-w-3xl ${DISPLAY_SERIF}`}
-            style={{ fontSize: 'clamp(2rem, 4.6vw, 3.1rem)' }}
+            className={`mt-6 max-w-4xl ${DISPLAY_SERIF}`}
+            style={{ fontSize: SECTION_TITLE_SIZE }}
           >
             Un nouveau bien en ligne.
             <br className="hidden sm:block" /> Sans effort.
           </h2>
-          <p className="mt-6 max-w-2xl text-base leading-relaxed sm:text-lg" style={{ color: FL.muted }}>
+          <p className="mt-6 max-w-3xl text-base leading-relaxed sm:text-lg lg:text-xl" style={{ color: FL.muted }}>
             L’outil accompagne le passage du terrain à la mise en ligne. Prépare. Génère. Finalise.
             Conçu par des patrons de conciergerie.
           </p>
@@ -372,16 +383,23 @@ export default function FicheLogementLanding() {
           IM
         </span>
 
-        <div className="relative mx-auto max-w-3xl px-5 py-20 text-center sm:px-8 sm:py-28">
-          <Eyebrow className="justify-center">Fiche Logement + Assistant IA</Eyebrow>
-          <h2 className={`mt-6 ${DISPLAY_SERIF}`} style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}>
-            Prêt à démarrer la préparation de ton nouveau logement ?
-          </h2>
-          <p className="mt-5 text-base sm:text-lg" style={{ color: FL.muted }}>
-            Crée ton compte et lance ta première fiche dès maintenant.
-          </p>
-          <div className="mt-9 flex justify-center">
-            <PrimaryCta to={SIGNUP_PATH}>Créer mon compte et lancer ma première fiche</PrimaryCta>
+        {/* Même gabarit que le reste de la page pour les marges, mais bloc de texte
+            volontairement resserré au centre : une adresse directe se lit mieux courte
+            que sur 1320 px. Le `max-w-3xl` est porté par un enfant, pas ajouté au
+            gabarit — deux `max-w-*` sur le même élément dépendraient de l'ordre des
+            règles générées par Tailwind. */}
+        <div className={`${LANDING_SHELL} relative py-20 text-center sm:py-28`}>
+          <div className="mx-auto max-w-3xl">
+            <Eyebrow className="justify-center">Fiche Logement + Assistant IA</Eyebrow>
+            <h2 className={`mt-6 ${DISPLAY_SERIF}`} style={{ fontSize: 'clamp(2rem, 4.4vw, 3.75rem)' }}>
+              Prêt à démarrer la préparation de ton nouveau logement ?
+            </h2>
+            <p className="mt-5 text-base sm:text-lg lg:text-xl" style={{ color: FL.muted }}>
+              Crée ton compte et lance ta première fiche dès maintenant.
+            </p>
+            <div className="mt-9 flex justify-center">
+              <PrimaryCta to={SIGNUP_PATH}>Créer mon compte et lancer ma première fiche</PrimaryCta>
+            </div>
           </div>
         </div>
       </section>

@@ -76,7 +76,11 @@ export function ProductPreview() {
   ]
 
   return (
-    <div aria-hidden="true" className="relative w-full select-none pt-6 sm:pt-8">
+    // `pt-10` en mobile, et non `pt-6` : la pastille « 24 sections guidées » fait
+    // 36 px de haut et, avec un retrait de 24 px, son bas recouvrait la barre de
+    // titre de la fenêtre (« Villa Horizon · Annecy », « 78 % »). À 40 px elle passe
+    // juste au-dessus. Au-delà de `sm` la barre est plus basse, 32 px suffisent.
+    <div aria-hidden="true" className="relative w-full select-none pt-10 sm:pt-8">
       {/* Fenêtre applicative */}
       <div
         className="overflow-hidden rounded-2xl sm:rounded-3xl"
@@ -177,6 +181,28 @@ export function ProductPreview() {
         </span>
         <span className="text-[11px] font-bold sm:text-xs" style={{ color: FL.ink }}>
           sections guidées
+        </span>
+      </span>
+
+      {/* Réservée à `lg`, et c'est une contrainte de place mesurée, pas un choix de
+          confort : la bulle fait ~167 px de large. En dessous de `lg` elle mordrait
+          sur le panneau clair et recouvrirait le titre d'annonce — sous `sm` le rail
+          sombre n'existe même plus. À partir de `lg` elle déborde de 28 px dans la
+          gouttière de la grille et son reste tient dans les 160 px du rail : elle
+          chevauche le bord du cadre comme sur la maquette, sans rien recouvrir, et
+          la fenêtre garde toute la largeur de sa colonne. */}
+      <span
+        className="absolute bottom-12 -left-7 hidden items-center gap-2 rounded-full bg-white px-3 py-2 lg:flex"
+        style={{ boxShadow: '0 12px 28px -16px rgba(23,23,20,0.55)' }}
+      >
+        <span
+          className="flex h-6 w-6 items-center justify-center rounded-full"
+          style={{ backgroundColor: FL.ink }}
+        >
+          <Sparkles className="h-3 w-3" style={{ color: FL.goldLight }} />
+        </span>
+        <span className="text-[11px] font-bold sm:text-xs" style={{ color: FL.ink }}>
+          Annonce optimisée
         </span>
       </span>
     </div>

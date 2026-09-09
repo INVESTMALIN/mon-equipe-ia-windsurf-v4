@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Sparkles, ArrowUpRight, Check } from 'lucide-react'
-import { FL, DISPLAY_SERIF } from '../lib/ficheLogementTheme'
+import { FL, DISPLAY_SERIF, LANDING_SHELL } from '../lib/ficheLogementTheme'
 
 // Blocs visuels partagés de l'univers « Fiche Logement + Assistant IA », montés par
 // la landing /fiche-logement, l'inscription dédiée et la connexion de cet univers.
@@ -167,7 +167,7 @@ export function PlusItem({ children }) {
 export function BrandHeader() {
   return (
     <header className="relative z-20 border-b" style={{ borderColor: FL.line }}>
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
+      <div className={`${LANDING_SHELL} flex items-center justify-between gap-4 py-5`}>
         <Link to="/fiche-logement" className="shrink-0">
           <BrandLockup />
         </Link>
@@ -193,7 +193,7 @@ export function BrandHeader() {
 export function BrandFooter() {
   return (
     <footer className="border-t" style={{ borderColor: FL.line, backgroundColor: FL.paper }}>
-      <div className="mx-auto max-w-6xl px-5 py-12 text-center sm:px-8">
+      <div className={`${LANDING_SHELL} py-12 text-center`}>
         <BrandLockup className="justify-center" />
         <p className="mt-4 text-sm" style={{ color: FL.muted }}>
           Fiche Logement + Assistant IA, l’outil métier des patrons de conciergerie.

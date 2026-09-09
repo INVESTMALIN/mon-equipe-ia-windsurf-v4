@@ -39,6 +39,16 @@ export const FL = {
   lineDark: 'rgba(240, 217, 142, 0.16)',
 }
 
+// Gabarit horizontal UNIQUE de la landing. En-tête, bandeau, sections et pied de
+// page l'utilisent tous : leurs bords gauche et droit sont donc alignés au pixel,
+// quelle que soit la largeur d'écran.
+//
+// 1384 px moins les 2 × 32 px de padding = 1320 px de contenu dès que l'écran fait
+// 1384 px, soit exactement la largeur relevée sur la maquette de référence — et les
+// mêmes marges qu'elle : 60 px à 1440, 300 px à 1920. En dessous, le padding prend
+// le relais et la landing reste confortable jusqu'au mobile.
+export const LANDING_SHELL = 'mx-auto w-full max-w-[1384px] px-5 sm:px-8'
+
 // Deux familles, deux rôles. Le sans (Montserrat, déjà chargé par l'app) porte les
 // titres « produit » ; le serif (`font-serif`, pile système) porte les titres
 // éditoriaux et l'accent du hero.
