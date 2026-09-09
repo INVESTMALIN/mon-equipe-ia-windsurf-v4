@@ -74,6 +74,10 @@ function AppWrapper() {
           {/* Landing produit Fiche Logement (public, lien ThriveCart) + son inscription dédiée */}
           <Route path="/fiche-logement" element={<FicheLogementLanding />} />
           <Route path="/inscription-fiche-logement" element={<InscriptionFicheLite />} />
+          {/* Même composant Login, même flux d'authentification et mêmes redirections
+              selon le rôle : seul l'habillage change pour rester dans l'univers de la
+              landing. /connexion reste la connexion générique de Mon Équipe IA. */}
+          <Route path="/connexion-fiche-logement" element={<Login variant="fiche" />} />
 
           
           {/* Pages légales - publiques */}

@@ -3,12 +3,19 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { signupIndicatesExistingEmail } from '../lib/authHelpers'
 import AccountExistsNotice from './AccountExistsNotice'
+import { FL, DISPLAY_SANS, AUTH_FIELD_CLASS, AUTH_SUBMIT_CLASS } from '../lib/ficheLogementTheme'
+import { AuthAside, BrandLockup, UniversePill } from './FicheLogementBrand'
 
 // Inscription dédiée à la landing /fiche-logement (public ThriveCart).
 // Identique dans l'esprit à Inscription.jsx, mais pose le rôle `fiche_lite`
 // via la métadonnée signup (lue et whitelistée par le trigger handle_new_user).
 // Volontairement séparée de Inscription.jsx pour ne rien changer au parcours
 // d'inscription concierge existant.
+//
+// L'habillage vient de FicheLogementBrand (crème / encre / or) pour que cet écran
+// soit visuellement le prolongement de la landing. La logique ci-dessous n'a pas
+// bougé : même appel signUp, même détection d'email existant, même complétion du
+// profil, même destination /compte-cree.
 export default function InscriptionFicheLite() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -78,70 +85,64 @@ export default function InscriptionFicheLite() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex">
-      {/* Colonne gauche - Image / pitch */}
-      <div className="hidden lg:flex lg:flex-1 relative flex-col justify-end p-12">
-        <img
-          src="/images/hero-image.png"
-          alt="Fiche Logement"
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30"></div>
-        <div className="relative text-white max-w-md">
-          <h2 className="text-3xl font-bold mb-4">
-            Inspectez vos logements comme un pro.
-          </h2>
-          <p className="text-lg text-gray-200">
-            Créez votre compte et lancez votre première fiche d'inspection en quelques minutes.
-          </p>
-        </div>
-      </div>
+    <div className="flex min-h-screen" style={{ backgroundColor: FL.paper }}>
+      <AuthAside
+        eyebrow="Ton nouvel outil métier"
+        title="Prépare tes logements"
+        accent="comme un pro"
+        text="Crée ton compte et lance ta première fiche. Le parcours guidé et l’assistant d’annonces sont inclus."
+        points={[
+          '24 sections guidées, des accès aux extérieurs',
+          'Annonces Airbnb et Booking générées depuis ta fiche',
+          'PDF propre à partager à ton équipe',
+        ]}
+      />
 
-      {/* Colonne droite - Formulaire */}
-      <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 py-12 bg-white">
-        <div className="max-w-md mx-auto w-full">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-8">
-              <img
-                src="/images/invest-malin-logo.png"
-                alt="Invest Malin Logo"
-                className="h-8"
-              />
-              <span className="text-2xl font-bold text-black">FICHE LOGEMENT</span>
-            </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Créer votre compte
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Accédez à l'outil d'inspection et lancez votre première fiche.
-            </p>
+      <div className="flex flex-1 flex-col justify-center px-5 py-12 sm:px-10 lg:px-14 xl:px-20">
+        <div className="mx-auto w-full max-w-md">
+          {/* Le lockup et la pastille ne sont visibles qu'en dessous de lg :
+              au-delà, la colonne éditoriale de gauche les porte déjà. */}
+          <div className="lg:hidden">
+            <Link to="/fiche-logement" className="inline-block">
+              <BrandLockup />
+            </Link>
+            <UniversePill className="mt-5" />
           </div>
 
-          <form onSubmit={handleSignup} className="space-y-6">
+          <h1 className={`mt-8 text-3xl sm:text-[2.1rem] lg:mt-0 ${DISPLAY_SANS}`}>
+            Crée ton compte
+          </h1>
+          <p className="mt-3 text-base" style={{ color: FL.muted }}>
+            Accède à l’outil de préparation et lance ta première fiche.
+          </p>
+
+          <form onSubmit={handleSignup} className="mt-8 space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="firstName" className="mb-2 block text-sm font-bold" style={{ color: FL.ink }}>
                   Prénom
                 </label>
                 <input
                   id="firstName"
                   type="text"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#dbae61] transition-colors"
-                  placeholder="Votre prénom"
+                  className={AUTH_FIELD_CLASS}
+                  style={{ borderColor: FL.line }}
+                  placeholder="Ton prénom"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="lastName" className="mb-2 block text-sm font-bold" style={{ color: FL.ink }}>
                   Nom
                 </label>
                 <input
                   id="lastName"
                   type="text"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#dbae61] transition-colors"
-                  placeholder="Votre nom"
+                  className={AUTH_FIELD_CLASS}
+                  style={{ borderColor: FL.line }}
+                  placeholder="Ton nom"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required
@@ -150,14 +151,15 @@ export default function InscriptionFicheLite() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="mb-2 block text-sm font-bold" style={{ color: FL.ink }}>
                 Adresse email
               </label>
               <input
                 id="email"
                 type="email"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#dbae61] transition-colors"
-                placeholder="Entrez votre email"
+                className={AUTH_FIELD_CLASS}
+                style={{ borderColor: FL.line }}
+                placeholder="Ton adresse email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setEmailExists(false) }}
                 required
@@ -165,69 +167,69 @@ export default function InscriptionFicheLite() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="mb-2 block text-sm font-bold" style={{ color: FL.ink }}>
                 Mot de passe
               </label>
               <input
                 id="password"
                 type="password"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#dbae61] transition-colors"
-                placeholder="Choisissez un mot de passe sécurisé"
+                className={AUTH_FIELD_CLASS}
+                style={{ borderColor: FL.line }}
+                placeholder="Choisis un mot de passe sécurisé"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-1.5 text-xs" style={{ color: FL.muted }}>
                 Minimum 6 caractères recommandés
               </p>
             </div>
 
-            {emailExists && <AccountExistsNotice />}
+            {emailExists && <AccountExistsNotice loginPath="/connexion-fiche-logement" />}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#dbae61] hover:bg-[#c49a4f] disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
+            <button type="submit" disabled={loading} className={AUTH_SUBMIT_CLASS}>
               {loading ? 'Création du compte...' : 'Créer mon compte'}
             </button>
           </form>
 
-          <div className="mt-8 text-center space-y-4">
-            <div className="text-sm text-gray-600">
-              Déjà un compte ?{' '}
-              <Link
-                to="/connexion"
-                className="text-[#dbae61] hover:text-[#c49a4f] font-medium transition-colors"
-              >
-                Se connecter
-              </Link>
-            </div>
-          </div>
+          <p className="mt-8 text-center text-sm" style={{ color: FL.muted }}>
+            Déjà un compte ?{' '}
+            <Link
+              to="/connexion-fiche-logement"
+              className="font-bold underline-offset-4 transition-colors hover:underline"
+              style={{ color: FL.goldDeep }}
+            >
+              Se connecter
+            </Link>
+          </p>
 
-          <div className="mt-8 text-center">
+          <p className="mt-4 text-center">
             <Link
               to="/fiche-logement"
-              className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+              className="text-sm font-medium transition-colors hover:opacity-60"
+              style={{ color: FL.muted }}
             >
               ← Retour à la présentation
             </Link>
-          </div>
+          </p>
 
-          <div className="mt-8 text-center">
-            <p className="text-xs text-gray-500">
-              En créant un compte, vous acceptez nos{' '}
-              <Link to="/conditions-utilisation" className="text-[#dbae61] hover:underline">conditions d'utilisation</Link>
-              {' '}et notre{' '}
-              <Link to="/politique-confidentialite" className="text-[#dbae61] hover:underline">politique de confidentialité</Link>.
-            </p>
-          </div>
+          <p className="mt-8 text-center text-xs leading-relaxed" style={{ color: FL.muted }}>
+            En créant ton compte, tu acceptes nos{' '}
+            <Link to="/conditions-utilisation" className="underline" style={{ color: FL.goldDeep }}>
+              conditions d’utilisation
+            </Link>{' '}
+            et notre{' '}
+            <Link to="/politique-confidentialite" className="underline" style={{ color: FL.goldDeep }}>
+              politique de confidentialité
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>
