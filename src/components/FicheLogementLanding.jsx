@@ -272,9 +272,14 @@ export default function FicheLogementLanding() {
 
       {/* ─────────────────── L'expertise derrière ─────────────────── */}
       <section style={{ backgroundColor: FL.ink }}>
-        <div className={`${LANDING_SHELL} py-16 sm:py-24`}>
+        {/* Carte du chiffre à gauche, propos et grille à droite à partir de lg.
+            La colonne de gauche est volontairement la plus étroite (0,56fr contre
+            1fr) : c'est un repère chiffré, pas le propos. `items-center` la centre
+            verticalement en face du bloc de droite, plus haut qu'elle. En dessous
+            de lg, tout s'empile dans l'ordre de lecture. */}
+        <div className={`${LANDING_SHELL} grid gap-10 py-16 sm:py-24 lg:grid-cols-[minmax(0,0.56fr)_minmax(0,1fr)] lg:items-center lg:gap-16`}>
           <div
-            className="relative overflow-hidden rounded-3xl border p-8 sm:p-12"
+            className="relative flex flex-col justify-center overflow-hidden rounded-3xl border p-8 sm:p-12 lg:min-h-[24rem]"
             style={{ borderColor: FL.lineDark }}
           >
             <div
@@ -288,12 +293,12 @@ export default function FicheLogementLanding() {
             <div className="relative">
               <Eyebrow tone="light">Étude Airbnb France 2025</Eyebrow>
               <p className="mt-6 leading-none">
-                <span className={`text-white ${DISPLAY_SANS}`} style={{ fontSize: 'clamp(3.5rem, 9vw, 6rem)' }}>
+                <span className={`text-white ${DISPLAY_SANS}`} style={{ fontSize: 'clamp(3.5rem, 6vw, 6rem)' }}>
                   3
                 </span>
                 <span
                   className="font-serif"
-                  style={{ fontSize: 'clamp(2.5rem, 6.5vw, 4.4rem)', color: FL.goldLight }}
+                  style={{ fontSize: 'clamp(2.5rem, 4.4vw, 4.4rem)', color: FL.goldLight }}
                 >
                   565
                 </span>
@@ -305,7 +310,7 @@ export default function FicheLogementLanding() {
             </div>
           </div>
 
-          <div className="mt-14">
+          <div>
             <Eyebrow tone="light">L’expertise derrière l’assistant</Eyebrow>
             <h2
               className={`mt-6 max-w-4xl text-white ${DISPLAY_SERIF}`}
