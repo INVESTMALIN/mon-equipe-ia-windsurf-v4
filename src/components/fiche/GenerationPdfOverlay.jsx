@@ -25,6 +25,50 @@ export default function GenerationPdfOverlay() {
   const enregistrement = statut === GENERATION_PDF.ENREGISTREMENT
   const enregistrementEchoue = statut === GENERATION_PDF.ENREGISTREMENT_ECHOUE
 
+  // La fiche a été modifiée dans une autre session pendant la génération. Rien n'a
+  // été écrit et surtout rien n'a été verrouillé sur cette nouvelle identité : la
+  // base ne correspond plus au document remis. Réessayer serait trompeur — l'écriture
+  // échouerait toujours, par construction. La seule issue est de recharger.
+  if (statut === GENERATION_PDF.IDENTITE_MODIFIEE) {
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-[2px]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="generation-pdf-titre"
+      >
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl" aria-live="polite">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#fef3c7]">
+            <AlertTriangle className="h-7 w-7 text-[#b45309]" aria-hidden="true" />
+          </div>
+
+          <h2 id="generation-pdf-titre" className="text-xl font-bold text-gray-900">
+            Cette fiche a été modifiée ailleurs
+          </h2>
+
+          <p className="mt-3 text-sm leading-relaxed text-gray-600">
+            Les informations qui identifient le bien ont changé pendant la préparation de votre
+            PDF — probablement depuis un autre onglet ou un autre appareil. Le document que vous
+            venez de télécharger ne correspond donc plus à la fiche.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-gray-600">
+            Par sécurité, <strong>rien n’a été enregistré et la fiche n’a pas été
+            verrouillée</strong>. Rechargez-la pour repartir de sa version à jour.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#171714] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#2a2a25]"
+          >
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            Recharger la fiche
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Phase 2 — le fichier est déjà chez l'utilisateur, seule sa trace est en jeu.
   // Message et actions n'ont donc rien à voir avec ceux du rendu : surtout, on ne
   // propose JAMAIS de régénérer, ce qui referait un téléchargement pour rien.

@@ -85,7 +85,12 @@ export const mapSupabaseToFormData = (supabaseData) => {
     
     // Gestion photos version lite
     photos_prises: supabaseData.photos_prises || {},
-    rappels_photos: supabaseData.rappels_photos || []
+    rappels_photos: supabaseData.rappels_photos || [],
+
+    // Champ CALCULÉ, pas une colonne : jamais réécrit (mapFormDataToSupabase ne le
+    // contient pas). Transporté pour que l'appelant de saveFiche dispose de l'identité
+    // du bien telle que SA propre écriture vient de la poser.
+    identite_verrouillee: supabaseData.identite_verrouillee ?? null
   }
 }
 
@@ -104,7 +109,12 @@ export const saveFiche = async (formData, userId) => {
           .from('fiche_lite')  // ← CHANGÉ ICI
           .update(supabaseData)
           .eq('id', formData.id)
-          .select()
+          // `identite_verrouillee` est un champ CALCULÉ (migration 20260909080000) :
+          // il renvoie, dans le RETURNING de CETTE écriture, l'identité du bien telle
+          // qu'elle vient d'être posée. C'est la seule valeur dont on puisse affirmer
+          // qu'elle correspond au PDF qui va être produit — la relire ensuite laisserait
+          // un autre onglet s'intercaler.
+          .select('*, identite_verrouillee')
           .single()
       )
     } else {
@@ -113,7 +123,7 @@ export const saveFiche = async (formData, userId) => {
         supabase
           .from('fiche_lite')  // ← CHANGÉ ICI
           .insert(supabaseData)
-          .select()
+          .select('*, identite_verrouillee')
           .single()
       )
     }

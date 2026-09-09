@@ -280,3 +280,50 @@ test('le délai d’enregistrement est distinct de celui du rendu', () => {
   assert.equal(PDF_ENREGISTREMENT_TIMEOUT_MS, 15000)
   assert.ok(PDF_ENREGISTREMENT_TIMEOUT_MS < PDF_RENDU_TIMEOUT_MS)
 })
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Concurrence entre onglets : l'écriture est conditionnée à l'identité qui a servi
+// au PDF. La fonction SQL est SIMULÉE ici ; son comportement réel est prouvé côté
+// base (UPDATE conditionnel en une seule instruction).
+// ─────────────────────────────────────────────────────────────────────────────
+
+test('identité inchangée : preuve et verrou enregistrés, le voile tombe', async () => {
+  const etats = []
+  const ecrit = []
+  const r = await persisterPreuvePdf({
+    // Équivalent d'un `fiche_lite_enregistrer_pdf` renvoyant true.
+    ecrire: async () => { ecrit.push(construirePatchPdf({ withLock: true, horodatage: 'H' })); return { success: true } },
+    onEtat: (e) => etats.push(e),
+    timeoutMs: 50,
+  })
+  assert.equal(r.success, true)
+  assert.deepEqual(etats, ['enregistrement', 'inactif'])
+  assert.deepEqual(ecrit, [{ pdf_generated_at: 'H', fields_locked: true }])
+})
+
+test('identité modifiée ailleurs : aucun verrou, état dédié et visible', async () => {
+  // La fonction SQL renvoie false quand l'identité en base ne correspond plus : rien
+  // n'est écrit, donc surtout aucun verrou posé sur la version de l'autre onglet.
+  const etats = []
+  const r = await persisterPreuvePdf({
+    ecrire: async () => ({ success: false, identiteModifiee: true, error: 'modifiée ailleurs' }),
+    onEtat: (e) => etats.push(e),
+    timeoutMs: 50,
+  })
+  assert.equal(r.success, false)
+  assert.equal(r.identiteModifiee, true)
+  // Surtout PAS 'enregistrement_echoue' : réessayer n'aurait aucun sens, l'écriture
+  // échouerait toujours. Le message et l'action à proposer sont différents.
+  assert.deepEqual(etats, ['enregistrement', 'identite_modifiee'])
+})
+
+test('identité modifiée : distinguée d’un échec technique', async () => {
+  const technique = []
+  await persisterPreuvePdf({
+    ecrire: async () => ({ success: false, error: 'réseau' }),
+    onEtat: (e) => technique.push(e),
+    timeoutMs: 50,
+  })
+  assert.deepEqual(technique, ['enregistrement', 'enregistrement_echoue'],
+    'un échec technique reste réessayable, lui')
+})

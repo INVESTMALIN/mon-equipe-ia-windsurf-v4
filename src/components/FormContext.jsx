@@ -447,19 +447,47 @@ export function FormProvider({ children }) {
   // fiche CRÉÉE pendant la même action : ce callback a été capturé au rendu précédent,
   // où l'id était encore null — le PDF serait délivré sans preuve, et sans verrou.
   // Repli sur le miroir `formDataRef` puis sur la fermeture, dans cet ordre.
-  const enregistrerPdfGenere = useCallback(async ({ withLock = false, ficheId, horodatage, signal } = {}) => {
+  const enregistrerPdfGenere = useCallback(async ({ withLock = false, ficheId, horodatage, identite, signal } = {}) => {
     const id = ficheId || formDataRef.current?.id || formData.id
     if (!id) return { success: false, error: 'Fiche non enregistrée' }
 
+    // Sans l'identité de référence, on ne PEUT PAS écrire : un update inconditionnel
+    // rouvrirait la course entre onglets que cette fonction existe pour fermer. On
+    // échoue franchement plutôt que de retomber sur un chemin non protégé.
+    if (identite === undefined) {
+      return { success: false, error: 'Identité de référence absente : enregistrement refusé' }
+    }
+
     const patch = construirePatchPdf({ withLock, horodatage })
 
-    // `abortSignal` : sans lui, supabase-js n'impose aucune limite de temps et une
-    // requête qui ne répond jamais bloquerait l'utilisateur derrière le voile, PDF
-    // déjà téléchargé. La borne elle-même est posée par `enregistrerAvecDelai`.
-    let requete = supabase.from('fiche_lite').update(patch).eq('id', id)
+    // Fonction SQL et non update direct : la comparaison de l'identité et l'écriture
+    // doivent être la MÊME instruction. Un SELECT de contrôle suivi d'un UPDATE
+    // laisserait un autre onglet s'intercaler entre les deux.
+    //
+    // `abortSignal` : supabase-js n'impose aucune limite de temps, et une requête qui
+    // ne répond jamais bloquerait l'utilisateur derrière le voile, PDF déjà
+    // téléchargé. La borne elle-même est posée par `enregistrerAvecDelai`.
+    let requete = supabase.rpc('fiche_lite_enregistrer_pdf', {
+      p_fiche_id: id,
+      p_horodatage: patch.pdf_generated_at,
+      p_verrouiller: !!withLock,
+      p_identite: identite,
+    })
     if (signal) requete = requete.abortSignal(signal)
-    const { error } = await requete
+    const { data, error } = await requete
     if (error) return { success: false, error: error.message }
+
+    // `false` = aucune ligne touchée : l'identité en base ne correspond plus à celle
+    // qui a servi au PDF. Rien n'a été écrit, et surtout rien n'a été verrouillé sur
+    // la nouvelle identité. Ce n'est pas un échec technique : réessayer ne changerait
+    // rien, il faut recharger la fiche.
+    if (data !== true) {
+      return {
+        success: false,
+        identiteModifiee: true,
+        error: 'La fiche a été modifiée dans une autre session pendant la génération.',
+      }
+    }
 
     // MàJ locale sans déclencher d'auto-save (ce n'est pas une saisie utilisateur).
     isUserChangeRef.current = false
@@ -474,12 +502,14 @@ export function FormProvider({ children }) {
   // passe à un état d'échec explicite au lieu de disparaître en laissant croire que
   // tout est enregistré : le PDF est bien téléchargé, mais son badge — et le verrou
   // côté Lite — manquent, et l'utilisateur doit pouvoir le savoir et réessayer.
-  const persisterGenerationPdf = useCallback(async ({ ficheId, withLock = false, horodatage }) => {
-    // Figé ici pour que toutes les tentatives écrivent la MÊME preuve.
+  const persisterGenerationPdf = useCallback(async ({ ficheId, withLock = false, horodatage, identite }) => {
+    // Figé ici pour que toutes les tentatives écrivent la MÊME preuve, contre la MÊME
+    // identité de référence — celle qui a servi à produire le PDF.
     const reprise = {
       ficheId: ficheId || formDataRef.current?.id || null,
       withLock,
       horodatage: horodatage || new Date().toISOString(),
+      identite,
     }
     repriseEnregistrementRef.current = reprise
 

@@ -274,6 +274,11 @@ export default function FicheFinalisation() {
       // de cette fonction date d'avant l'appel, donc sur une fiche jamais enregistrée
       // elle porterait encore `id: null`.
       const ficheId = saveRes?.data?.id || formData.id
+      // Identité du bien telle que LA SAUVEGARDE CI-DESSUS vient de l'écrire, renvoyée
+      // par son propre RETURNING (champ calculé `identite_verrouillee`). C'est celle
+      // que le PDF va contenir. La relire dans un second appel laisserait un autre
+      // onglet s'intercaler et on comparerait alors contre SA version.
+      const identiteDuPdf = saveRes?.data?.identite_verrouillee
       let annonces = []
       if (ficheId) {
         const { data: lignesAnnonces, error: erreurAnnonces } = await supabase
@@ -317,6 +322,7 @@ export default function FicheFinalisation() {
             ficheId,
             withLock,
             horodatage: new Date().toISOString(),
+            identite: identiteDuPdf,
           })
           if (!res?.success) {
             // Pas d'alerte : le voile affiche déjà l'état « enregistrement non

@@ -27,12 +27,18 @@
 //                          mais son enregistrement n'est pas confirmé : sans badge, et
 //                          sans verrou côté Lite. On le dit explicitement et on propose
 //                          de réessayer l'ENREGISTREMENT SEUL.
+//   IDENTITE_MODIFIEE      l'identité du bien a changé en base pendant la génération —
+//                          typiquement la même fiche ouverte dans un second onglet. Rien
+//                          n'a été écrit, et surtout rien n'a été verrouillé sur cette
+//                          nouvelle identité. Réessayer n'aurait aucun sens : la seule
+//                          issue est de recharger la fiche.
 export const GENERATION_PDF = {
   INACTIF: 'inactif',
   EN_COURS: 'en_cours',
   PROLONGE: 'prolonge',
   ENREGISTREMENT: 'enregistrement',
   ENREGISTREMENT_ECHOUE: 'enregistrement_echoue',
+  IDENTITE_MODIFIEE: 'identite_modifiee',
 }
 
 // États pendant lesquels l'identité du bien doit rester gelée : tant que la preuve
@@ -43,4 +49,5 @@ export const GENERATION_PDF_BLOQUANTS = [
   GENERATION_PDF.PROLONGE,
   GENERATION_PDF.ENREGISTREMENT,
   GENERATION_PDF.ENREGISTREMENT_ECHOUE,
+  GENERATION_PDF.IDENTITE_MODIFIEE,
 ]

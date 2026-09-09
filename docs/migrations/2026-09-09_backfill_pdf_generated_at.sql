@@ -35,6 +35,28 @@
 --   fiches_total = 61 | verrouillees = 4 | deverrouillees = 57
 --   les 4 verrouillées ont toutes un updated_at (aucune valeur nulle à traiter)
 --
+-- ⚠️ EFFET DE BORD CONSTATÉ APRÈS COUP, non anticipé lors de l'exécution.
+-- La table porte un trigger `update_fiche_lite_updated_at` qui force
+-- `updated_at = now()` à CHAQUE update. Cet UPDATE a donc déplacé le `updated_at`
+-- des 4 lignes reprises, de leur date réelle vers l'instant de la reprise
+-- (2026-09-09 05:41:33). Conséquence visible : ces 4 fiches affichent « Modifiée le
+-- 09/09/2026 » au lieu de leur dernière édition réelle, et remontent en tête du
+-- dashboard, qui trie sur `updated_at`.
+--
+-- La donnée d'origine n'est PAS perdue : c'est exactement ce que la reprise a copié
+-- dans `pdf_generated_at`. Restauration possible, à condition de neutraliser le
+-- trigger le temps de l'opération, sans quoi il réécrirait `updated_at` :
+--
+--   alter table public.fiche_lite disable trigger update_fiche_lite_updated_at;
+--   update public.fiche_lite
+--      set updated_at = pdf_generated_at at time zone 'UTC'
+--    where fields_locked and pdf_generated_at is not null
+--      and updated_at >= '2026-09-09 05:41:00' and updated_at < '2026-09-09 05:42:00';
+--   alter table public.fiche_lite enable trigger update_fiche_lite_updated_at;
+--
+-- NON exécuté : c'est une seconde écriture sur des données réelles, elle relève d'un
+-- arbitrage de Julien.
+--
 -- `at time zone 'UTC'` et non un cast implicite : `updated_at` est un timestamp
 -- SANS fuseau, le cast dépendrait du TimeZone de la session. Les valeurs y sont
 -- stockées en UTC, on le dit explicitement.

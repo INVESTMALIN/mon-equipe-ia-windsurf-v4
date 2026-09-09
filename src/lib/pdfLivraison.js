@@ -102,12 +102,21 @@ export function enregistrerAvecDelai({ ecrire, timeoutMs = PDF_ENREGISTREMENT_TI
  * l'utilisateur croirait tout enregistré alors que le badge PDF — et, côté Lite, le
  * verrou — manquent.
  *
- * @param onEtat  reçoit 'enregistrement' puis 'inactif' ou 'enregistrement_echoue'.
+ * Trois issues, et pas deux : une écriture refusée parce que l'identité du bien a
+ * changé ailleurs n'est PAS un échec technique. Réessayer ne servirait à rien — la
+ * base ne correspond plus au PDF remis — et le message à afficher est différent.
+ *
+ * @param onEtat  reçoit 'enregistrement' puis 'inactif', 'enregistrement_echoue' ou
+ *                'identite_modifiee'.
  */
 export async function persisterPreuvePdf({ ecrire, onEtat, timeoutMs }) {
   onEtat?.('enregistrement')
   const resultat = await enregistrerAvecDelai({ ecrire, timeoutMs })
-  onEtat?.(resultat?.success ? 'inactif' : 'enregistrement_echoue')
+
+  if (resultat?.success) onEtat?.('inactif')
+  else if (resultat?.identiteModifiee) onEtat?.('identite_modifiee')
+  else onEtat?.('enregistrement_echoue')
+
   return resultat
 }
 

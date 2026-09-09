@@ -124,9 +124,19 @@ export default function Dashboard() {
         return
       }
       setFiches(result.data)
-      // Requête annexe : son échec ne doit jamais vider la liste des fiches, il
-      // se traduit par une absence de badge « Annonce » (cf. helper).
-      setIdsAvecAnnonce(await getFichesAvecAnnonce(result.data.map((f) => f.id)))
+
+      // Les badges « Annonce » sont chargés SANS être attendus. Les attendre ici
+      // retenait `loadUserFiches`, donc le `finally` de checkUserAndPremium, donc
+      // l'écran de chargement plein écran — alors que la liste des fiches était déjà
+      // arrivée. `safeSupabaseQuery` n'impose aucune limite de temps : une requête
+      // annexe suspendue rendait tout le dashboard indisponible.
+      //
+      // Le helper ne rejette jamais (ensemble vide en cas d'erreur) ; le `catch` est
+      // une ceinture de sécurité. Dans les deux cas, l'absence de badge est une
+      // absence, jamais une fausse information.
+      getFichesAvecAnnonce(result.data.map((f) => f.id))
+        .then(setIdsAvecAnnonce)
+        .catch((e) => console.error('Chargement des badges annonce échoué:', e))
     } catch (error) {
       console.error('Erreur chargement fiches:', error)
     }
