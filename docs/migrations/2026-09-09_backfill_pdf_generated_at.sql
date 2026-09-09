@@ -43,9 +43,10 @@
 -- 09/09/2026 » au lieu de leur dernière édition réelle, et remontent en tête du
 -- dashboard, qui trie sur `updated_at`.
 --
--- La donnée d'origine n'est PAS perdue : c'est exactement ce que la reprise a copié
--- dans `pdf_generated_at`. Restauration possible, à condition de neutraliser le
--- trigger le temps de l'opération, sans quoi il réécrirait `updated_at` :
+-- La donnée d'origine n'était PAS perdue : c'est exactement ce que la reprise avait
+-- copié dans `pdf_generated_at`. La restauration a donc consisté à la recopier en
+-- sens inverse, trigger neutralisé le temps de l'opération — sans quoi il aurait
+-- réécrit `updated_at` au moment même où on le corrigeait :
 --
 --   alter table public.fiche_lite disable trigger update_fiche_lite_updated_at;
 --   update public.fiche_lite
@@ -54,8 +55,18 @@
 --      and updated_at >= '2026-09-09 05:41:00' and updated_at < '2026-09-09 05:42:00';
 --   alter table public.fiche_lite enable trigger update_fiche_lite_updated_at;
 --
--- NON exécuté : c'est une seconde écriture sur des données réelles, elle relève d'un
--- arbitrage de Julien.
+-- ✅ RESTAURATION EXÉCUTÉE le 09/09/2026 par Alex, sur la production.
+-- Contrôle en lecture seule après coup :
+--   fiches_total = 61 | verrouillees = 4 | avec_preuve_pdf = 4
+--   dates_artificielles_restantes = 0
+--   updated_at_restaures = 4  (les 4 lignes ont updated_at = pdf_generated_at, donc
+--                              leur valeur d'avant la reprise, à la microseconde près)
+--   trigger update_fiche_lite_updated_at : réactivé
+--
+-- ⚠️ À retenir pour toute future correction de données sur cette table : le trigger
+-- déplace `updated_at` à chaque UPDATE, y compris quand on ne touche qu'une autre
+-- colonne. Le dashboard affiche et trie sur cette valeur — une correction en
+-- apparence anodine y remonte les lignes touchées en tête de liste.
 --
 -- `at time zone 'UTC'` et non un cast implicite : `updated_at` est un timestamp
 -- SANS fuseau, le cast dépendrait du TimeZone de la session. Les valeurs y sont
