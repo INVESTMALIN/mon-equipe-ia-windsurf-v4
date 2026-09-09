@@ -72,7 +72,7 @@ export default function FicheFinalisation() {
     back,
     finaliserFiche,
     isFicheLocked,
-    lockFiche
+    enregistrerPdfGenere
   } = useForm()
 
   // Rôle de l'utilisateur : seul `fiche_lite` déclenche l'avertissement + le verrou.
@@ -268,12 +268,24 @@ export default function FicheFinalisation() {
         annonces = (lignesAnnonces || []).filter((l) => l.statut !== 'erreur' && l.output_assemble)
       }
 
-      // PDF D'ABORD (client-side, synchrone), PUIS le verrou — jamais de lock sans PDF.
+      // PDF D'ABORD (client-side, synchrone), PUIS la trace en base — jamais de verrou
+      // ni de preuve sans PDF délivré.
       generatePdfClientSide(formData, { annonces })
       setPdfGenerated(true)
-      if (withLock) {
-        const res = await lockFiche()
-        if (!res?.success) console.error('Verrouillage de la fiche échoué (PDF déjà généré) :', res?.error)
+
+      // Trace persistante de la génération, pour TOUS LES RÔLES (premium inclus) :
+      // c'est elle, et non le verrou, qui fait apparaître le badge « PDF » du
+      // dashboard. Le verrou d'identité n'est posé qu'en plus, et dans le MÊME update
+      // (cf. enregistrerPdfGenere) : pas de fenêtre où l'un serait écrit sans l'autre.
+      //
+      // ⚠️ Limite assumée : le PDF est construit dans le navigateur et remis à
+      // l'utilisateur ; on ne peut pas savoir si le fichier a réellement été
+      // enregistré sur son disque. Et si cet update échoue après coup, la fiche garde
+      // son PDF sans preuve — badge absent, pop-up de verrou qui réapparaîtra. Le
+      // défaut penche donc du côté du FAUX NÉGATIF, jamais de la fausse promesse.
+      const res = await enregistrerPdfGenere({ withLock })
+      if (!res?.success) {
+        console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
       }
     } catch (error) {
       console.error('Erreur génération PDF:', error)

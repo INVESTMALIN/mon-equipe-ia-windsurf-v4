@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import { getUserFiches, setFicheArchived } from '../lib/supabaseHelpers'
+import { getUserFiches, getFichesAvecAnnonce, setFicheArchived } from '../lib/supabaseHelpers'
 import { FICHE_STATUS_FILTERS, matchesFicheFilter } from '../lib/ficheFilters'
 import { useCreditBalance } from '../hooks/useCreditBalance'
 import { 
@@ -21,6 +21,7 @@ import {
   Coins,
   LogOut
 } from 'lucide-react'
+import { EtatEditionIcone, BadgesLivrables } from './fiche/LivrablesBadges'
 import CreateFicheModal from './fiche/CreateFicheModal'
 import DeleteFicheModal from './fiche/DeleteFicheModal'
 
@@ -42,6 +43,9 @@ export default function Dashboard() {
   const [activeFilter, setActiveFilter] = useState("Tous")
   const [viewMode, setViewMode] = useState('grid') // 'grid' ou 'list'
   const [showDropdown, setShowDropdown] = useState(null)
+  // Fiches disposant d'une annonce exploitable. Chargé en UNE requête pour toute
+  // la liste (cf. getFichesAvecAnnonce), jamais une par carte.
+  const [idsAvecAnnonce, setIdsAvecAnnonce] = useState(() => new Set())
 
   // Modales crédits (fiche_lite) : création payante + suppression.
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -115,11 +119,14 @@ export default function Dashboard() {
   const loadUserFiches = async (userId) => {
     try {
       const result = await getUserFiches(userId)
-      if (result.success) {
-        setFiches(result.data)
-      } else {
+      if (!result.success) {
         console.error('Erreur chargement fiches:', result.error)
+        return
       }
+      setFiches(result.data)
+      // Requête annexe : son échec ne doit jamais vider la liste des fiches, il
+      // se traduit par une absence de badge « Annonce » (cf. helper).
+      setIdsAvecAnnonce(await getFichesAvecAnnonce(result.data.map((f) => f.id)))
     } catch (error) {
       console.error('Erreur chargement fiches:', error)
     }
@@ -386,13 +393,22 @@ export default function Dashboard() {
         {viewMode === 'grid' && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredFiches.map((fiche) => (
-              <div key={fiche.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors cursor-pointer">
-                      {fiche.nom}
-                    </h3>
-                    
+              // `h-full` + `flex-col` : la grille étire déjà les cartes d'une rangée à
+              // la même hauteur, la carte propage cette hauteur à son contenu. C'est ce
+              // qui permet d'afficher zéro, un ou trois badges sans réserver de zone
+              // vide et sans imposer de hauteur fixe.
+              <div key={fiche.id} className="flex h-full flex-col bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex items-start justify-between mb-4 gap-2">
+                    {/* `min-w-0` sur le conteneur ET `truncate` sur le titre : un nom
+                        long est coupé au lieu de pousser l'icône hors de la carte. */}
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors cursor-pointer">
+                        {fiche.nom}
+                      </h3>
+                      <EtatEditionIcone locked={!!fiche.fields_locked} />
+                    </div>
+
                     <div className="relative">
                       <button
                         onClick={() => setShowDropdown(showDropdown === fiche.id ? null : fiche.id)}
@@ -429,7 +445,10 @@ export default function Dashboard() {
                     </div>
                   </div>
                   
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(fiche.statut)}`}>
+                  {/* `self-start` : la carte est un conteneur flex en colonne, donc
+                      ses enfants sont étirés par défaut. Sans cela la pastille de
+                      statut s'allongerait sur toute la largeur de la carte. */}
+                  <span className={`self-start inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(fiche.statut)}`}>
                     {fiche.statut}
                   </span>
                   
@@ -446,6 +465,17 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Livrables : ligne distincte, séparée par un filet, collée en bas
+                      de la carte par `mt-auto`. Sans livrable, le composant ne rend
+                      RIEN — ni filet, ni ligne, ni hauteur réservée. Les cartes
+                      restent alignées parce que la grille les étire, pas parce qu'on
+                      leur ménage une place. */}
+                  <BadgesLivrables
+                    fiche={fiche}
+                    idsAvecAnnonce={idsAvecAnnonce}
+                    wrapperClassName="mt-auto border-t border-gray-100 pt-3"
+                  />
                 </div>
               </div>
             ))}
@@ -464,20 +494,39 @@ export default function Dashboard() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors">
-                      {fiche.nom}
-                    </h3>
-                    
+                    {/* `min-w-0` + `truncate` : c'est le nom qui se coupe quand la
+                        place manque, jamais l'icône d'état qui le suit. */}
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <h3 className="text-base font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors">
+                        {fiche.nom}
+                      </h3>
+                      <EtatEditionIcone locked={!!fiche.fields_locked} />
+                    </div>
+
                     <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(fiche.statut)}`}>
                       {fiche.statut}
                     </span>
-                    
-                    <div className="hidden sm:flex items-center gap-4 text-sm text-gray-500">
+
+                    {/* `shrink-0` + `whitespace-nowrap` : quand la place manque, c'est
+                        le nom qui se tronque, pas les dates qui passent sur deux
+                        lignes — sinon la rangée grandit et rompt l'alignement de la
+                        liste. */}
+                    <div className="hidden sm:flex shrink-0 items-center gap-4 text-sm text-gray-500 whitespace-nowrap">
                       <span>Créée le {new Date(fiche.created_at).toLocaleDateString('fr-FR')}</span>
                       {fiche.updated_at !== fiche.created_at && (
                         <span>Modifiée le {new Date(fiche.updated_at).toLocaleDateString('fr-FR')}</span>
                       )}
                     </div>
+
+                    {/* Desktop : les badges restent sur la ligne, à la suite des
+                        dates, pour garder la lecture compacte de la vue liste.
+                        `shrink-0` les protège du rétrécissement, c'est le nom qui
+                        cède la place. */}
+                    <BadgesLivrables
+                      fiche={fiche}
+                      idsAvecAnnonce={idsAvecAnnonce}
+                      className="hidden shrink-0 sm:flex"
+                    />
                   </div>
                   
                   {/* Menu contextuel */}
@@ -516,6 +565,17 @@ export default function Dashboard() {
                     )}
                   </div>
                 </div>
+
+                {/* Mobile : la ligne est déjà occupée par le nom, le statut et le
+                    menu. Les badges passent en dessous et peuvent revenir à la
+                    ligne entre eux. Sans livrable, rien n'est rendu — la rangée
+                    garde exactement sa hauteur d'origine. */}
+                <BadgesLivrables
+                  fiche={fiche}
+                  idsAvecAnnonce={idsAvecAnnonce}
+                  className="sm:hidden"
+                  wrapperClassName="mt-2 sm:hidden"
+                />
               </div>
             ))}
           </div>

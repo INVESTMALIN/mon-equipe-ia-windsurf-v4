@@ -1,0 +1,55 @@
+-- Reprise historique de `fiche_lite.pdf_generated_at` — 09/09/2026.
+--
+-- Correction de données ponctuelle, PAS une migration de schéma : elle n'a aucun
+-- sens sur une base neuve (aucune fiche historique) et n'a pas à être rejouée.
+-- Le schéma correspondant est
+-- supabase/migrations/20260909060000_fiche_lite_pdf_generated_at.sql.
+--
+-- ── Ce qu'on reprend, et pourquoi ────────────────────────────────────────────
+--
+-- `fields_locked = true` n'existe que par la 1re génération de PDF du parcours
+-- fiche_lite : ces fiches ONT eu un PDF, même si rien ne l'a horodaté à l'époque.
+-- On leur pose donc une preuve, avec la meilleure date disponible.
+--
+-- ⚠️ CETTE DATE EST APPROXIMATIVE. `updated_at` est la dernière modification de la
+-- fiche, pas l'instant de la génération : le verrou fige l'identité du bien mais
+-- laisse les autres champs modifiables, donc `updated_at` est postérieur ou égal à
+-- la génération réelle. C'est acceptable parce que le dashboard n'utilise que la
+-- PRÉSENCE de la valeur — la date n'est jamais affichée à l'utilisateur.
+--
+-- ── Ce qu'on ne reprend PAS ──────────────────────────────────────────────────
+--
+--  - les fiches déverrouillées : aucune preuve fiable qu'un PDF a existé ;
+--  - les PDF générés par des utilisateurs premium : leur parcours ne pose jamais
+--    le verrou, ils ne laissent donc AUCUNE trace exploitable. Inventer une date
+--    reviendrait à afficher un badge sur des fiches peut-être sans PDF.
+--
+-- Dans les deux cas le badge restera absent jusqu'à la prochaine génération, qui
+-- écrira la vraie date. Une absence, pas une fausse information.
+--
+-- Aucune autre colonne n'est touchée : ni fields_locked, ni updated_at, ni les
+-- sections. Le `where pdf_generated_at is null` rend le script réexécutable sans
+-- écraser une date réelle déjà écrite par le front.
+--
+-- ── Mesure faite AVANT exécution (09/09/2026) ────────────────────────────────
+--   fiches_total = 61 | verrouillees = 4 | deverrouillees = 57
+--   les 4 verrouillées ont toutes un updated_at (aucune valeur nulle à traiter)
+--
+-- `at time zone 'UTC'` et non un cast implicite : `updated_at` est un timestamp
+-- SANS fuseau, le cast dépendrait du TimeZone de la session. Les valeurs y sont
+-- stockées en UTC, on le dit explicitement.
+
+update public.fiche_lite
+set pdf_generated_at = updated_at at time zone 'UTC'
+where fields_locked = true
+  and pdf_generated_at is null
+  and updated_at is not null;
+
+-- Contrôle attendu après exécution :
+--   4 fiches verrouillées avec preuve, 0 fiche déverrouillée touchée.
+--
+-- select
+--   count(*) filter (where fields_locked and pdf_generated_at is not null) as verrou_avec_preuve,
+--   count(*) filter (where fields_locked and pdf_generated_at is null)     as verrou_sans_preuve,
+--   count(*) filter (where not fields_locked and pdf_generated_at is not null) as deverrouille_avec_preuve
+-- from public.fiche_lite;

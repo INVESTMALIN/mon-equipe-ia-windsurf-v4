@@ -375,19 +375,38 @@ export function FormProvider({ children }) {
     [formData.fields_locked]
   )
 
-  // Pose le verrou en base APRÈS une génération de PDF réussie (parcours fiche_lite).
-  // Update dédié : ne touche QUE `fields_locked`. Le trigger l'autorise (OLD.fields_locked
-  // encore false au moment où on le pose). `fields_locked` n'est jamais réécrit par saveFiche.
-  const lockFiche = useCallback(async () => {
+  // Enregistre en base la trace d'une génération de PDF RÉUSSIE, et pose le verrou
+  // d'identité quand le parcours l'exige (1re génération d'un fiche_lite).
+  //
+  // ⚠️ UN SEUL UPDATE pour les deux champs, et c'est le point important : écrire
+  // `pdf_generated_at` puis `fields_locked` en deux requêtes ouvrirait une fenêtre où
+  // l'une aurait abouti et pas l'autre — fiche verrouillée sans preuve de PDF, ou
+  // l'inverse. Un update de ligne unique est atomique : les deux champs arrivent
+  // ensemble ou aucun.
+  //
+  // Le trigger de verrou laisse passer : il n'inspecte que la projection d'identité
+  // (section_proprietaire / section_logement), inchangée ici — et sur une fiche déjà
+  // verrouillée, écrire `pdf_generated_at` reste donc autorisé.
+  //
+  // Aucun de ces deux champs n'est réécrit par saveFiche : `mapFormDataToSupabase` ne
+  // les contient pas. Cet update dédié est leur seul chemin d'écriture côté app.
+  const enregistrerPdfGenere = useCallback(async ({ withLock = false } = {}) => {
     if (!formData.id) return { success: false, error: 'Fiche non enregistrée' }
+
+    const horodatage = new Date().toISOString()
+    const patch = withLock
+      ? { pdf_generated_at: horodatage, fields_locked: true }
+      : { pdf_generated_at: horodatage }
+
     const { error } = await supabase
       .from('fiche_lite')
-      .update({ fields_locked: true })
+      .update(patch)
       .eq('id', formData.id)
     if (error) return { success: false, error: error.message }
+
     // MàJ locale sans déclencher d'auto-save (ce n'est pas une saisie utilisateur).
     isUserChangeRef.current = false
-    setFormData(prev => ({ ...prev, fields_locked: true }))
+    setFormData(prev => ({ ...prev, ...patch }))
     return { success: true }
   }, [formData.id])
 
@@ -402,7 +421,7 @@ export function FormProvider({ children }) {
       // Verrou d'identité du bien
       isFicheLocked,
       isFieldLocked,
-      lockFiche,
+      enregistrerPdfGenere,
       LOCKED_FIELD_PATHS,
 
       // Persistance
