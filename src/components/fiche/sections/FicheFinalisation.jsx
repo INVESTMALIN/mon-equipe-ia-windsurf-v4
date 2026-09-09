@@ -268,9 +268,13 @@ export default function FicheFinalisation() {
         annonces = (lignesAnnonces || []).filter((l) => l.statut !== 'erreur' && l.output_assemble)
       }
 
-      // PDF D'ABORD (client-side, synchrone), PUIS la trace en base — jamais de verrou
-      // ni de preuve sans PDF délivré.
-      generatePdfClientSide(formData, { annonces })
+      // PDF D'ABORD, PUIS la trace en base — jamais de verrou ni de preuve sans PDF
+      // délivré. L'`await` est indispensable : `download()` de pdfmake rend la main
+      // avant d'avoir produit le fichier, et la promesse n'est résolue que depuis son
+      // callback. Sans elle, un rendu qui échoue derrière laisserait une preuve — et un
+      // verrou d'identité — pour un PDF que l'utilisateur n'a jamais reçu. Un rejet part
+      // dans le `catch` ci-dessous et rien n'est persisté.
+      await generatePdfClientSide(formData, { annonces })
       setPdfGenerated(true)
 
       // Trace persistante de la génération, pour TOUS LES RÔLES (premium inclus) :
@@ -283,7 +287,9 @@ export default function FicheFinalisation() {
       // enregistré sur son disque. Et si cet update échoue après coup, la fiche garde
       // son PDF sans preuve — badge absent, pop-up de verrou qui réapparaîtra. Le
       // défaut penche donc du côté du FAUX NÉGATIF, jamais de la fausse promesse.
-      const res = await enregistrerPdfGenere({ withLock })
+      // `ficheId` est celui renvoyé par la sauvegarde : sur une fiche créée à
+      // l'instant, `formData.id` de cette fermeture vaut encore null.
+      const res = await enregistrerPdfGenere({ withLock, ficheId })
       if (!res?.success) {
         console.error('Enregistrement de la génération PDF échoué (PDF déjà délivré) :', res?.error)
       }

@@ -643,9 +643,45 @@ export const buildPdfFilename = (formData) => {
  * Génère le PDF et déclenche le téléchargement.
  * `options` est transmis tel quel à buildDocDefinition (cf. options.annonces).
  */
+// Délai de garde du rendu pdfmake. Il ne sert qu'à ne jamais rester bloqué : un
+// rendu qui n'aboutit pas ne doit pas laisser l'écran en chargement éternel, ni
+// laisser croire à l'appelant que le PDF a été délivré.
+const PDF_RENDU_TIMEOUT_MS = 120000
+
+/**
+ * Génère le PDF et le remet au navigateur.
+ *
+ * ⚠️ Retourne une PROMESSE, à attendre. `download()` de pdfmake n'est PAS
+ * synchrone : il appelle `getBlob()` puis rend la main immédiatement, et ce n'est
+ * que dans le callback, après `saveAs`, que le fichier est réellement produit.
+ * Considérer le retour de cette fonction comme une réussite écrirait donc une
+ * preuve de génération — et, pour un fiche_lite, poserait le verrou d'identité —
+ * alors que le rendu peut encore échouer derrière.
+ *
+ * La promesse est résolue depuis le callback de pdfmake, donc APRÈS la remise du
+ * fichier au navigateur. C'est le signal le plus fort disponible côté client :
+ * savoir si l'utilisateur a effectivement enregistré le fichier sur son disque
+ * n'est pas observable depuis une page web.
+ */
 export const generatePdfClientSide = (formData, options = {}) => {
   const docDefinition = buildDocDefinition(formData, options)
-  pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData))
+  return new Promise((resolve, reject) => {
+    const garde = setTimeout(
+      () => reject(new Error('La génération du PDF n’a pas abouti dans le délai imparti.')),
+      PDF_RENDU_TIMEOUT_MS
+    )
+    try {
+      pdfMake.createPdf(docDefinition).download(buildPdfFilename(formData), () => {
+        clearTimeout(garde)
+        resolve()
+      })
+    } catch (e) {
+      // Échec synchrone (document invalide, police manquante…) : on rejette tout
+      // de suite plutôt que d'attendre le délai de garde.
+      clearTimeout(garde)
+      reject(e)
+    }
+  })
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

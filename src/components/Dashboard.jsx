@@ -518,14 +518,16 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    {/* Desktop : les badges restent sur la ligne, à la suite des
-                        dates, pour garder la lecture compacte de la vue liste.
-                        `shrink-0` les protège du rétrécissement, c'est le nom qui
-                        cède la place. */}
+                    {/* Badges en ligne à partir de lg SEULEMENT, et pas de sm : entre
+                        640 et ~800 px, les dates (visibles dès sm) et les trois badges
+                        sont tous non rétrécissables, et la somme dépasse la rangée. Le
+                        nom a beau se tronquer, les badges finissaient sous le menu.
+                        Mesuré : débordement à 640, 700 et 768 px, sain à partir de 850.
+                        En dessous de lg, c'est la variante en sous-ligne qui s'affiche. */}
                     <BadgesLivrables
                       fiche={fiche}
                       idsAvecAnnonce={idsAvecAnnonce}
-                      className="hidden shrink-0 sm:flex"
+                      className="hidden shrink-0 lg:flex"
                     />
                   </div>
                   
@@ -566,15 +568,15 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Mobile : la ligne est déjà occupée par le nom, le statut et le
-                    menu. Les badges passent en dessous et peuvent revenir à la
-                    ligne entre eux. Sans livrable, rien n'est rendu — la rangée
-                    garde exactement sa hauteur d'origine. */}
+                {/* Sous lg : la rangée est déjà occupée par le nom, le statut, les
+                    dates et le menu. Les badges passent en dessous et peuvent revenir à
+                    la ligne entre eux. Sans livrable, rien n'est rendu — la rangée garde
+                    exactement sa hauteur d'origine. */}
                 <BadgesLivrables
                   fiche={fiche}
                   idsAvecAnnonce={idsAvecAnnonce}
-                  className="sm:hidden"
-                  wrapperClassName="mt-2 sm:hidden"
+                  className="lg:hidden"
+                  wrapperClassName="mt-2 lg:hidden"
                 />
               </div>
             ))}

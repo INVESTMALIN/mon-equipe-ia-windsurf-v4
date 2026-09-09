@@ -390,8 +390,15 @@ export function FormProvider({ children }) {
   //
   // Aucun de ces deux champs n'est réécrit par saveFiche : `mapFormDataToSupabase` ne
   // les contient pas. Cet update dédié est leur seul chemin d'écriture côté app.
-  const enregistrerPdfGenere = useCallback(async ({ withLock = false } = {}) => {
-    if (!formData.id) return { success: false, error: 'Fiche non enregistrée' }
+  //
+  // ⚠️ `ficheId` est passé par l'appelant, qui vient de sauvegarder et détient l'id
+  // renvoyé par l'INSERT. Se fier à `formData.id` de la fermeture échouerait sur une
+  // fiche CRÉÉE pendant la même action : ce callback a été capturé au rendu précédent,
+  // où l'id était encore null — le PDF serait délivré sans preuve, et sans verrou.
+  // Repli sur le miroir `formDataRef` puis sur la fermeture, dans cet ordre.
+  const enregistrerPdfGenere = useCallback(async ({ withLock = false, ficheId } = {}) => {
+    const id = ficheId || formDataRef.current?.id || formData.id
+    if (!id) return { success: false, error: 'Fiche non enregistrée' }
 
     const horodatage = new Date().toISOString()
     const patch = withLock
@@ -401,7 +408,7 @@ export function FormProvider({ children }) {
     const { error } = await supabase
       .from('fiche_lite')
       .update(patch)
-      .eq('id', formData.id)
+      .eq('id', id)
     if (error) return { success: false, error: error.message }
 
     // MàJ locale sans déclencher d'auto-save (ce n'est pas une saisie utilisateur).
