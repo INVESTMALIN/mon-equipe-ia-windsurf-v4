@@ -215,12 +215,13 @@ export default function ConditionsVente() {
               </p>
               <p>
                 <strong>Verrouillage.</strong> À la première génération du PDF d’une Fiche, et
-                après confirmation par le Client, les informations qui identifient le bien sont
-                figées : identité du propriétaire, adresse, type de propriété, surface, typologie,
-                et le cas échéant nom de résidence, bâtiment, étage et numéro de porte. Les autres
-                informations restent modifiables. Ce verrouillage ne peut être levé que par le
-                Vendeur, sur demande motivée. Pour établir une Fiche portant sur un autre bien, le
-                Client crée une nouvelle Fiche, ce qui débite un crédit.
+                après confirmation par le Client, les informations suivantes sont figées : prénom
+                et nom du propriétaire, rue, complément d’adresse, ville et code postal du bien,
+                type de propriété et sa précision éventuelle, surface, typologie, nombre de
+                niveaux pour une maison, et le cas échéant nom de résidence, bâtiment, étage et
+                numéro de porte. Les autres informations restent modifiables, y compris le pays. Ce verrouillage ne peut être levé que par le Vendeur, sur
+                demande motivée. Pour établir une Fiche portant sur un autre bien, le Client crée
+                une nouvelle Fiche, ce qui débite un crédit.
               </p>
               <p>
                 <strong>Non-transférabilité.</strong> Les crédits sont attachés au compte du
