@@ -27,6 +27,7 @@ import FicheWizard from './components/fiche/FicheWizard'
 import { FormProvider } from './components/FormContext'
 
 import FicheLogementLanding from './components/FicheLogementLanding'
+import FicheLogementTarifs from './components/FicheLogementTarifs'
 import InscriptionFicheLite from './components/InscriptionFicheLite'
 import MesCredits from './components/MesCredits'
 
@@ -40,6 +41,7 @@ import FAQ from './components/FAQ'
 import MentionsLegales from './components/MentionsLegales'
 import PolitiqueConfidentialite from './components/PolitiqueConfidentialite'
 import ConditionsUtilisation from './components/ConditionsUtilisation'
+import ConditionsVente from './components/ConditionsVente'
 
 import UpgradeRequired from './components/UpgradeRequired'
 import ComingSoon from './components/ComingSoon'
@@ -73,6 +75,9 @@ function AppWrapper() {
 
           {/* Landing produit Fiche Logement (public, lien ThriveCart) + son inscription dédiée */}
           <Route path="/fiche-logement" element={<FicheLogementLanding />} />
+          {/* Tarifs des packs de crédits. Route DISTINCTE de /tarifs, qui reste la page
+              de l'abonnement Premium : les deux offres coexistent volontairement. */}
+          <Route path="/fiche-logement/tarifs" element={<FicheLogementTarifs />} />
           <Route path="/inscription-fiche-logement" element={<InscriptionFicheLite />} />
           {/* Même composant Login, même flux d'authentification et mêmes redirections
               selon le rôle : seul l'habillage change pour rester dans l'univers de la
@@ -85,6 +90,7 @@ function AppWrapper() {
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
+          <Route path="/conditions-vente" element={<ConditionsVente />} />
           
           {/* 404 - publique */}
           <Route path="*" element={<NotFound />} />

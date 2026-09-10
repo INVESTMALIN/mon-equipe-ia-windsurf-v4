@@ -32,19 +32,20 @@ export default function MentionsLegales() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Éditeur du site</h2>
               <p className="text-gray-700 leading-relaxed">
-                <strong>Raison sociale :</strong> CARDIN CONCIERGERIE LLP<br />
-                <strong>Forme juridique :</strong> Limited Liability Partnership<br />
-                <strong>Numéro d’immatriculation :</strong> OC448822<br />
-                <strong>Siège social :</strong> 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, United Kingdom<br />
+                <strong>Raison sociale :</strong> CARDIN CONCIERGERIE LLC<br />
+                <strong>Forme juridique :</strong> Limited Liability Company (État du Nouveau-Mexique, États-Unis)<br />
+                <strong>Business ID :</strong> 0008077608<br />
+                <strong>Siège social :</strong> 412 W 7th St, Clovis, NM 88101, États-Unis<br />
                 <strong>Représentant légal :</strong> Loïc Cardin<br />
-                <strong>Email :</strong> contact@invest-malin.fr
+                <strong>Marque exploitée :</strong> Invest Malin<br />
+                <strong>Email :</strong> contact@invest-malin.com
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Responsable de la publication</h2>
               <p className="text-gray-700 leading-relaxed">
-                Loïc Cardin, en qualité de représentant légal de CARDIN CONCIERGERIE LLP.
+                Loïc Cardin, en qualité de représentant légal de CARDIN CONCIERGERIE LLC.
               </p>
             </section>
 
@@ -65,14 +66,14 @@ export default function MentionsLegales() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Accès au site</h2>
               <p className="text-gray-700 leading-relaxed">
-                Le site est accessible à tout moment, sauf en cas de maintenance ou de problème technique. CARDIN CONCIERGERIE LLP s’efforce de garantir la disponibilité du service.
+                Le site est accessible à tout moment, sauf en cas de maintenance ou de problème technique. CARDIN CONCIERGERIE LLC s’efforce de garantir la disponibilité du service.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Propriété intellectuelle</h2>
               <p className="text-gray-700 leading-relaxed">
-                L’ensemble des éléments présents sur le site Mon Équipe IA (textes, images, logos, vidéos, etc.) est la propriété exclusive de CARDIN CONCIERGERIE LLP ou fait l’objet d’une autorisation d’utilisation. Toute reproduction ou exploitation non autorisée est interdite.
+                L’ensemble des éléments présents sur le site Mon Équipe IA (textes, images, logos, vidéos, etc.) est la propriété exclusive de CARDIN CONCIERGERIE LLC ou fait l’objet d’une autorisation d’utilisation. Toute reproduction ou exploitation non autorisée est interdite.
               </p>
             </section>
 
@@ -100,7 +101,7 @@ export default function MentionsLegales() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Droit applicable</h2>
               <p className="text-gray-700 leading-relaxed">
-              La connexion et la navigation sur le site internet mon-equipe-ia.com par l’utilisateur implique l’acceptation intégrale et sans réserve des présentes mentions légales. Le présent site est régi par le droit français. En cas de litige, les tribunaux compétents de Paris seront seuls compétents.
+              La connexion et la navigation sur le site internet mon-equipe-ia.com par l’utilisateur implique l’acceptation intégrale et sans réserve des présentes mentions légales. Le présent site est régi par le droit français. L’utilisateur consommateur résidant dans un État membre de l’Union européenne conserve en tout état de cause le bénéfice des dispositions impératives protectrices de la loi de son pays de résidence habituelle, et peut porter son action devant la juridiction de son domicile.
               </p>
             </section>
 
@@ -109,10 +110,10 @@ export default function MentionsLegales() {
               <p className="text-gray-700 leading-relaxed">
                 Pour toute question concernant ces mentions légales, vous pouvez nous contacter à l'adresse :
                 <a 
-                  href="mailto:contact@invest-malin.fr" 
+                  href="mailto:contact@invest-malin.com"
                   className="text-[#dbae61] hover:underline ml-1"
                 >
-                  {['contact', '@', 'invest-malin.fr'].join('')}
+                  {['contact', '@', 'invest-malin.com'].join('')}
                 </a>
               </p>
             </section>
@@ -120,8 +121,9 @@ export default function MentionsLegales() {
           </div>
 
           <div className="mt-12 text-center">
+            {/* Date FIGÉE : cf. même commentaire dans ConditionsUtilisation.jsx. */}
             <p className="text-sm text-gray-500">
-              Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+              Dernière mise à jour le 10 septembre 2026.
             </p>
           </div>
           
@@ -137,6 +139,7 @@ export default function MentionsLegales() {
             <Link to="/mentions-legales" className="hover:text-gray-700">Mentions légales</Link>
             <Link to="/politique-confidentialite" className="hover:text-gray-700">Confidentialité</Link>
             <Link to="/conditions-utilisation" className="hover:text-gray-700">Conditions d'utilisation</Link>
+            <Link to="/conditions-vente" className="hover:text-gray-700">CGV</Link>
           </div>
         </div>
       </footer>
