@@ -63,7 +63,7 @@ export default function FAQ() {
         {
           id: "legal-1",
           question: "Où consulter les CGU/CGV ?",
-          answer: "Les Conditions Générales d’Utilisation et de Vente sont accessibles à tout moment depuis le pied de page du site ou via la page 'Mentions légales'."
+          answer: "Ce sont deux documents distincts, accessibles à tout moment depuis le pied de page du site. Les conditions générales d’utilisation régissent l’utilisation de la plateforme. Les conditions générales de vente régissent la vente des packs de crédits Fiche Logement."
         },
         {
           id: "legal-2",
@@ -99,7 +99,7 @@ export default function FAQ() {
         {
           id: "compte-3",
           question: "Puis-je changer de formule ?",
-          answer: "Nous ne proposons qu'ne seule formule, l'abonnement mensuel auquel vous pouvez souscrire après un période d'essai gratuite. Si vous êtes satisfait de votre période d'essai, vous n'avez rien à faire, l'abonnement sera automatiquement débité sur votre carte chaque mois. Les changements sont gérés automatiquement via Stripe."
+          answer: "L'abonnement mensuel Mon Équipe IA donne accès aux assistants et à Fiche Logement pendant toute sa durée. Vous pouvez y souscrire après une période d'essai gratuite : si elle vous convient, vous n'avez rien à faire, l'abonnement est automatiquement débité sur votre carte chaque mois, et les changements sont gérés via Stripe. Fiche Logement est également accessible à l'unité, sans abonnement, en achetant des packs de crédits : les prix figurent sur la page Tarifs Fiche Logement."
         }
       ]
     },

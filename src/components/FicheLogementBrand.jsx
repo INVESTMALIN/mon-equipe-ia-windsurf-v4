@@ -199,6 +199,9 @@ export function BrandFooter() {
           Fiche Logement + Assistant IA, l’outil métier des patrons de conciergerie.
         </p>
         <nav className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-medium">
+          <Link to="/fiche-logement/tarifs" className="transition-colors hover:opacity-60" style={{ color: FL.ink }}>
+            Tarifs
+          </Link>
           <Link to="/mentions-legales" className="transition-colors hover:opacity-60" style={{ color: FL.ink }}>
             Mentions légales
           </Link>
@@ -207,6 +210,9 @@ export function BrandFooter() {
           </Link>
           <Link to="/conditions-utilisation" className="transition-colors hover:opacity-60" style={{ color: FL.ink }}>
             CGU
+          </Link>
+          <Link to="/conditions-vente" className="transition-colors hover:opacity-60" style={{ color: FL.ink }}>
+            CGV
           </Link>
         </nav>
         <p className="mt-8 text-xs" style={{ color: FL.muted }}>
