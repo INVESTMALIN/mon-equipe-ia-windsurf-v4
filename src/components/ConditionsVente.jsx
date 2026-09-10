@@ -177,9 +177,9 @@ export default function ConditionsVente() {
                 pack depuis son espace de crédits, puis est redirigé vers la page de paiement.
               </p>
               <p>
-                Le paiement s’effectue par carte bancaire, en une fois, au moment de la commande,
-                via le prestataire de paiement Stripe. Le Vendeur n’a accès à aucune donnée de
-                carte bancaire et n’en conserve aucune.
+                Le paiement s’effectue par carte bancaire, en une fois, au moment de la commande.
+                Le paiement est traité par Stripe. Le numéro complet de la carte bancaire et son
+                code de sécurité ne sont ni accessibles au Vendeur ni conservés par celui-ci.
               </p>
               <p>
                 Le contrat est formé à l’encaissement du paiement. Les crédits sont ajoutés au
