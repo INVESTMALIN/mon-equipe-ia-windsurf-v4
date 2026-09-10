@@ -265,20 +265,9 @@ export default function ConditionsVente() {
 
             <Article titre="Article 10 — Remboursement en dehors du droit de rétractation">
               <p>
-                En dehors des cas prévus à l’article 9, le Vendeur rembourse, sur demande adressée
-                à l’adresse de contact indiquée à l’article 1, un pack dont aucun crédit n’a été
-                utilisé.
-              </p>
-              <p>
-                Le solde de crédits du compte fait foi : un pack est réputé non utilisé lorsque le
-                solde disponible au moment de la demande est au moins égal au nombre de crédits de
-                ce pack. Aucun remboursement n’est accordé au-delà de ce solde. Le Client qui
-                détient plusieurs packs n’a donc pas à établir de quel pack proviennent les crédits
-                qu’il a consommés.
-              </p>
-              <p>
-                Cette politique commerciale s’applique sous réserve des droits que le Client tient
-                de la loi, notamment au titre des articles 9 et 11.
+                Un remboursement commercial peut être accordé uniquement pour un pack dont aucun
+                crédit n’a été utilisé, sous réserve des droits légaux applicables. Les demandes
+                sont examinées manuellement.
               </p>
             </Article>
 
