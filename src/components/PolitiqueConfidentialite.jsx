@@ -36,7 +36,7 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">1. Introduction</h2>
               <p className="text-gray-700 leading-relaxed">
-              La présente politique de traitement des données personnelles explicite la manière dont la société CARDIN CONCIERGERIE LLP dont le siège social est situé 71-75 Shelton Street Covent Garden WC2H 9JQ London au Royaume-Uni recueille, utilise et traite les données à caractère personnel des utilisateurs recueillies sur le site Internet https://invest-malin.com (ci-après le « Site internet »), les formulaires électroniques et dans le cadre de l’exercice de son activité.
+              La présente politique de traitement des données personnelles explicite la manière dont la société CARDIN CONCIERGERIE LLC dont le siège social est situé 412 W 7th St, Clovis, NM 88101, États-Unis recueille, utilise et traite les données à caractère personnel des utilisateurs recueillies sur le site Internet https://mon-equipe-ia.com (ci-après le « Site internet »), les formulaires électroniques et dans le cadre de l’exercice de son activité.
               </p>
               <p className="text-gray-700 leading-relaxed mt-4">
               L’utilisateur du Site internet (ci-après « l’Utilisateur ») est informé des réglementations concernant la communication marketing, la Loi no2004-575 du 21 Juin 2014 pour la confiance dans l’économie numérique, la Loi n°2004-801 du 6 août 2004 relative à la protection des personnes physiques à l'égard des traitements de données à caractère personnel, et le Règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 relatif à la protection des personnes physiques à l'égard du traitement des données à caractère personnel et à la libre circulation de ces données.
@@ -47,7 +47,7 @@ export default function PolitiqueConfidentialite() {
               <h2 className="text-2xl font-bold text-black mb-4">2. Données collectées</h2>
               <h3 className="text-xl font-semibold text-black mb-3">2.1 Données d'identification</h3>
               <p className="text-gray-700 leading-relaxed mb-4">
-              Le traitement des données personnelles est assuré par CARDIN CONCIERGERIE LLP. Lors de votre inscription, nous collectons :
+              Le traitement des données personnelles est assuré par CARDIN CONCIERGERIE LLC. Lors de votre inscription, nous collectons :
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2 mb-4">
                 <li>Nom et prénom</li>
@@ -82,10 +82,10 @@ export default function PolitiqueConfidentialite() {
                 <li>Analyser l'utilisation de la plateforme à des fins statistiques</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-4">
-              Certaines données de paiement seront également collectées en cas d’achat de services, à savoir notamment les données de facturation, le type ou le moyen de paiement, le numéro de carte de crédit ou de débit utilisée. Ces données ne sont pas collectées par CARDIN CONCIERGERIE LLP mais par la société Stripe Inc. (STRIPE FRANCE) à travers son module de paiement.
+              Certaines données de paiement seront également collectées en cas d’achat de services, à savoir notamment les données de facturation, le type ou le moyen de paiement, le numéro de carte de crédit ou de débit utilisée. Ces données ne sont pas collectées par CARDIN CONCIERGERIE LLC mais par la société Stripe Inc. (STRIPE FRANCE) à travers son module de paiement.
               </p>
               <p className="text-gray-700 leading-relaxed mb-4">
-              CARDIN CONCIERGERIE LLP peut également recueillir indirectement des données personnelles lorsque l’Utilisateur utilise le Site internet, à savoir notamment l’adresse IP, le moment de la connexion, le navigateur ou le système d’exploitation, par le biais de cookies similaires placés sur l’appareil électronique de l’Utilisateur.
+              CARDIN CONCIERGERIE LLC peut également recueillir indirectement des données personnelles lorsque l’Utilisateur utilise le Site internet, à savoir notamment l’adresse IP, le moment de la connexion, le navigateur ou le système d’exploitation, par le biais de cookies similaires placés sur l’appareil électronique de l’Utilisateur.
               </p>
             </section>
 
@@ -105,7 +105,7 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">5. Partage des données</h2>
               <p className="text-gray-700 leading-relaxed">
-              CARDIN CONCIERGERIE LLP s’engage à prendre toutes les précautions nécessaires afin de préserver la sécurité des données personnelles et notamment qu’elles ne soient pas communiquées à des personnes non autorisées. Si un incident impactant l’intégrité ou la confidentialité des données personnelles est porté à la connaissance de CARDIN CONCIERGERIE LLP, elle s’engage à informer l’utilisateur dans les meilleurs délais et lui communiquer les mesures de corrections prises. Nous ne vendons, ne louons ni ne partageons vos données personnelles avec des tiers, sauf dans les cas suivants:
+              CARDIN CONCIERGERIE LLC s’engage à prendre toutes les précautions nécessaires afin de préserver la sécurité des données personnelles et notamment qu’elles ne soient pas communiquées à des personnes non autorisées. Si un incident impactant l’intégrité ou la confidentialité des données personnelles est porté à la connaissance de CARDIN CONCIERGERIE LLC, elle s’engage à informer l’utilisateur dans les meilleurs délais et lui communiquer les mesures de corrections prises. Nous ne vendons, ne louons ni ne partageons vos données personnelles avec des tiers, sauf dans les cas suivants:
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2">
                 <li><strong>Prestataires de services :</strong> hébergement (Railway, avec Vercel en infrastructure de secours), base de données (Supabase)</li>
@@ -117,7 +117,7 @@ export default function PolitiqueConfidentialite() {
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">6. Conservation des données</h2>
               <p className="text-gray-700 leading-relaxed">
-              CARDIN CONCIERGERIE LLP peut conserver les données personnelles des Utilisateurs pendant deux années à compter du consentement des Utilisateurs ou jusqu’au retrait de leur consentement. En cas de relation commerciale, les données relatives aux services proposés par CARDIN CONCIERGERIE LLP sont conservées trois ans à compter de la fin des relations commerciales ou pour une durée supérieure lorsque CARDIN CONCIERGERIE LLP a une raison légitime ou légale de les conserver (notamment sans que cette liste soit exhaustive, les données relatives à la facturation). Nous conservons vos données personnelles pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées :
+              CARDIN CONCIERGERIE LLC peut conserver les données personnelles des Utilisateurs pendant deux années à compter du consentement des Utilisateurs ou jusqu’au retrait de leur consentement. En cas de relation commerciale, les données relatives aux services proposés par CARDIN CONCIERGERIE LLC sont conservées trois ans à compter de la fin des relations commerciales ou pour une durée supérieure lorsque CARDIN CONCIERGERIE LLC a une raison légitime ou légale de les conserver (notamment sans que cette liste soit exhaustive, les données relatives à la facturation). Nous conservons vos données personnelles pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées :
               </p>
             </section>
 
@@ -149,14 +149,14 @@ export default function PolitiqueConfidentialite() {
                 <li><strong>Droit d'opposition :</strong> chaque Utilisateur dispose également du droit de s’opposer, dans certaines conditions, au traitement de ses données à caractère personnel. Chaque Utilisateur peut également, à tout moment, s’opposer au traitement de ses données à des fins de prospection commerciale et retirer son consentement au traitement de ses données mis en œuvre à des fins de publicité comportementale, d’analyse de la navigation, et de mesures d’audience.</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mt-4">
-              Pour savoir comment CARDIN CONCIERGERIE LLP utilise ses données personnelles et/ou exercer ses droits, l’Utilisateur doit adresser les demandes à CARDIN CONCIERGERIE LLP :
+              Pour savoir comment CARDIN CONCIERGERIE LLC utilise ses données personnelles et/ou exercer ses droits, l’Utilisateur doit adresser les demandes à CARDIN CONCIERGERIE LLC :
               </p>
               <ul className="list-disc ml-6 text-gray-700 space-y-2">
-              <li>Par courrier à CARDIN CONCIERGERIE LLP 71-75 Shelton Street Covent Garden WC2H 9JQ London au Royaume-Uni</li>
+              <li>Par courrier à CARDIN CONCIERGERIE LLC, 412 W 7th St, Clovis, NM 88101, États-Unis</li>
               <li>Par email à contact@invest-malin.com</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mt-4">
-              Dans tous les cas, l’Utilisateur devra indiquer les données personnelles qu’il souhaiterait que CARDIN CONCIERGERIE LLP corrige, mette à jour ou supprime, en s’identifiant précisément avec une copie d’une pièce d’identité. Les demandes de suppression de données personnelles seront soumises aux obligations légales, notamment en matière de conservation ou d’archivage des documents. Enfin, l’Utilisateur peut déposer une réclamation auprès des autorités de contrôle, et notamment de la CNIL (https://www.cnil.fr/fr/plaintes). Il est enfin précisé que les Utilisateurs qui ne souhaitent pas faire l’objet de prospection commerciale par voie téléphonique peuvent s’inscrire gratuitement sur la liste d’opposition au démarchage téléphonique sur le site internet www.bloctel.gouv.fr.
+              Dans tous les cas, l’Utilisateur devra indiquer les données personnelles qu’il souhaiterait que CARDIN CONCIERGERIE LLC corrige, mette à jour ou supprime, en s’identifiant précisément avec une copie d’une pièce d’identité. Les demandes de suppression de données personnelles seront soumises aux obligations légales, notamment en matière de conservation ou d’archivage des documents. Enfin, l’Utilisateur peut déposer une réclamation auprès des autorités de contrôle, et notamment de la CNIL (https://www.cnil.fr/fr/plaintes). Il est enfin précisé que les Utilisateurs qui ne souhaitent pas faire l’objet de prospection commerciale par voie téléphonique peuvent s’inscrire gratuitement sur la liste d’opposition au démarchage téléphonique sur le site internet www.bloctel.gouv.fr.
 
               </p>
             </section>
@@ -186,7 +186,7 @@ export default function PolitiqueConfidentialite() {
               <h2 className="text-2xl font-bold text-black mb-4">12. Contact et réclamations</h2>
               <p className="text-gray-700 leading-relaxed">
                 Pour toute question relative à cette politique de confidentialité ou pour exercer vos droits, contactez-nous à : 
-                <a href="mailto:contact@invest-malin.fr" className="text-[#dbae61] hover:underline ml-1">contact@invest-malin.fr</a>
+                <a href="mailto:contact@invest-malin.com" className="text-[#dbae61] hover:underline ml-1">contact@invest-malin.com</a>
               </p>
               <p className="text-gray-700 leading-relaxed mt-4">
                 Vous avez également le droit d'introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés (CNIL) si vous estimez que le traitement de vos données personnelles constitue une violation du RGPD.
@@ -195,8 +195,9 @@ export default function PolitiqueConfidentialite() {
           </div>
 
           <div className="mt-12 text-center">
+            {/* Date FIGÉE : cf. même commentaire dans ConditionsUtilisation.jsx. */}
             <p className="text-sm text-gray-500">
-              Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
+              Dernière mise à jour le 10 septembre 2026.
             </p>
           </div>
         </div>
@@ -210,6 +211,7 @@ export default function PolitiqueConfidentialite() {
             <Link to="/mentions-legales" className="hover:text-gray-700">Mentions légales</Link>
             <Link to="/politique-confidentialite" className="hover:text-gray-700">Confidentialité</Link>
             <Link to="/conditions-utilisation" className="hover:text-gray-700">Conditions d'utilisation</Link>
+            <Link to="/conditions-vente" className="hover:text-gray-700">CGV</Link>
           </div>
         </div>
       </footer>
