@@ -63,7 +63,7 @@ export default function FAQ() {
         {
           id: "legal-1",
           question: "Où consulter les CGU/CGV ?",
-          answer: "Ce sont deux documents distincts, accessibles à tout moment depuis le pied de page du site. Les conditions générales d’utilisation régissent l’utilisation de la plateforme. Les conditions générales de vente régissent la vente des packs de crédits Fiche Logement."
+          answer: "Ce sont deux documents distincts. Les conditions générales d’utilisation régissent l’utilisation de la plateforme : elles sont accessibles depuis le pied de page du site. Les conditions générales de vente régissent la vente des packs de crédits Fiche Logement : elles sont accessibles depuis le pied de page de l’univers Fiche Logement, depuis la page Tarifs Fiche Logement et depuis chacune des pages légales."
         },
         {
           id: "legal-2",
