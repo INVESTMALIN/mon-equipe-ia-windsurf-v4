@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Coins, Loader2, AlertCircle, RefreshCw, CreditCard, FileText,
   CheckCircle, Clock, Info, ArrowUpRight, ArrowDownRight, ExternalLink,
@@ -431,6 +431,15 @@ export default function MesCredits() {
               )
             })}
           </div>
+
+          {/* Accès aux CGV avant l'achat. C'est une MISE À DISPOSITION, rien d'autre :
+              aucune acceptation n'est demandée ici, et aucune n'est enregistrée. Le
+              recueil et la traçabilité du consentement restent hors périmètre. */}
+          <p className="mt-5 text-sm text-gray-500">
+            <Link to="/conditions-vente" className="text-[#dbae61] hover:underline">
+              Consulter les conditions générales de vente
+            </Link>
+          </p>
         </div>
 
         {/* ─── Historique des mouvements ─── */}

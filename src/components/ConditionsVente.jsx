@@ -99,10 +99,6 @@ export default function ConditionsVente() {
                 , que les présentes conditions complètent. En cas de contradiction sur un point
                 relatif à la vente, les présentes conditions prévalent.
               </p>
-              <p>
-                Toute commande vaut acceptation des présentes conditions dans leur version en
-                vigueur au jour de la commande.
-              </p>
             </Article>
 
             <Article titre="Article 3 — Définitions">
