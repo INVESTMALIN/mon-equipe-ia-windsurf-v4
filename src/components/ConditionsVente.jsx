@@ -383,9 +383,10 @@ export default function ConditionsVente() {
             <Article titre="Article 17 — Modification des conditions">
               <p>
                 Le Vendeur peut modifier les présentes conditions. La version applicable à une
-                commande est celle en vigueur au jour de cette commande. Une nouvelle version est
-                sans effet sur les crédits déjà acquis, qui restent régis par la version en vigueur
-                lors de leur achat.
+                commande est celle en vigueur au jour de cette commande, et elle continue de régir
+                cette commande après toute modification ultérieure. Une nouvelle version ne
+                s’applique pas rétroactivement à une commande antérieure et ne peut pas réduire les
+                droits que le Client en tire.
               </p>
             </Article>
 
