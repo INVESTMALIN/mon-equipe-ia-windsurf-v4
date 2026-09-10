@@ -63,8 +63,21 @@ export default function FicheLogementTarifs() {
           }}
         />
 
-        <div className={`${LANDING_SHELL} relative py-14 text-center sm:py-20`}>
-          <div className="mx-auto max-w-3xl">
+        <div className={`${LANDING_SHELL} relative py-14 sm:py-20`}>
+          {/* Retour explicite vers la landing. Le logo du BrandHeader y mène déjà, mais
+              rien ne le signale : on reprend le libellé et le style du lien de retour
+              de /inscription-fiche-logement pour que l'univers ait un seul motif. */}
+          <p className="mb-10">
+            <Link
+              to="/fiche-logement"
+              className="text-sm font-medium transition-colors hover:opacity-60"
+              style={{ color: FL.muted }}
+            >
+              ← Retour à la présentation
+            </Link>
+          </p>
+
+          <div className="mx-auto max-w-3xl text-center">
             <Eyebrow className="justify-center">Tarifs Fiche Logement</Eyebrow>
 
             <h1 className="mt-6">
