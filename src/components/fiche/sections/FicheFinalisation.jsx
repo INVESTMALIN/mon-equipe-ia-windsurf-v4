@@ -5,6 +5,8 @@ import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import MiniDashboard from '../MiniDashboard'
 import AnnonceAgentCard from '../AnnonceAgentCard'
+import { Eyebrow } from '../../FicheLogementBrand'
+import { FL } from '../../../lib/ficheLogementTheme'
 import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
@@ -463,33 +465,47 @@ export default function FicheFinalisation() {
           )}
 
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 text-gray-900">Finalisation de l'inspection</h1>
+            {/* Titre dans le même registre que les autres sections du wizard, avec une
+                ligne d'orientation : la finalisation est la conclusion du formulaire. */}
+            <h1 className="text-2xl font-bold mb-1 text-gray-900">Finalisation de l'inspection</h1>
+            <p className="mb-6 text-gray-600">
+              État du logement, points à vérifier, puis livrables et actions finales.
+            </p>
 
-            {/* MINI DASHBOARD - Aperçu + Alertes */}
+            {/* SYNTHÈSE — identité, conformité, caractéristiques, atouts, points d'attention */}
             <MiniDashboard formData={formData} />
 
-            {/* Fiche logement PDF — carte indépendante, blanche et sobre. */}
-            <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#dbae61]" /> Fiche logement PDF
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Générez une fiche d'inspection professionnelle au format PDF
-              </p>
+            {/* ── Livrables ── */}
+            <div className="mb-4 mt-10">
+              <Eyebrow>Livrables</Eyebrow>
+            </div>
 
-              <button
-                onClick={handleGeneratePDF}
-                disabled={pdfGenerated || pdfLoading || !roleLoaded}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
-                    ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                    : (pdfLoading || !roleLoaded)
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                  }`}
-              >
-                {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
-              </button>
+            {/* Fiche logement PDF — carte blanche et sobre : titre, une ligne, le bouton. */}
+            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5 shrink-0" style={{ color: FL.goldDeep }} aria-hidden="true" /> Fiche logement PDF
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Fiche d'inspection professionnelle au format PDF, produite dans le navigateur.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleGeneratePDF}
+                  disabled={pdfGenerated || pdfLoading || !roleLoaded}
+                  className={`inline-flex shrink-0 items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
+                      ? 'bg-green-100 text-green-700 border-2 border-green-200'
+                      : (pdfLoading || !roleLoaded)
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                    }`}
+                >
+                  {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                  {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
+                </button>
+              </div>
             </div>
 
             {/* Agent Annonce — directement sur le fond de page, à la largeur des autres
@@ -515,9 +531,14 @@ export default function FicheFinalisation() {
               />
             </div>
 
-            {/* Zone distincte : retours de sauvegarde et navigation finale. Les données
-                techniques restent accessibles juste en dessous. */}
-            <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
+            {/* ── Actions finales : distinctes des actions propres aux livrables ── */}
+            <div className="mb-4 mt-10">
+              <Eyebrow>Actions finales</Eyebrow>
+            </div>
+
+            {/* Retours de sauvegarde et navigation finale. Les données techniques restent
+                accessibles juste en dessous. */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
               {/* Feedback sauvegarde */}
               {saveStatus.saving && (
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">

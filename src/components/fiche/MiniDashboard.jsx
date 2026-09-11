@@ -1,9 +1,22 @@
 // src/components/fiche/MiniDashboard.jsx
+//
+// Synthèse de la finalisation : identité du logement, conformité et recommandations,
+// caractéristiques, atouts, puis points d'attention. La LOGIQUE (calculateConformity,
+// generateApercu, detectAlertes) est inchangée ; seule la présentation a été refaite.
+//
+// Parti pris : une conclusion de formulaire, pas un tableau de bord. Une seule carte
+// blanche pour « le logement », découpée par des filets chauds plutôt qu'en blocs
+// colorés imbriqués ; les couleurs de statut ne portent que sur de petits repères
+// (pastille, icône, texte) pour dire la situation sans la crier. Les points d'attention
+// gardent leur propre carte quand il y en a — ils doivent rester visibles — et se
+// réduisent à une ligne calme quand il n'y en a pas. Rien ici ne fait paraître une fiche
+// conforme ou complète quand elle ne l'est pas : chaque libellé reprend le calcul existant.
 import { detectAlertes, generateApercu } from '../../lib/AlerteDetector'
 import {
-  MapPin, User, ClipboardList, ShieldCheck, CheckCircle, AlertTriangle,
-  XCircle, Lightbulb, LayoutDashboard, Star, Siren, AlertCircle, Wrench, ArrowRight,
+  MapPin, User, ClipboardList, CheckCircle, AlertTriangle, XCircle, AlertCircle, Wrench, ArrowRight,
 } from 'lucide-react'
+import { Eyebrow } from '../FicheLogementBrand'
+import { FL, DISPLAY_SERIF } from '../../lib/ficheLogementTheme'
 
 // Fonction simple pour calculer seulement la conformité
 const calculateConformity = (formData) => {
@@ -61,311 +74,252 @@ const calculateConformity = (formData) => {
     return visite.nombre_chambres || 'Non renseigné'
   }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Présentation
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Repères de statut : une seule palette sémantique, appliquée à de petits éléments.
+const TONS = {
+  emerald: { texte: 'text-emerald-700', pastille: 'bg-emerald-500', filet: 'border-emerald-300' },
+  blue: { texte: 'text-blue-700', pastille: 'bg-blue-500', filet: 'border-blue-300' },
+  amber: { texte: 'text-amber-700', pastille: 'bg-amber-500', filet: 'border-amber-300' },
+  red: { texte: 'text-red-700', pastille: 'bg-red-500', filet: 'border-red-300' },
+}
+
+const CONFORMITE = {
+  conforme: { label: 'Conforme', ton: 'emerald', icone: CheckCircle },
+  demarches_requises: { label: 'Démarches requises', ton: 'blue', icone: ClipboardList },
+  attention_requise: { label: 'Attention requise', ton: 'amber', icone: AlertTriangle },
+  non_conforme: { label: 'Non conforme', ton: 'red', icone: XCircle },
+}
+
+const NON_RENSEIGNE = 'Non renseigné'
+
+/** Valeur + unité, sans jamais produire « Non renseigné personnes ». */
+function avecUnite(valeur, unite) {
+  if (valeur == null || valeur === '' || valeur === NON_RENSEIGNE) return NON_RENSEIGNE
+  return `${valeur} ${unite}`
+}
+
+/** Groupe interne de la carte : surtitre à filet doré, puis contenu. */
+function Groupe({ titre, children }) {
+  return (
+    <div className="mt-7 border-t pt-7" style={{ borderColor: FL.line }}>
+      <Eyebrow className="mb-4">{titre}</Eyebrow>
+      {children}
+    </div>
+  )
+}
+
+/** Cellule de caractéristique : libellé discret, valeur en gras, précision en dessous. */
+function Caracteristique({ label, valeur, precision, ton }) {
+  const manquant = valeur === NON_RENSEIGNE
+  const couleur = manquant ? 'text-gray-400 italic' : ton ? TONS[ton].texte : 'text-gray-900'
+  return (
+    <div className="min-w-0 py-3 pr-4">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className={`mt-0.5 break-words text-sm font-semibold ${couleur}`}>{valeur}</p>
+      {precision && !manquant && <p className="break-words text-xs text-gray-500">{precision}</p>}
+    </div>
+  )
+}
+
+/** Ligne de recommandation ou d'alerte : repère coloré, titre, message, action. */
+function Ligne({ ton, icone, titre, message, action }) {
+  const Icone = icone
+  return (
+    <li className={`flex items-start gap-3 border-l-2 py-2 pl-3 ${TONS[ton].filet}`}>
+      {Icone
+        ? <Icone className={`mt-0.5 h-4 w-4 shrink-0 ${TONS[ton].texte}`} aria-hidden="true" />
+        : <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TONS[ton].pastille}`} aria-hidden="true" />}
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-gray-900">{titre}</p>
+        {message && <p className="text-sm text-gray-600">{message}</p>}
+        {action && (
+          <p className={`mt-1 flex items-center gap-1 text-xs font-semibold ${TONS[ton].texte}`}>
+            <ArrowRight className="h-3 w-3 shrink-0" aria-hidden="true" /> {action}
+          </p>
+        )}
+      </div>
+    </li>
+  )
+}
+
 export default function MiniDashboard({ formData }) {
   const apercu = generateApercu(formData)
   const alertes = detectAlertes(formData)
   const conformity = calculateConformity(formData)
-
-  // Correction du nombre de chambres
   const nombreChambres = calculateNombreChambres(formData)
 
-  // Données du propriétaire et logement
   const proprietaire = formData.section_proprietaire || {}
-
   const nomFiche = formData.nom || 'Sans nom'
   const ville = proprietaire.adresse?.ville || proprietaire.ville || 'Non renseignée'
-  const nomProprietaire = `${proprietaire.prenom || ''} ${proprietaire.nom || ''}`.trim() || 'Non renseigné'
+  const nomProprietaire = `${proprietaire.prenom || ''} ${proprietaire.nom || ''}`.trim() || NON_RENSEIGNE
+  const statut = formData.statut || 'Brouillon'
+
+  const conf = CONFORMITE[conformity.conformiteStatut] || CONFORMITE.non_conforme
+  const IconeConf = conf.icone
+  const aucuneDemarche = !conformity.requiresChangementUsage && !conformity.requiresDeclarationSimple
+
+  const nbAlertes = alertes.critiques.length + alertes.moderees.length + alertes.elementsAbimes.length
+  // Le ton du WiFi dit quelque chose : disponible = bon, absent = à savoir, sinon neutre.
+  const tonWifi = apercu.equipements.wifi.disponible ? 'emerald' : apercu.equipements.wifi.statut === 'non' ? 'amber' : undefined
 
   return (
     <div className="space-y-6">
-      {/* HEADER IDENTITÉ DU LOGEMENT */}
-      <div className="bg-gradient-to-br from-[#dbae61] to-[#c49a4f] rounded-xl p-6 text-white">
-        <div className="flex items-start justify-between gap-3">
+      {/* ── Le logement : identité, conformité, caractéristiques, atouts ── */}
+      <section className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
+        {/* Identité — titre du bien en serif, métadonnées sur une ligne, statut en pastille. */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-2xl font-bold mb-2 break-words">{nomFiche}</h2>
-            <div className="space-y-1 text-white/90">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 shrink-0" />
-                <span>{ville}</span>
+            <Eyebrow>Logement</Eyebrow>
+            <h2 className={`mt-3 break-words text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>{nomFiche}</h2>
+            <dl className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-gray-600">
+              <div className="flex items-center gap-1.5">
+                <dt className="sr-only">Ville</dt>
+                <MapPin className="h-4 w-4 shrink-0" style={{ color: FL.goldDeep }} aria-hidden="true" />
+                <dd>{ville}</dd>
               </div>
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 shrink-0" />
-                <span>{nomProprietaire}</span>
+              <div className="flex items-center gap-1.5">
+                <dt className="sr-only">Propriétaire</dt>
+                <User className="h-4 w-4 shrink-0" style={{ color: FL.goldDeep }} aria-hidden="true" />
+                <dd>{nomProprietaire}</dd>
               </div>
-              {/* Statut réglementaire */}
-              <div className="flex items-center gap-2 mt-3">
-                <ClipboardList className="w-4 h-4 shrink-0" />
-                <div className="flex gap-2 flex-wrap">
-                  {conformity.requiresChangementUsage && (
-                    <span className="px-2 py-1 bg-white/20 rounded text-xs font-medium">
-                      Changement d'usage requis
-                    </span>
-                  )}
-                  {conformity.requiresDeclarationSimple && (
-                    <span className="px-2 py-1 bg-white/20 rounded text-xs font-medium">
-                      Déclaration simple requise
-                    </span>
-                  )}
-                  {!conformity.requiresChangementUsage && !conformity.requiresDeclarationSimple && (
-                    <span className="px-2 py-1 bg-white/20 rounded text-xs font-medium">
-                      Aucune démarche réglementaire
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+            </dl>
           </div>
-          <div className="text-right">
-            <div className="text-white/80 text-sm">Statut</div>
-            <div className="font-semibold">{formData.statut || 'Brouillon'}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* CONFORMITÉ & RECOMMANDATIONS - PLEINE LARGEUR */}
-      <div className="bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Conformité & Recommandations</h3>
-            <p className="text-sm text-gray-600">Statut réglementaire et recommandations</p>
+          <div className="shrink-0">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
+                statut === 'Complété' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-600'
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${statut === 'Complété' ? 'bg-emerald-500' : 'bg-gray-400'}`} aria-hidden="true" />
+              {statut}
+            </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-6 border border-emerald-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-sm font-medium text-gray-600">Conformité & Recommandations</div>
-              <div className={`text-lg font-bold ${
-                conformity.conformiteStatut === 'conforme' ? 'text-green-600' :
-                conformity.conformiteStatut === 'demarches_requises' ? 'text-blue-600' :
-                conformity.conformiteStatut === 'attention_requise' ? 'text-yellow-600' : 'text-red-600'
-              }`}>
-                {conformity.conformiteStatut === 'conforme' ? 'Conforme' :
-                 conformity.conformiteStatut === 'demarches_requises' ? 'Démarches requises' :
-                 conformity.conformiteStatut === 'attention_requise' ? 'Attention requise' : 'Non conforme'}
-              </div>
-            </div>
-            <div className={
-              conformity.conformiteStatut === 'conforme' ? 'text-green-600' :
-              conformity.conformiteStatut === 'demarches_requises' ? 'text-blue-600' :
-              conformity.conformiteStatut === 'attention_requise' ? 'text-yellow-600' : 'text-red-600'
-            }>
-              {conformity.conformiteStatut === 'conforme' ? <CheckCircle className="w-7 h-7" /> :
-               conformity.conformiteStatut === 'demarches_requises' ? <ClipboardList className="w-7 h-7" /> :
-               conformity.conformiteStatut === 'attention_requise' ? <AlertTriangle className="w-7 h-7" /> : <XCircle className="w-7 h-7" />}
-            </div>
+        {/* Conformité & recommandations */}
+        <Groupe titre="Conformité & recommandations">
+          <div className="flex items-center gap-2">
+            <IconeConf className={`h-5 w-5 shrink-0 ${TONS[conf.ton].texte}`} aria-hidden="true" />
+            <p className={`text-base font-bold ${TONS[conf.ton].texte}`}>{conf.label}</p>
           </div>
-
-          {conformity.conformiteActions.length > 0 ? (
-            <div className="space-y-3">
-              <div className="text-sm font-medium text-gray-700 mb-2">Actions et recommandations :</div>
-
-              {/* Message positif si pas de réglementation */}
-              {!conformity.requiresChangementUsage && !conformity.requiresDeclarationSimple && (
-                <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg border border-green-200 mb-3">
-                  Bonne nouvelle ! Aucune déclaration n'est requise a priori.
-                </div>
-              )}
-
-              {conformity.conformiteActions.map((action, index) => (
-                <div key={index} className={`text-sm p-3 rounded-lg ${
-                  action.includes('Zone à risques') || action.includes('Quartier défavorisé')
-                    ? 'bg-yellow-50 border border-yellow-200'
-                    : 'bg-blue-50 border border-blue-200'
-                }`}>
-                  <div className={`font-medium mb-1 ${
-                    action.includes('Zone à risques') || action.includes('Quartier défavorisé')
-                      ? 'text-yellow-800'
-                      : 'text-blue-800'
-                  }`}>
-                    {action}
-                  </div>
-                  {conformity.conformiteMessages[index] && (
-                    <div className={`text-xs ${
-                      action.includes('Zone à risques') || action.includes('Quartier défavorisé')
-                        ? 'text-yellow-700'
-                        : 'text-blue-700'
-                    }`}>
-                      {conformity.conformiteMessages[index]}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg border border-green-200">
-              Bonne nouvelle ! Aucune déclaration n'est requise a priori.
-            </div>
+          {aucuneDemarche && (
+            <p className="mt-2 text-sm text-gray-600">Aucune démarche réglementaire n'est requise a priori.</p>
           )}
-        </div>
+          {conformity.conformiteActions.length > 0 && (
+            <ul className="mt-3 space-y-2">
+              {conformity.conformiteActions.map((action, index) => {
+                const interne = action.includes('Zone à risques') || action.includes('Quartier défavorisé')
+                return (
+                  <Ligne
+                    key={index}
+                    ton={interne ? 'amber' : 'blue'}
+                    titre={action}
+                    message={conformity.conformiteMessages[index]}
+                  />
+                )
+              })}
+            </ul>
+          )}
+          <p className="mt-3 text-xs text-gray-400">
+            Selon la réglementation de la location courte durée et les recommandations internes.
+          </p>
+        </Groupe>
 
-        <div className="mt-4 text-xs text-gray-500 text-center flex items-center justify-center gap-1.5">
-          <Lightbulb className="w-3.5 h-3.5 shrink-0" />
-          Conformité selon réglementation location courte durée et recommandations internes
-        </div>
-      </div>
-
-      {/* APERÇU DU LOGEMENT */}
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-white" />
+        {/* Caractéristiques */}
+        <Groupe titre="Caractéristiques">
+          {/* Deux rangées de trois : six colonnes tronquaient « Parking dans la rue ». */}
+          <div className="grid grid-cols-2 gap-x-6 sm:grid-cols-3">
+            <Caracteristique label="Capacité" valeur={avecUnite(apercu.capacite.personnes, 'personnes')} />
+            <Caracteristique
+              label="Chambres"
+              valeur={nombreChambres === NON_RENSEIGNE ? NON_RENSEIGNE : String(nombreChambres)}
+              precision={apercu.capacite.lits !== NON_RENSEIGNE ? `${apercu.capacite.lits} lits` : undefined}
+            />
+            <Caracteristique label="Surface" valeur={apercu.capacite.surface} />
+            <Caracteristique label="Type" valeur={apercu.nom} />
+            <Caracteristique label="WiFi" valeur={apercu.equipements.wifi.texte} ton={tonWifi} />
+            <Caracteristique label="Parking" valeur={apercu.equipements.parking.texte} />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Aperçu du logement</h3>
-            <p className="text-sm text-gray-600">Caractéristiques principales</p>
-          </div>
-        </div>
+        </Groupe>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* Carte Capacité */}
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <div className="text-sm text-gray-600 mb-1">Capacité</div>
-            <div className="font-semibold text-gray-900">{apercu.capacite.personnes} personnes</div>
-            <div className="text-xs text-gray-500">{nombreChambres} chambres • {apercu.capacite.lits} lits</div>
-          </div>
-
-          {/* Carte Surface */}
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <div className="text-sm text-gray-600 mb-1">Surface</div>
-            <div className="font-semibold text-gray-900">{apercu.capacite.surface}</div>
-            <div className="text-xs text-gray-500">{apercu.nom}</div>
-          </div>
-
-          {/* Carte WiFi */}
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <div className="text-sm text-gray-600 mb-1">WiFi</div>
-            <div className={`font-semibold ${apercu.equipements.wifi.disponible ? 'text-green-600' : 'text-red-600'}`}>
-              {apercu.equipements.wifi.texte}
-            </div>
-          </div>
-
-          {/* Carte Parking */}
-          <div className="bg-white rounded-lg p-4 border border-blue-100">
-            <div className="text-sm text-gray-600 mb-1">Parking</div>
-            <div className="font-semibold text-gray-900">{apercu.equipements.parking.texte}</div>
-          </div>
-        </div>
-
-        {/* Atouts */}
+        {/* Atouts — seulement s'il y en a, en pastilles neutres. */}
         {apercu.atouts.length > 0 && (
-          <div>
-            <div className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-[#dbae61] shrink-0" /> Atouts principaux
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <Groupe titre="Atouts">
+            <ul className="flex flex-wrap gap-2">
               {apercu.atouts.map((atout, index) => (
-                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                <li
+                  key={index}
+                  className="rounded-full border px-3 py-1 text-sm font-medium"
+                  style={{ borderColor: FL.line, backgroundColor: FL.paper, color: FL.ink }}
+                >
                   {atout}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
+          </Groupe>
+        )}
+
+        {/* Sans point d'attention : une ligne calme, pas un bloc vert. Le libellé reprend
+            exactement le calcul de detectAlertes — il n'affirme rien de plus. */}
+        {nbAlertes === 0 && (
+          <div className="mt-7 flex items-center gap-2 border-t pt-6 text-sm text-gray-600" style={{ borderColor: FL.line }}>
+            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+            Aucun point d'attention détecté : aucun problème majeur identifié sur ce logement.
           </div>
         )}
-      </div>
+      </section>
 
-      {/* ALERTES */}
-      {(alertes.critiques.length > 0 || alertes.moderees.length > 0 || alertes.elementsAbimes.length > 0) && (
-        <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-              <Siren className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Points d'attention</h3>
-              <p className="text-sm text-gray-600">Éléments à surveiller ou corriger</p>
-            </div>
+      {/* ── Points d'attention : carte propre, visible, quand il y en a ── */}
+      {nbAlertes > 0 && (
+        <section className="bg-white rounded-xl shadow-sm p-6 sm:p-8" aria-labelledby="points-attention">
+          <div className="flex items-center justify-between gap-4">
+            <Eyebrow>Points d'attention</Eyebrow>
+            <span className="text-xs font-semibold text-gray-500">{nbAlertes} à vérifier</span>
           </div>
+          <h3 id="points-attention" className="sr-only">Points d'attention</h3>
 
-          {/* Alertes critiques */}
           {alertes.critiques.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                <span className="font-semibold text-red-900">Critique ({alertes.critiques.length})</span>
-              </div>
-              <div className="space-y-2">
-                {alertes.critiques.map((alerte, index) => (
-                  <div key={index} className="bg-red-100 border border-red-200 rounded-lg p-3">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="font-medium text-red-900">{alerte.titre}</div>
-                        <div className="text-sm text-red-700">{alerte.message}</div>
-                        {alerte.action && (
-                          <div className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
-                            <ArrowRight className="w-3 h-3 shrink-0" /> {alerte.action}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-red-700">Critique · {alertes.critiques.length}</p>
+              <ul className="space-y-1">
+                {alertes.critiques.map((a, i) => (
+                  <Ligne key={i} ton="red" icone={AlertCircle} titre={a.titre} message={a.message} action={a.action} />
                 ))}
-              </div>
+              </ul>
             </div>
           )}
 
-          {/* Alertes modérées */}
           {alertes.moderees.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0" />
-                <span className="font-semibold text-orange-900">Modéré ({alertes.moderees.length})</span>
-              </div>
-              <div className="space-y-2">
-                {alertes.moderees.map((alerte, index) => (
-                  <div key={index} className="bg-orange-100 border border-orange-200 rounded-lg p-3">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="font-medium text-orange-900">{alerte.titre}</div>
-                        <div className="text-sm text-orange-700">{alerte.message}</div>
-                      </div>
-                    </div>
-                  </div>
+            <div className="mt-5">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-700">Modéré · {alertes.moderees.length}</p>
+              <ul className="space-y-1">
+                {alertes.moderees.map((a, i) => (
+                  <Ligne key={i} ton="amber" icone={AlertTriangle} titre={a.titre} message={a.message} />
                 ))}
-              </div>
+              </ul>
             </div>
           )}
 
-          {/* Éléments abîmés */}
           {alertes.elementsAbimes.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0" />
-                <span className="font-semibold text-yellow-900">Éléments abîmés ({alertes.elementsAbimes.length})</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {alertes.elementsAbimes.map((alerte, index) => (
-                  <div key={index} className="bg-yellow-100 border border-yellow-200 rounded-lg p-2">
-                    <div className="flex items-center gap-2">
-                      <Wrench className="w-4 h-4 text-yellow-700 shrink-0" />
-                      <span className="text-sm font-medium text-yellow-900">{alerte.espace}</span>
-                    </div>
-                  </div>
+            <div className="mt-5">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-600">
+                Éléments abîmés · {alertes.elementsAbimes.length}
+              </p>
+              <ul className="flex flex-wrap gap-2">
+                {alertes.elementsAbimes.map((a, i) => (
+                  <li key={i} className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-900">
+                    <Wrench className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {a.espace}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Message si aucune alerte */}
-      {alertes.critiques.length === 0 && alertes.moderees.length === 0 && alertes.elementsAbimes.length === 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-green-900">Aucune alerte détectée</h3>
-              <p className="text-sm text-green-700">Le logement ne présente pas de problème majeur identifié</p>
-            </div>
-          </div>
-        </div>
+        </section>
       )}
     </div>
   )
