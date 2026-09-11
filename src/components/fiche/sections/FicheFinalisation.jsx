@@ -6,7 +6,7 @@ import ProgressBar from '../ProgressBar'
 import MiniDashboard from '../MiniDashboard'
 import AnnonceAgentCard from '../AnnonceAgentCard'
 import { Eyebrow } from '../../FicheLogementBrand'
-import { FL } from '../../../lib/ficheLogementTheme'
+import { FL, DISPLAY_SERIF } from '../../../lib/ficheLogementTheme'
 import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
@@ -480,46 +480,34 @@ export default function FicheFinalisation() {
               <Eyebrow>Livrables</Eyebrow>
             </div>
 
-            {/* Fiche logement — carte du livrable PDF. Fond papier et filet fin, comme la
-                carte Annonce en variante souple : les deux livrables partagent une surface
-                « produit », distincte des cartes blanches de la synthèse. Hiérarchie :
-                icône, titre, description, puis l'action sous le texte, à la largeur de son
-                libellé. Comportement de génération, confirmations, verrou, états de
-                progression et d'erreur strictement inchangés. */}
-            <div
-              className="rounded-xl border p-6 sm:p-8"
-              style={{ backgroundColor: FL.paper, borderColor: FL.line, boxShadow: '0 10px 24px -22px rgba(23,23,20,0.35)' }}
-            >
-              <div className="flex items-start gap-4">
-                <span
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: 'rgba(219,174,97,0.18)' }}
-                  aria-hidden="true"
-                >
-                  <FileText className="h-5 w-5" style={{ color: FL.goldDeep }} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-semibold" style={{ color: FL.ink }}>Fiche logement</h3>
-                  <p className="mt-1 max-w-prose text-sm leading-relaxed" style={{ color: FL.muted }}>
-                    Toutes les informations du logement réunies dans un document clair, prêt à partager.
-                  </p>
+            {/* Fiche logement — carte du livrable PDF, blanche comme les autres cartes
+                claires de la page, mêmes arrondis et mêmes marges. Une carte de livrable
+                à part entière : titre en serif (le traitement du nom du logement et du
+                titre de l'annonce), description lisible, puis le bouton sous le texte,
+                aligné avec le titre, à la largeur de son libellé. Une seule icône
+                document, dans le bouton. Comportement de génération, confirmations,
+                verrou, états de progression et d'erreur strictement inchangés. */}
+            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
+              <h3 className={`text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>Fiche logement</h3>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
+                Toutes les informations du logement réunies dans un document clair, prêt à partager.
+              </p>
 
-                  <button
-                    onClick={handleGeneratePDF}
-                    disabled={pdfGenerated || pdfLoading || !roleLoaded}
-                    className={`mt-5 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-medium transition-all ${pdfGenerated
-                        ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                        : (pdfLoading || !roleLoaded)
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                      }`}
-                  >
-                    {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF généré' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={handleGeneratePDF}
+                disabled={pdfGenerated || pdfLoading || !roleLoaded}
+                className={`mt-7 inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${pdfGenerated
+                    ? 'bg-green-100 text-green-700 border-2 border-green-200'
+                    : (pdfLoading || !roleLoaded)
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                  }`}
+              >
+                {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF généré' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
+              </button>
             </div>
+
 
             {/* Agent Annonce — directement sur le fond de page, à la largeur des autres
                 grandes sections. Variante « souple » : anthracite chaud, bordure fine et
