@@ -4,51 +4,15 @@ import { useNavigate } from 'react-router-dom'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import MiniDashboard from '../MiniDashboard'
+import AnnonceAgentCard from '../AnnonceAgentCard'
 import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
-  CheckCircle, FileText, Save, Sparkles, Wand2, Download, RefreshCw,
-  ChevronDown, Loader2, AlertCircle, Settings, ArrowLeft, Info, Eye, EyeOff, Lock,
+  CheckCircle, FileText, Save, Sparkles, Loader2, AlertCircle, Settings, ArrowLeft, Lock,
 } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 import { generateAnnoncePdf } from '../../../lib/annoncePdf'
 import { supabase } from '../../../supabaseClient'
-
-const PLATEFORME_LABEL = { airbnb: 'Airbnb', booking: 'Booking' }
-
-// ─── Aperçu de l'annonce : miroirs écran de contenuAirbnb()/contenuBooking()
-// (src/lib/annoncePdf.js). Même règle que le PDF : une section vide est masquée.
-
-/** Équivalent écran de bloc() : titre + corps, rien si le corps est vide. */
-function SectionApercu({ titre, texte }) {
-  const contenu = (texte == null ? '' : String(texte)).trim()
-  if (!contenu) return null
-  return (
-    <div>
-      <p className="font-semibold text-gray-900 mb-1">{titre}</p>
-      <p className="whitespace-pre-wrap">{contenu}</p>
-    </div>
-  )
-}
-
-/** Équivalent écran de blocReglementation() : seulement les lignes renseignées. */
-function MentionsReglementairesApercu({ mentions }) {
-  if (!mentions) return null
-  const lignes = []
-  if (mentions.numero_enregistrement) lignes.push(`Numéro d'enregistrement : ${mentions.numero_enregistrement}`)
-  if (mentions.dpe_classe) lignes.push(`Classe DPE : ${mentions.dpe_classe}`)
-  if (mentions.mention_consommation_excessive) lignes.push(mentions.mention_consommation_excessive)
-  if (mentions.estimation_depenses_annuelles) lignes.push(mentions.estimation_depenses_annuelles)
-  if (!lignes.length) return null
-  return (
-    <div>
-      <p className="font-semibold text-gray-900 mb-1">Mentions réglementaires</p>
-      <ul className="list-disc list-inside space-y-0.5">
-        {lignes.map((l, i) => <li key={i}>{l}</li>)}
-      </ul>
-    </div>
-  )
-}
 
 export default function FicheFinalisation() {
   const navigate = useNavigate()
@@ -202,6 +166,9 @@ export default function FicheFinalisation() {
     setAgentPlateforme(p)
     setAgentOutput(null)
     setAgentError('')
+    // Le contenu complet se replie : la nouvelle plateforme se présente d'abord par
+    // son titre, l'utilisateur redéplie s'il veut lire. État d'affichage seulement.
+    setApercuVisible(false)
   }
 
   const handleDownloadAnnoncePdf = () => {
@@ -542,194 +509,22 @@ export default function FicheFinalisation() {
                   </button>
                 </div>
 
-                {/* Agent Annonce — commandes toujours visibles ; seul l'aperçu se masque */}
-                <div className="border border-gray-200 rounded-lg p-6 space-y-4">
-                  {/* Header (toujours visible) */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
-                      <Wand2 className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Agent Annonce — génération automatique</h3>
-                      <p className="text-sm text-gray-600">
-                        {agentFetching
-                          ? "Chargement de l'annonce enregistrée…"
-                          : agentOutput
-                            ? `Annonce ${PLATEFORME_LABEL[agentPlateforme]} prête`
-                            : 'Aucune annonce générée pour le moment'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Explication « comment ça marche » (dépliable) */}
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setHowItWorksOpen((o) => !o)}
-                      className="flex items-center gap-1.5 text-sm font-medium text-[#dbae61] hover:text-[#c49a4f] transition-colors"
-                    >
-                      <Info className="w-4 h-4" />
-                      Comment l'annonce est-elle générée ?
-                      <ChevronDown className={`w-4 h-4 transition-transform ${howItWorksOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {howItWorksOpen && (
-                      <div className="mt-2 p-4 bg-[#dbae61]/5 border border-[#dbae61]/20 rounded-lg text-sm text-gray-700 space-y-2">
-                        <p>
-                          L'agent rédige selon les bonnes pratiques 2026, calibrées sur une analyse de 115 597 annonces
-                          dont 3 565 « top performers » (Superhost, note ≥ 4,8/5, occupation élevée) — des seuils observés,
-                          pas inventés.
-                        </p>
-                        <ul className="list-disc list-inside space-y-1">
-                          <li><strong>Titre</strong> : 37–43 caractères (plafond Airbnb 50), structuré <em>typologie + ambiance + ancrage géographique</em>, sans émoji ni majuscules intégrales.</li>
-                          <li><strong>Description</strong> : ~430–450 caractères (plafond 500), avec accroche située, description spatiale, distances/accessibilité, puis le différenciateur du bien.</li>
-                          <li><strong>Ancrage géographique réel</strong> : commerces, transports, plage et points d'intérêt avec leurs distances proviennent de la localisation enrichie de la fiche — jamais inventés.</li>
-                          <li><strong>Équipements hiérarchisés</strong> : on met en avant les différenciateurs (arrivée autonome, consommables fournis, café, linge, cuisine équipée) plutôt que les standards (wifi, cuisine).</li>
-                          <li><strong>Style factuel</strong> : des faits (climatisé, 500 m de la plage, rénové) plutôt que des adjectifs vides.</li>
-                        </ul>
-                        <p>
-                          Les mentions réglementaires (n° d'enregistrement, classe DPE) et les disclosures (état, quartier, caméra)
-                          sont ajoutées automatiquement par le système. Sur <strong>Booking</strong>, la grande description est générée
-                          par la plateforme : l'agent remplit le nom et les champs « à propos » (logement, quartier, hôte).
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Choix plateforme */}
-                  <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
-                    {['airbnb', 'booking'].map((key) => (
-                      <button
-                        key={key}
-                        onClick={() => handleSwitchPlateforme(key)}
-                        disabled={agentLoading}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
-                          agentPlateforme === key ? 'bg-[#dbae61] text-white' : 'text-gray-700 hover:bg-white'
-                        }`}
-                      >
-                        {PLATEFORME_LABEL[key]}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Commandes : générer/régénérer · afficher/masquer · télécharger (toujours visibles) */}
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={handleGenerateAgent}
-                      disabled={agentLoading || agentFetching}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                        agentLoading || agentFetching ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                      }`}
-                    >
-                      {agentLoading ? (
-                        <>
-                          <RefreshCw className="w-5 h-5 animate-spin" />
-                          Génération en cours...
-                        </>
-                      ) : agentFetching ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Chargement…
-                        </>
-                      ) : agentOutput ? (
-                        <>
-                          <RefreshCw className="w-5 h-5" />
-                          Régénérer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="w-5 h-5" />
-                          Générer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
-                        </>
-                      )}
-                    </button>
-
-                    {agentOutput && (
-                      <button
-                        type="button"
-                        onClick={() => setApercuVisible((v) => !v)}
-                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
-                      >
-                        {apercuVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        {apercuVisible ? "Masquer l'annonce" : "Afficher l'annonce"}
-                      </button>
-                    )}
-
-                    {agentOutput && (
-                      <button
-                        onClick={handleDownloadAnnoncePdf}
-                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white transition-all"
-                      >
-                        <Download className="w-5 h-5" />
-                        Télécharger le PDF
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Message d'attente pendant la génération */}
-                  {agentLoading && (
-                    <p className="text-sm text-gray-500 flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> La génération prend généralement 20 à 30 secondes, merci de patienter.
-                    </p>
-                  )}
-
-                  {/* Erreur */}
-                  {agentError && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{agentError}</span>
-                    </div>
-                  )}
-
-                  {/* Chargement de l'annonce enregistrée */}
-                  {agentFetching && !agentOutput && (
-                    <p className="text-sm text-gray-500 flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> Chargement de l'annonce enregistrée…
-                    </p>
-                  )}
-
-                  {/* Aperçu de la sortie — masqué par défaut, basculé par « Afficher / Masquer l'annonce » */}
-                  {agentOutput && apercuVisible && (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 space-y-3">
-                      {agentPlateforme === 'airbnb' ? (
-                        <>
-                          {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.filter(Boolean).length > 0 && (
-                            <div>
-                              <p className="font-semibold text-gray-900 mb-1">Titres proposés</p>
-                              <ol className="list-decimal list-inside space-y-0.5">
-                                {agentOutput.airbnb.titres.filter(Boolean).map((t, i) => <li key={i}>{t}</li>)}
-                              </ol>
-                            </div>
-                          )}
-                          {agentOutput.airbnb?.nombre_voyageurs != null && (
-                            <p className="text-xs italic text-gray-500">
-                              Nombre de voyageurs : {agentOutput.airbnb.nombre_voyageurs}
-                            </p>
-                          )}
-                          <SectionApercu titre="Description" texte={agentOutput.airbnb?.description} />
-                          <SectionApercu titre="Le logement" texte={agentOutput.airbnb?.logement} />
-                          <SectionApercu titre="Accès des voyageurs" texte={agentOutput.airbnb?.acces_voyageurs} />
-                          <SectionApercu titre="Échanges avec les voyageurs" texte={agentOutput.airbnb?.echanges_voyageurs} />
-                          <SectionApercu titre="Le quartier" texte={agentOutput.airbnb?.quartier} />
-                          <SectionApercu titre="Comment se déplacer" texte={agentOutput.airbnb?.comment_se_deplacer} />
-                          <SectionApercu titre="Autres remarques" texte={agentOutput.airbnb?.autres_remarques} />
-                          <MentionsReglementairesApercu mentions={agentOutput.airbnb?.mentions_reglementaires} />
-                          <SectionApercu titre="Note sur l'état" texte={agentOutput.airbnb?.note_etat} />
-                          <SectionApercu titre="Note sur le quartier" texte={agentOutput.airbnb?.note_quartier} />
-                        </>
-                      ) : (
-                        <>
-                          <SectionApercu titre="Nom de l'hébergement" texte={agentOutput.booking?.nom} />
-                          <SectionApercu titre="À propos du logement" texte={agentOutput.booking?.about_property} />
-                          <SectionApercu titre="À propos du quartier" texte={agentOutput.booking?.about_neighbourhood} />
-                          <SectionApercu titre="À propos de l'hôte" texte={agentOutput.booking?.about_host} />
-                          <MentionsReglementairesApercu mentions={agentOutput.booking?.mentions_reglementaires} />
-                          <SectionApercu titre="Note sur l'état" texte={agentOutput.booking?.note_etat} />
-                          <SectionApercu titre="Note sur le quartier" texte={agentOutput.booking?.note_quartier} />
-                          <SectionApercu titre="Caméra de surveillance" texte={agentOutput.booking?.note_camera} />
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* Agent Annonce — présentation dans AnnonceAgentCard, logique ci-dessus.
+                    Seul l'aperçu se masque : les commandes restent toujours visibles. */}
+                <AnnonceAgentCard
+                  plateforme={agentPlateforme}
+                  onSwitchPlateforme={handleSwitchPlateforme}
+                  output={agentOutput}
+                  fetching={agentFetching}
+                  loading={agentLoading}
+                  error={agentError}
+                  apercuVisible={apercuVisible}
+                  onToggleApercu={() => setApercuVisible((v) => !v)}
+                  onGenerate={handleGenerateAgent}
+                  onDownloadPdf={handleDownloadAnnoncePdf}
+                  howItWorksOpen={howItWorksOpen}
+                  onToggleHowItWorks={() => setHowItWorksOpen((o) => !o)}
+                />
 
               </div>
 
