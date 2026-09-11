@@ -116,6 +116,7 @@ export default function AnnonceAgentCard({
   onDownloadPdf,
   howItWorksOpen,
   onToggleHowItWorks,
+  variant,
 }) {
   const label = PLATEFORME_LABEL[plateforme]
   const titre = titreAnnonce(output, plateforme)
@@ -131,7 +132,7 @@ export default function AnnonceAgentCard({
         : `Aucune annonce ${label} pour le moment`
 
   return (
-    <AgentCard>
+    <AgentCard variant={variant}>
       <AgentCardHeader icon={Sparkles} name="Agent Annonce" status={statut} busy={occupe} />
 
       <AgentSegmented

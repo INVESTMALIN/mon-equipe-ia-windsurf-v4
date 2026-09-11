@@ -30,12 +30,39 @@ const BUTTON_BASE = `inline-flex items-center justify-center gap-2 rounded-xl te
 // Conteneur
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Carte anthracite. `as` permet de garder la sémantique du conteneur d'origine. */
-export function AgentCard({ children, className = '' }) {
+// Deux surfaces, choisies par la page qui monte la carte :
+//   - 'profond' (défaut) : encre pleine, ombre portée — la carte tranche dans un bloc
+//     blanc (section Guide d'Accès) ;
+//   - 'souple' : anthracite chaud légèrement plus clair (inkLift), bordure fine, ombre
+//     à peine perceptible — la carte s'assoit directement sur le gris de la page
+//     (finalisation), sans découper un trou noir dedans.
+// Le défaut ne doit PAS changer : la carte Guide d'accès en dépend telle quelle.
+const SURFACES = {
+  profond: {
+    backgroundColor: FL.ink,
+    boxShadow: '0 30px 50px -40px rgba(23,23,20,0.9)',
+  },
+  souple: {
+    backgroundColor: FL.inkLift,
+    border: `1px solid ${FL.lineDark}`,
+    boxShadow: '0 10px 24px -22px rgba(23,23,20,0.55)',
+  },
+}
+
+/** Carte anthracite. `variant` choisit la surface (cf. SURFACES). */
+export function AgentCard({ children, className = '', variant = 'profond' }) {
+  const surface = SURFACES[variant] || SURFACES.profond
+  // Ordre des propriétés conservé (fond, couleur, [bordure], ombre) : le rendu HTML de
+  // la variante par défaut reste identique octet pour octet à ce qu'il était.
   return (
     <section
       className={`rounded-2xl p-5 sm:p-6 space-y-5 ${className}`}
-      style={{ backgroundColor: FL.ink, color: '#ffffff', boxShadow: '0 30px 50px -40px rgba(23,23,20,0.9)' }}
+      style={{
+        backgroundColor: surface.backgroundColor,
+        color: '#ffffff',
+        ...(surface.border ? { border: surface.border } : {}),
+        boxShadow: surface.boxShadow,
+      }}
     >
       {children}
     </section>

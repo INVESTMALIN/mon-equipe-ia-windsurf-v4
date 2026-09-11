@@ -468,85 +468,75 @@ export default function FicheFinalisation() {
             {/* MINI DASHBOARD - Aperçu + Alertes */}
             <MiniDashboard formData={formData} />
 
-            {/* GÉNÉRATION PDF ET OUTILS */}
-            <div className="mt-8 bg-white rounded-xl shadow-sm p-8">
+            {/* Fiche logement PDF — carte indépendante, blanche et sobre. */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#dbae61]" /> Fiche logement PDF
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Générez une fiche d'inspection professionnelle au format PDF
+              </p>
 
-              {/* Header */}
-              <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Outils de finalisation</h2>
-                    <p className="text-gray-600">Générez votre PDF et créez vos annonces</p>
-                  </div>
-                </div>
-              </div>
+              <button
+                onClick={handleGeneratePDF}
+                disabled={pdfGenerated || pdfLoading || !roleLoaded}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
+                    ? 'bg-green-100 text-green-700 border-2 border-green-200'
+                    : (pdfLoading || !roleLoaded)
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                  }`}
+              >
+                {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
+              </button>
+            </div>
 
-              <div className="space-y-6">
-                {/* Génération PDF fiche logement */}
-                <div className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#dbae61]" /> Fiche logement PDF
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Générez une fiche d'inspection professionnelle au format PDF
-                  </p>
+            {/* Agent Annonce — directement sur le fond de page, à la largeur des autres
+                grandes sections. Variante « souple » : anthracite chaud, bordure fine et
+                ombre légère, pour s'asseoir sur le gris de la page plutôt que de trancher
+                dans un bloc blanc. Présentation dans AnnonceAgentCard, logique ci-dessus ;
+                seul l'aperçu se masque, les commandes restent toujours visibles. */}
+            <div className="mt-6">
+              <AnnonceAgentCard
+                variant="souple"
+                plateforme={agentPlateforme}
+                onSwitchPlateforme={handleSwitchPlateforme}
+                output={agentOutput}
+                fetching={agentFetching}
+                loading={agentLoading}
+                error={agentError}
+                apercuVisible={apercuVisible}
+                onToggleApercu={() => setApercuVisible((v) => !v)}
+                onGenerate={handleGenerateAgent}
+                onDownloadPdf={handleDownloadAnnoncePdf}
+                howItWorksOpen={howItWorksOpen}
+                onToggleHowItWorks={() => setHowItWorksOpen((o) => !o)}
+              />
+            </div>
 
-                  <button
-                    onClick={handleGeneratePDF}
-                    disabled={pdfGenerated || pdfLoading || !roleLoaded}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
-                        ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                        : (pdfLoading || !roleLoaded)
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                      }`}
-                  >
-                    {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
-                  </button>
-                </div>
-
-                {/* Agent Annonce — présentation dans AnnonceAgentCard, logique ci-dessus.
-                    Seul l'aperçu se masque : les commandes restent toujours visibles. */}
-                <AnnonceAgentCard
-                  plateforme={agentPlateforme}
-                  onSwitchPlateforme={handleSwitchPlateforme}
-                  output={agentOutput}
-                  fetching={agentFetching}
-                  loading={agentLoading}
-                  error={agentError}
-                  apercuVisible={apercuVisible}
-                  onToggleApercu={() => setApercuVisible((v) => !v)}
-                  onGenerate={handleGenerateAgent}
-                  onDownloadPdf={handleDownloadAnnoncePdf}
-                  howItWorksOpen={howItWorksOpen}
-                  onToggleHowItWorks={() => setHowItWorksOpen((o) => !o)}
-                />
-
-              </div>
-
+            {/* Zone distincte : retours de sauvegarde et navigation finale. Les données
+                techniques restent accessibles juste en dessous. */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
               {/* Feedback sauvegarde */}
               {saveStatus.saving && (
-                <div className="mt-8 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 shrink-0 animate-spin" /> Sauvegarde en cours...
                 </div>
               )}
               {saveStatus.saved && (
-                <div className="mt-8 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 shrink-0" /> Sauvegardé avec succès !
                 </div>
               )}
               {saveStatus.error && (
-                <div className="mt-8 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{saveStatus.error}</span>
                 </div>
               )}
 
               {/* NAVIGATION FINALE - Style Letahost */}
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-8 mt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
                 <button
                   onClick={back}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
@@ -576,31 +566,31 @@ export default function FicheFinalisation() {
                   </button>
                 </div>
               </div>
-
-              {/* Accordéon technique TRÈS discret.
-                  pb-20 : réserve la zone du bouton d'aide flottant (cette section n'utilise
-                  pas NavigationButtons, elle a sa propre navigation ci-dessus). */}
-              <details className="mt-8 pb-20 border-t border-gray-100 pt-4">
-                <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5">
-                  <Settings className="w-3.5 h-3.5" /> Données techniques de la fiche
-                </summary>
-                <div className="mt-2 p-3 bg-gray-50 rounded border text-xs">
-                  <pre className="text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                    {JSON.stringify({
-                      statut: formData.statut,
-                      sections_remplies: Object.keys(formData).filter(key =>
-                        key.startsWith('section_') &&
-                        formData[key] &&
-                        typeof formData[key] === 'object' &&
-                        Object.keys(formData[key]).length > 0
-                      ).length,
-                      last_update: formData.updated_at,
-                      pdf_title: generatePdfTitle(formData)
-                    }, null, 2)}
-                  </pre>
-                </div>
-              </details>
             </div>
+
+            {/* Accordéon technique TRÈS discret.
+                pb-20 : réserve la zone du bouton d'aide flottant (cette section n'utilise
+                pas NavigationButtons, elle a sa propre navigation ci-dessus). */}
+            <details className="mt-8 pb-20 border-t border-gray-100 pt-4">
+              <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5">
+                <Settings className="w-3.5 h-3.5" /> Données techniques de la fiche
+              </summary>
+              <div className="mt-2 p-3 bg-gray-50 rounded border text-xs">
+                <pre className="text-gray-600 overflow-x-auto whitespace-pre-wrap">
+                  {JSON.stringify({
+                    statut: formData.statut,
+                    sections_remplies: Object.keys(formData).filter(key =>
+                      key.startsWith('section_') &&
+                      formData[key] &&
+                      typeof formData[key] === 'object' &&
+                      Object.keys(formData[key]).length > 0
+                    ).length,
+                    last_update: formData.updated_at,
+                    pdf_title: generatePdfTitle(formData)
+                  }, null, 2)}
+                </pre>
+              </div>
+            </details>
           </div>
         </div>
       </div>
