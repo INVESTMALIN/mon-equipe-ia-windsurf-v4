@@ -4,51 +4,17 @@ import { useNavigate } from 'react-router-dom'
 import SidebarMenu from '../SidebarMenu'
 import ProgressBar from '../ProgressBar'
 import MiniDashboard from '../MiniDashboard'
+import AnnonceAgentCard from '../AnnonceAgentCard'
+import { Eyebrow } from '../../FicheLogementBrand'
+import { FL, DISPLAY_SERIF } from '../../../lib/ficheLogementTheme'
 import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
-  CheckCircle, FileText, Save, Sparkles, Wand2, Download, RefreshCw,
-  ChevronDown, Loader2, AlertCircle, Settings, ArrowLeft, Info, Eye, EyeOff, Lock,
+  CheckCircle, FileText, Save, Sparkles, Loader2, AlertCircle, Settings, ArrowLeft, Lock,
 } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 import { generateAnnoncePdf } from '../../../lib/annoncePdf'
 import { supabase } from '../../../supabaseClient'
-
-const PLATEFORME_LABEL = { airbnb: 'Airbnb', booking: 'Booking' }
-
-// ─── Aperçu de l'annonce : miroirs écran de contenuAirbnb()/contenuBooking()
-// (src/lib/annoncePdf.js). Même règle que le PDF : une section vide est masquée.
-
-/** Équivalent écran de bloc() : titre + corps, rien si le corps est vide. */
-function SectionApercu({ titre, texte }) {
-  const contenu = (texte == null ? '' : String(texte)).trim()
-  if (!contenu) return null
-  return (
-    <div>
-      <p className="font-semibold text-gray-900 mb-1">{titre}</p>
-      <p className="whitespace-pre-wrap">{contenu}</p>
-    </div>
-  )
-}
-
-/** Équivalent écran de blocReglementation() : seulement les lignes renseignées. */
-function MentionsReglementairesApercu({ mentions }) {
-  if (!mentions) return null
-  const lignes = []
-  if (mentions.numero_enregistrement) lignes.push(`Numéro d'enregistrement : ${mentions.numero_enregistrement}`)
-  if (mentions.dpe_classe) lignes.push(`Classe DPE : ${mentions.dpe_classe}`)
-  if (mentions.mention_consommation_excessive) lignes.push(mentions.mention_consommation_excessive)
-  if (mentions.estimation_depenses_annuelles) lignes.push(mentions.estimation_depenses_annuelles)
-  if (!lignes.length) return null
-  return (
-    <div>
-      <p className="font-semibold text-gray-900 mb-1">Mentions réglementaires</p>
-      <ul className="list-disc list-inside space-y-0.5">
-        {lignes.map((l, i) => <li key={i}>{l}</li>)}
-      </ul>
-    </div>
-  )
-}
 
 export default function FicheFinalisation() {
   const navigate = useNavigate()
@@ -202,6 +168,9 @@ export default function FicheFinalisation() {
     setAgentPlateforme(p)
     setAgentOutput(null)
     setAgentError('')
+    // Le contenu complet se replie : la nouvelle plateforme se présente d'abord par
+    // son titre, l'utilisateur redéplie s'il veut lire. État d'affichage seulement.
+    setApercuVisible(false)
   }
 
   const handleDownloadAnnoncePdf = () => {
@@ -496,262 +465,100 @@ export default function FicheFinalisation() {
           )}
 
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 text-gray-900">Finalisation de l'inspection</h1>
+            {/* Titre dans le même registre que les autres sections du wizard, avec une
+                ligne d'orientation : la finalisation est la conclusion du formulaire. */}
+            <h1 className="text-2xl font-bold mb-1 text-gray-900">Finalisation de l'inspection</h1>
+            <p className="mb-6 text-gray-600">
+              État du logement, points à vérifier, puis livrables et actions finales.
+            </p>
 
-            {/* MINI DASHBOARD - Aperçu + Alertes */}
+            {/* SYNTHÈSE — identité, conformité, caractéristiques, atouts, points d'attention */}
             <MiniDashboard formData={formData} />
 
-            {/* GÉNÉRATION PDF ET OUTILS */}
-            <div className="mt-8 bg-white rounded-xl shadow-sm p-8">
+            {/* ── Livrables ── */}
+            <div className="mb-4 mt-10">
+              <Eyebrow>Livrables</Eyebrow>
+            </div>
 
-              {/* Header */}
-              <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Outils de finalisation</h2>
-                    <p className="text-gray-600">Générez votre PDF et créez vos annonces</p>
-                  </div>
-                </div>
-              </div>
+            {/* Fiche logement — carte du livrable PDF, blanche comme les autres cartes
+                claires de la page, mêmes arrondis et mêmes marges. Une carte de livrable
+                à part entière : titre en serif (le traitement du nom du logement et du
+                titre de l'annonce), description lisible, puis le bouton sous le texte,
+                aligné avec le titre, à la largeur de son libellé. Une seule icône
+                document, dans le bouton. Comportement de génération, confirmations,
+                verrou, états de progression et d'erreur strictement inchangés. */}
+            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
+              <h3 className={`text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>Fiche logement</h3>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
+                Toutes les informations du logement réunies dans un document clair, prêt à partager.
+              </p>
 
-              <div className="space-y-6">
-                {/* Génération PDF fiche logement */}
-                <div className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#dbae61]" /> Fiche logement PDF
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Générez une fiche d'inspection professionnelle au format PDF
-                  </p>
+              <button
+                onClick={handleGeneratePDF}
+                disabled={pdfGenerated || pdfLoading || !roleLoaded}
+                className={`mt-7 inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${pdfGenerated
+                    ? 'bg-green-100 text-green-700 border-2 border-green-200'
+                    : (pdfLoading || !roleLoaded)
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                  }`}
+              >
+                {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF généré' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
+              </button>
+            </div>
 
-                  <button
-                    onClick={handleGeneratePDF}
-                    disabled={pdfGenerated || pdfLoading || !roleLoaded}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
-                        ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                        : (pdfLoading || !roleLoaded)
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                      }`}
-                  >
-                    {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
-                  </button>
-                </div>
 
-                {/* Agent Annonce — commandes toujours visibles ; seul l'aperçu se masque */}
-                <div className="border border-gray-200 rounded-lg p-6 space-y-4">
-                  {/* Header (toujours visible) */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
-                      <Wand2 className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Agent Annonce — génération automatique</h3>
-                      <p className="text-sm text-gray-600">
-                        {agentFetching
-                          ? "Chargement de l'annonce enregistrée…"
-                          : agentOutput
-                            ? `Annonce ${PLATEFORME_LABEL[agentPlateforme]} prête`
-                            : 'Aucune annonce générée pour le moment'}
-                      </p>
-                    </div>
-                  </div>
+            {/* Agent Annonce — directement sur le fond de page, à la largeur des autres
+                grandes sections. Variante « souple » : anthracite chaud, bordure fine et
+                ombre légère, pour s'asseoir sur le gris de la page plutôt que de trancher
+                dans un bloc blanc. Présentation dans AnnonceAgentCard, logique ci-dessus ;
+                seul l'aperçu se masque, les commandes restent toujours visibles. */}
+            <div className="mt-6">
+              <AnnonceAgentCard
+                variant="souple"
+                plateforme={agentPlateforme}
+                onSwitchPlateforme={handleSwitchPlateforme}
+                output={agentOutput}
+                fetching={agentFetching}
+                loading={agentLoading}
+                error={agentError}
+                apercuVisible={apercuVisible}
+                onToggleApercu={() => setApercuVisible((v) => !v)}
+                onGenerate={handleGenerateAgent}
+                onDownloadPdf={handleDownloadAnnoncePdf}
+                howItWorksOpen={howItWorksOpen}
+                onToggleHowItWorks={() => setHowItWorksOpen((o) => !o)}
+              />
+            </div>
 
-                  {/* Explication « comment ça marche » (dépliable) */}
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setHowItWorksOpen((o) => !o)}
-                      className="flex items-center gap-1.5 text-sm font-medium text-[#dbae61] hover:text-[#c49a4f] transition-colors"
-                    >
-                      <Info className="w-4 h-4" />
-                      Comment l'annonce est-elle générée ?
-                      <ChevronDown className={`w-4 h-4 transition-transform ${howItWorksOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {howItWorksOpen && (
-                      <div className="mt-2 p-4 bg-[#dbae61]/5 border border-[#dbae61]/20 rounded-lg text-sm text-gray-700 space-y-2">
-                        <p>
-                          L'agent rédige selon les bonnes pratiques 2026, calibrées sur une analyse de 115 597 annonces
-                          dont 3 565 « top performers » (Superhost, note ≥ 4,8/5, occupation élevée) — des seuils observés,
-                          pas inventés.
-                        </p>
-                        <ul className="list-disc list-inside space-y-1">
-                          <li><strong>Titre</strong> : 37–43 caractères (plafond Airbnb 50), structuré <em>typologie + ambiance + ancrage géographique</em>, sans émoji ni majuscules intégrales.</li>
-                          <li><strong>Description</strong> : ~430–450 caractères (plafond 500), avec accroche située, description spatiale, distances/accessibilité, puis le différenciateur du bien.</li>
-                          <li><strong>Ancrage géographique réel</strong> : commerces, transports, plage et points d'intérêt avec leurs distances proviennent de la localisation enrichie de la fiche — jamais inventés.</li>
-                          <li><strong>Équipements hiérarchisés</strong> : on met en avant les différenciateurs (arrivée autonome, consommables fournis, café, linge, cuisine équipée) plutôt que les standards (wifi, cuisine).</li>
-                          <li><strong>Style factuel</strong> : des faits (climatisé, 500 m de la plage, rénové) plutôt que des adjectifs vides.</li>
-                        </ul>
-                        <p>
-                          Les mentions réglementaires (n° d'enregistrement, classe DPE) et les disclosures (état, quartier, caméra)
-                          sont ajoutées automatiquement par le système. Sur <strong>Booking</strong>, la grande description est générée
-                          par la plateforme : l'agent remplit le nom et les champs « à propos » (logement, quartier, hôte).
-                        </p>
-                      </div>
-                    )}
-                  </div>
+            {/* ── Actions finales : distinctes des actions propres aux livrables ── */}
+            <div className="mb-4 mt-10">
+              <Eyebrow>Actions finales</Eyebrow>
+            </div>
 
-                  {/* Choix plateforme */}
-                  <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
-                    {['airbnb', 'booking'].map((key) => (
-                      <button
-                        key={key}
-                        onClick={() => handleSwitchPlateforme(key)}
-                        disabled={agentLoading}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 ${
-                          agentPlateforme === key ? 'bg-[#dbae61] text-white' : 'text-gray-700 hover:bg-white'
-                        }`}
-                      >
-                        {PLATEFORME_LABEL[key]}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Commandes : générer/régénérer · afficher/masquer · télécharger (toujours visibles) */}
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={handleGenerateAgent}
-                      disabled={agentLoading || agentFetching}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                        agentLoading || agentFetching ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                      }`}
-                    >
-                      {agentLoading ? (
-                        <>
-                          <RefreshCw className="w-5 h-5 animate-spin" />
-                          Génération en cours...
-                        </>
-                      ) : agentFetching ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Chargement…
-                        </>
-                      ) : agentOutput ? (
-                        <>
-                          <RefreshCw className="w-5 h-5" />
-                          Régénérer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="w-5 h-5" />
-                          Générer l'annonce {PLATEFORME_LABEL[agentPlateforme]}
-                        </>
-                      )}
-                    </button>
-
-                    {agentOutput && (
-                      <button
-                        type="button"
-                        onClick={() => setApercuVisible((v) => !v)}
-                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
-                      >
-                        {apercuVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        {apercuVisible ? "Masquer l'annonce" : "Afficher l'annonce"}
-                      </button>
-                    )}
-
-                    {agentOutput && (
-                      <button
-                        onClick={handleDownloadAnnoncePdf}
-                        className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium border-2 border-[#dbae61] text-[#dbae61] hover:bg-[#dbae61] hover:text-white transition-all"
-                      >
-                        <Download className="w-5 h-5" />
-                        Télécharger le PDF
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Message d'attente pendant la génération */}
-                  {agentLoading && (
-                    <p className="text-sm text-gray-500 flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> La génération prend généralement 20 à 30 secondes, merci de patienter.
-                    </p>
-                  )}
-
-                  {/* Erreur */}
-                  {agentError && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{agentError}</span>
-                    </div>
-                  )}
-
-                  {/* Chargement de l'annonce enregistrée */}
-                  {agentFetching && !agentOutput && (
-                    <p className="text-sm text-gray-500 flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> Chargement de l'annonce enregistrée…
-                    </p>
-                  )}
-
-                  {/* Aperçu de la sortie — masqué par défaut, basculé par « Afficher / Masquer l'annonce » */}
-                  {agentOutput && apercuVisible && (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 space-y-3">
-                      {agentPlateforme === 'airbnb' ? (
-                        <>
-                          {Array.isArray(agentOutput.airbnb?.titres) && agentOutput.airbnb.titres.filter(Boolean).length > 0 && (
-                            <div>
-                              <p className="font-semibold text-gray-900 mb-1">Titres proposés</p>
-                              <ol className="list-decimal list-inside space-y-0.5">
-                                {agentOutput.airbnb.titres.filter(Boolean).map((t, i) => <li key={i}>{t}</li>)}
-                              </ol>
-                            </div>
-                          )}
-                          {agentOutput.airbnb?.nombre_voyageurs != null && (
-                            <p className="text-xs italic text-gray-500">
-                              Nombre de voyageurs : {agentOutput.airbnb.nombre_voyageurs}
-                            </p>
-                          )}
-                          <SectionApercu titre="Description" texte={agentOutput.airbnb?.description} />
-                          <SectionApercu titre="Le logement" texte={agentOutput.airbnb?.logement} />
-                          <SectionApercu titre="Accès des voyageurs" texte={agentOutput.airbnb?.acces_voyageurs} />
-                          <SectionApercu titre="Échanges avec les voyageurs" texte={agentOutput.airbnb?.echanges_voyageurs} />
-                          <SectionApercu titre="Le quartier" texte={agentOutput.airbnb?.quartier} />
-                          <SectionApercu titre="Comment se déplacer" texte={agentOutput.airbnb?.comment_se_deplacer} />
-                          <SectionApercu titre="Autres remarques" texte={agentOutput.airbnb?.autres_remarques} />
-                          <MentionsReglementairesApercu mentions={agentOutput.airbnb?.mentions_reglementaires} />
-                          <SectionApercu titre="Note sur l'état" texte={agentOutput.airbnb?.note_etat} />
-                          <SectionApercu titre="Note sur le quartier" texte={agentOutput.airbnb?.note_quartier} />
-                        </>
-                      ) : (
-                        <>
-                          <SectionApercu titre="Nom de l'hébergement" texte={agentOutput.booking?.nom} />
-                          <SectionApercu titre="À propos du logement" texte={agentOutput.booking?.about_property} />
-                          <SectionApercu titre="À propos du quartier" texte={agentOutput.booking?.about_neighbourhood} />
-                          <SectionApercu titre="À propos de l'hôte" texte={agentOutput.booking?.about_host} />
-                          <MentionsReglementairesApercu mentions={agentOutput.booking?.mentions_reglementaires} />
-                          <SectionApercu titre="Note sur l'état" texte={agentOutput.booking?.note_etat} />
-                          <SectionApercu titre="Note sur le quartier" texte={agentOutput.booking?.note_quartier} />
-                          <SectionApercu titre="Caméra de surveillance" texte={agentOutput.booking?.note_camera} />
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
+            {/* Retours de sauvegarde et navigation finale. Les données techniques restent
+                accessibles juste en dessous. */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
               {/* Feedback sauvegarde */}
               {saveStatus.saving && (
-                <div className="mt-8 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 shrink-0 animate-spin" /> Sauvegarde en cours...
                 </div>
               )}
               {saveStatus.saved && (
-                <div className="mt-8 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 shrink-0" /> Sauvegardé avec succès !
                 </div>
               )}
               {saveStatus.error && (
-                <div className="mt-8 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{saveStatus.error}</span>
                 </div>
               )}
 
               {/* NAVIGATION FINALE - Style Letahost */}
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-8 mt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
                 <button
                   onClick={back}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
@@ -781,31 +588,31 @@ export default function FicheFinalisation() {
                   </button>
                 </div>
               </div>
-
-              {/* Accordéon technique TRÈS discret.
-                  pb-20 : réserve la zone du bouton d'aide flottant (cette section n'utilise
-                  pas NavigationButtons, elle a sa propre navigation ci-dessus). */}
-              <details className="mt-8 pb-20 border-t border-gray-100 pt-4">
-                <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5">
-                  <Settings className="w-3.5 h-3.5" /> Données techniques de la fiche
-                </summary>
-                <div className="mt-2 p-3 bg-gray-50 rounded border text-xs">
-                  <pre className="text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                    {JSON.stringify({
-                      statut: formData.statut,
-                      sections_remplies: Object.keys(formData).filter(key =>
-                        key.startsWith('section_') &&
-                        formData[key] &&
-                        typeof formData[key] === 'object' &&
-                        Object.keys(formData[key]).length > 0
-                      ).length,
-                      last_update: formData.updated_at,
-                      pdf_title: generatePdfTitle(formData)
-                    }, null, 2)}
-                  </pre>
-                </div>
-              </details>
             </div>
+
+            {/* Accordéon technique TRÈS discret.
+                pb-20 : réserve la zone du bouton d'aide flottant (cette section n'utilise
+                pas NavigationButtons, elle a sa propre navigation ci-dessus). */}
+            <details className="mt-8 pb-20 border-t border-gray-100 pt-4">
+              <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5">
+                <Settings className="w-3.5 h-3.5" /> Données techniques de la fiche
+              </summary>
+              <div className="mt-2 p-3 bg-gray-50 rounded border text-xs">
+                <pre className="text-gray-600 overflow-x-auto whitespace-pre-wrap">
+                  {JSON.stringify({
+                    statut: formData.statut,
+                    sections_remplies: Object.keys(formData).filter(key =>
+                      key.startsWith('section_') &&
+                      formData[key] &&
+                      typeof formData[key] === 'object' &&
+                      Object.keys(formData[key]).length > 0
+                    ).length,
+                    last_update: formData.updated_at,
+                    pdf_title: generatePdfTitle(formData)
+                  }, null, 2)}
+                </pre>
+              </div>
+            </details>
           </div>
         </div>
       </div>

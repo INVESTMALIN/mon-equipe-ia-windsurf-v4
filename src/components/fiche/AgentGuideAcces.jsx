@@ -14,9 +14,9 @@
 // ⚠️ `guide_genere` / `guide_genere_at` sont explicitement EXCLUS du PDF de la fiche
 //   (cf. CHAMPS_HORS_PDF dans lib/PdfBuilder) : leur intégration fera l'objet d'un travail dédié.
 import { useEffect, useRef, useState } from 'react'
-import { Video, Wand2, RefreshCw, X, Copy, Check, AlertCircle } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useForm } from '../FormContext'
+import GuideAgentCard from './GuideAgentCard'
 import { extractFicheContext } from '../../lib/ficheContextHelper'
 import {
   GUIDE_ACCES_ACCEPT,
@@ -46,6 +46,9 @@ export default function AgentGuideAcces() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  // États d'AFFICHAGE uniquement (cf. commentaire au-dessus du rendu).
+  const [guideVisible, setGuideVisible] = useState(false)
+  const [regenOuvert, setRegenOuvert] = useState(false)
   const fileInputRef = useRef(null)
 
   // Identifiant de repli pour une fiche pas encore enregistrée (donc sans id) : il doit
@@ -149,122 +152,30 @@ export default function AgentGuideAcces() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // ── Présentation déléguée à GuideAgentCard (mêmes primitives que l'Agent Annonce).
+  // Tout ce qui précède est inchangé ; les deux états ci-dessus (guideVisible,
+  // regenOuvert) ne sont que de l'affichage et ne touchent ni les données ni la
+  // persistance.
   return (
-    <div className="border border-gray-200 rounded-lg p-6 space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 bg-[#dbae61] rounded-lg flex items-center justify-center shrink-0">
-          <Wand2 className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Agent guide d'accès</h3>
-          <p className="text-sm text-gray-600">
-            {guide
-              ? `Guide généré${genereLe ? ` le ${genereLe}` : ''}`
-              : 'Téléversez votre vidéo d\'accès, l\'agent rédige le guide pour vos voyageurs'}
-          </p>
-        </div>
-      </div>
-
-      {/* Téléversement */}
-      <div>
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept={GUIDE_ACCES_ACCEPT}
-          onChange={handleFileSelect}
-          disabled={loading}
-          className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#dbae61] file:text-white hover:file:bg-[#c49a4f] file:cursor-pointer disabled:opacity-50"
-        />
-        <p className="text-xs text-gray-500 mt-2">
-          <strong>Formats acceptés :</strong> {GUIDE_ACCES_FORMATS_LABEL} • <strong>Taille max :</strong> {GUIDE_ACCES_TAILLES_LABEL}
-        </p>
-      </div>
-
-      {selectedFile && (
-        <div className="p-3 bg-[#dbae61] bg-opacity-10 border border-[#dbae61] rounded-lg flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <Video className="w-4 h-4 text-[#dbae61] shrink-0" />
-            <span className="text-sm text-gray-700 truncate">{selectedFile.name}</span>
-            <span className="text-xs text-gray-500 shrink-0">({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
-          </div>
-          <button
-            type="button"
-            onClick={removeFile}
-            disabled={loading}
-            className="text-[#dbae61] hover:text-[#c49a4f] disabled:opacity-50 shrink-0"
-            title="Retirer le fichier"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Génération. Le bouton reste grisé tant qu'aucune vidéo n'est sélectionnée :
-          régénérer suppose un nouveau média, la vidéo précédente n'étant pas conservée. */}
-      <div>
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={!selectedFile || loading}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-            !selectedFile || loading
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-          }`}
-        >
-          {loading ? (
-            <>
-              <RefreshCw className="w-5 h-5 animate-spin" />
-              Génération en cours...
-            </>
-          ) : guide ? (
-            <>
-              <RefreshCw className="w-5 h-5" />
-              Régénérer le guide d'accès
-            </>
-          ) : (
-            <>
-              <Wand2 className="w-5 h-5" />
-              Générer le guide d'accès
-            </>
-          )}
-        </button>
-        {!selectedFile && !loading && (
-          <p className="text-xs text-gray-500 mt-2">
-            {guide
-              ? "Téléversez une nouvelle vidéo pour régénérer : la vidéo précédente n'est pas conservée."
-              : 'Téléversez une vidéo pour activer la génération.'}
-          </p>
-        )}
-      </div>
-
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Guide généré */}
-      {guide && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="font-medium text-gray-900">Guide d'accès généré</p>
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 text-sm font-medium text-[#dbae61] hover:text-[#c49a4f] transition-colors"
-            >
-              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copié' : 'Copier'}
-            </button>
-          </div>
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 whitespace-pre-wrap max-h-96 overflow-y-auto">
-            {guide}
-          </div>
-        </div>
-      )}
-    </div>
+    <GuideAgentCard
+      guide={guide}
+      genereLe={genereLe}
+      loading={loading}
+      error={error}
+      selectedFile={selectedFile}
+      copied={copied}
+      guideVisible={guideVisible}
+      regenOuvert={regenOuvert}
+      fileInputRef={fileInputRef}
+      accept={GUIDE_ACCES_ACCEPT}
+      formatsLabel={GUIDE_ACCES_FORMATS_LABEL}
+      taillesLabel={GUIDE_ACCES_TAILLES_LABEL}
+      onFileSelect={handleFileSelect}
+      onRemoveFile={removeFile}
+      onGenerate={handleGenerate}
+      onCopy={handleCopy}
+      onToggleGuide={() => setGuideVisible((v) => !v)}
+      onToggleRegen={() => setRegenOuvert((o) => !o)}
+    />
   )
 }
