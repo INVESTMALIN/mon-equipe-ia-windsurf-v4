@@ -480,31 +480,44 @@ export default function FicheFinalisation() {
               <Eyebrow>Livrables</Eyebrow>
             </div>
 
-            {/* Fiche logement PDF — carte blanche et sobre : titre, une ligne, le bouton. */}
-            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <FileText className="w-5 h-5 shrink-0" style={{ color: FL.goldDeep }} aria-hidden="true" /> Fiche logement PDF
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-600">
-                    Fiche d'inspection professionnelle au format PDF, produite dans le navigateur.
-                  </p>
-                </div>
-
-                <button
-                  onClick={handleGeneratePDF}
-                  disabled={pdfGenerated || pdfLoading || !roleLoaded}
-                  className={`inline-flex shrink-0 items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${pdfGenerated
-                      ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                      : (pdfLoading || !roleLoaded)
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                    }`}
+            {/* Fiche logement — carte du livrable PDF. Fond papier et filet fin, comme la
+                carte Annonce en variante souple : les deux livrables partagent une surface
+                « produit », distincte des cartes blanches de la synthèse. Hiérarchie :
+                icône, titre, description, puis l'action sous le texte, à la largeur de son
+                libellé. Comportement de génération, confirmations, verrou, états de
+                progression et d'erreur strictement inchangés. */}
+            <div
+              className="rounded-xl border p-6 sm:p-8"
+              style={{ backgroundColor: FL.paper, borderColor: FL.line, boxShadow: '0 10px 24px -22px rgba(23,23,20,0.35)' }}
+            >
+              <div className="flex items-start gap-4">
+                <span
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: 'rgba(219,174,97,0.18)' }}
+                  aria-hidden="true"
                 >
-                  {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                  {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF Généré' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Logement (PDF)'}
-                </button>
+                  <FileText className="h-5 w-5" style={{ color: FL.goldDeep }} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-semibold" style={{ color: FL.ink }}>Fiche logement</h3>
+                  <p className="mt-1 max-w-prose text-sm leading-relaxed" style={{ color: FL.muted }}>
+                    Toutes les informations du logement réunies dans un document clair, prêt à partager.
+                  </p>
+
+                  <button
+                    onClick={handleGeneratePDF}
+                    disabled={pdfGenerated || pdfLoading || !roleLoaded}
+                    className={`mt-5 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-medium transition-all ${pdfGenerated
+                        ? 'bg-green-100 text-green-700 border-2 border-green-200'
+                        : (pdfLoading || !roleLoaded)
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                      }`}
+                  >
+                    {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF généré' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
+                  </button>
+                </div>
               </div>
             </div>
 
