@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { getUserFiches, getFichesAvecAnnonce, setFicheArchived } from '../lib/supabaseHelpers'
 import { FICHE_STATUS_FILTERS, matchesFicheFilter } from '../lib/ficheFilters'
@@ -413,8 +413,17 @@ export default function Dashboard() {
                     {/* `min-w-0` sur le conteneur ET `truncate` sur le titre : un nom
                         long est coupé au lieu de pousser l'icône hors de la carte. */}
                     <div className="flex min-w-0 items-center gap-1.5">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors cursor-pointer">
-                        {fiche.nom}
+                      {/* Le titre est un VRAI lien vers la fiche — même destination que « Modifier »
+                          du menu. Il changeait déjà de couleur au survol sans rien faire : le seul
+                          chemin était le menu contextuel. `block` + `truncate` sur le lien (et non
+                          sur le h3) pour que la coupe des noms longs continue de fonctionner. */}
+                      <h3 className="min-w-0 text-lg font-semibold text-gray-900">
+                        <Link
+                          to={`/fiche?id=${fiche.id}`}
+                          className="block truncate rounded transition-colors hover:text-[#dbae61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dbae61] focus-visible:ring-offset-2"
+                        >
+                          {fiche.nom}
+                        </Link>
                       </h3>
                       <EtatEditionIcone locked={!!fiche.fields_locked} />
                     </div>
@@ -507,8 +516,14 @@ export default function Dashboard() {
                     {/* `min-w-0` + `truncate` : c'est le nom qui se coupe quand la
                         place manque, jamais l'icône d'état qui le suit. */}
                     <div className="flex min-w-0 items-center gap-1.5">
-                      <h3 className="text-base font-semibold text-gray-900 truncate hover:text-[#dbae61] transition-colors">
-                        {fiche.nom}
+                      {/* Même lien que dans la grille : le titre ouvre la fiche. */}
+                      <h3 className="min-w-0 text-base font-semibold text-gray-900">
+                        <Link
+                          to={`/fiche?id=${fiche.id}`}
+                          className="block truncate rounded transition-colors hover:text-[#dbae61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dbae61] focus-visible:ring-offset-2"
+                        >
+                          {fiche.nom}
+                        </Link>
                       </h3>
                       <EtatEditionIcone locked={!!fiche.fields_locked} />
                     </div>
