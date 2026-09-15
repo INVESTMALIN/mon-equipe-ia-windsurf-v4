@@ -314,12 +314,19 @@ export const setFicheArchived = async (ficheId, archived) => {
     }
   }
 
+  // CONTRAT d'une annonce « disponible », partagé par les badges du dashboard et la
+  // page /mes-statistiques : `output_assemble` renseigné ET statut ≠ 'erreur'. Une
+  // seule définition, appliquée côté serveur, pour que les deux écrans ne puissent
+  // pas diverger sur ce qui compte comme livrable (cf. lib/ficheLivrables.js).
+  const filtreAnnonceDisponible = (query) =>
+    query.not('output_assemble', 'is', null).neq('statut', 'erreur')
+
   // Quelles fiches ont une annonce exploitable ? UNE seule requête pour toute la
   // liste, jamais une par carte.
   //
-  // Le filtrage est fait CÔTÉ SERVEUR (`output_assemble` non nul, statut ≠ 'erreur')
-  // et la projection se limite à `fiche_id` : le JSON des annonces, qui est
-  // volumineux, ne traverse jamais le réseau. On ne récupère qu'une liste d'ids.
+  // Le filtrage est fait CÔTÉ SERVEUR (cf. filtreAnnonceDisponible) et la
+  // projection se limite à `fiche_id` : le JSON des annonces, qui est volumineux,
+  // ne traverse jamais le réseau. On ne récupère qu'une liste d'ids.
   //
   // Échec non bloquant : le dashboard doit s'afficher même si cette requête
   // annexe tombe. On renvoie alors un ensemble vide, donc aucun badge « Annonce »
@@ -328,12 +335,12 @@ export const setFicheArchived = async (ficheId, archived) => {
     if (!Array.isArray(ficheIds) || ficheIds.length === 0) return new Set()
 
     const result = await safeSupabaseQuery(
-      supabase
-        .from('agent_outputs')
-        .select('fiche_id')
-        .in('fiche_id', ficheIds)
-        .not('output_assemble', 'is', null)
-        .neq('statut', 'erreur')
+      filtreAnnonceDisponible(
+        supabase
+          .from('agent_outputs')
+          .select('fiche_id')
+          .in('fiche_id', ficheIds)
+      )
     )
 
     if (result.error) {
@@ -342,6 +349,63 @@ export const setFicheArchived = async (ficheId, archived) => {
     }
 
     return new Set((result.data || []).map((ligne) => ligne.fiche_id))
+  }
+
+  // Annonces disponibles d'un utilisateur, pour /mes-statistiques : une ligne par
+  // couple (fiche, plateforme), avec l'horodatage de la version actuellement
+  // conservée. Même contrat de « disponible » que les badges (filtreAnnonceDisponible).
+  //
+  // Scope par l'embed `fiche_lite!inner(user_id)` filtré sur le user : UNE requête
+  // quel que soit le nombre de fiches, sans liste d'ids dans l'URL (qui grossirait
+  // avec le compte), et un scope EXPLICITE au user courant en plus de la RLS — la
+  // policy admin lit toutes les lignes, on ne dépend pas de la seule RLS. Vérifié
+  // le 15/09/2026 : mêmes lignes que le `in(ids)` du dashboard.
+  //
+  // Échec REMONTÉ (pas d'ensemble vide silencieux) : une statistique ne doit jamais
+  // afficher zéro à la place d'une erreur réseau.
+  export const getAnnoncesDisponibles = async (userId) => {
+    const result = await safeSupabaseQuery(
+      filtreAnnonceDisponible(
+        supabase
+          .from('agent_outputs')
+          .select('fiche_id, plateforme, generated_at, fiche_lite!inner(user_id)')
+          .eq('fiche_lite.user_id', userId)
+      )
+    )
+
+    if (result.error) {
+      console.error('Erreur lecture agent_outputs (statistiques):', result.error)
+      return { success: false, error: result.error.message || String(result.error) }
+    }
+
+    return {
+      success: true,
+      data: (result.data || []).map(({ fiche_id, plateforme, generated_at }) => ({
+        fiche_id,
+        plateforme,
+        generated_at,
+      })),
+    }
+  }
+
+  // Mouvements de crédits d'un utilisateur, projection minimale pour les agrégats de
+  // /mes-statistiques (le détail lisible reste sur /mes-credits). Scope explicite au
+  // user (cf. policy admin). Échec remonté, jamais transformé en liste vide.
+  export const getMouvementsCredits = async (userId) => {
+    const result = await safeSupabaseQuery(
+      supabase
+        .from('credit_ledger')
+        .select('amount, type, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+    )
+
+    if (result.error) {
+      console.error('Erreur lecture credit_ledger (statistiques):', result.error)
+      return { success: false, error: result.error.message || String(result.error) }
+    }
+
+    return { success: true, data: result.data || [] }
   }
 
   // ============================================

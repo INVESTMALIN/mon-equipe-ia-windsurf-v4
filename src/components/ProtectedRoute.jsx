@@ -12,9 +12,14 @@ export const FICHE_LITE_ALLOWED_PATHS = [
   '/nouvelle-fiche', // alias création
   '/mes-credits',    // solde + achat de crédits + retour Stripe (?checkout=success)
   '/mon-compte',     // page compte
+  '/mes-statistiques', // statistiques personnelles (réservée à ce rôle, cf. onlyRoles)
 ]
 
-export default function ProtectedRoute({ children, requirePremium = false, allowRoles = [] }) {
+// `onlyRoles` : la route est RÉSERVÉE à ces rôles (ex. /mes-statistiques, fiche_lite
+// uniquement). Tout autre rôle est renvoyé vers son univers avant tout rendu ; un profil
+// illisible refuse aussi (fail-closed, contrairement au gating 2b qui est fail-open
+// pour ne pas bloquer les autres rôles sur une erreur transitoire).
+export default function ProtectedRoute({ children, requirePremium = false, allowRoles = [], onlyRoles = [] }) {
   const [loading, setLoading] = useState(true)
   const [isAllowed, setIsAllowed] = useState(false)
   const navigate = useNavigate()
@@ -34,8 +39,9 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
     setIsAllowed(false)
   }
 
-  // Clé stable pour les deps de l'effet (allowRoles est un tableau recréé à chaque render)
+  // Clés stables pour les deps de l'effet (les tableaux sont recréés à chaque render)
   const allowRolesKey = allowRoles.join(',')
+  const onlyRolesKey = onlyRoles.join(',')
 
   useEffect(() => {
     // Sentinel d'annulation propre à CE run de l'effet. Le cleanup le passe à
@@ -95,6 +101,23 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
           !FICHE_LITE_ALLOWED_PATHS.includes(location.pathname)
         ) {
           navigate('/dashboard', { replace: true })
+          return
+        }
+
+        // 2c. Route réservée à certains rôles. Sans profil lisible, on ne peut pas
+        // prouver le rôle : refus vers la connexion, comme le check premium. Avec un
+        // rôle hors liste : retour à son univers, sans rendu transitoire.
+        if (onlyRoles.length > 0) {
+          if (profileError || !profile) {
+            console.error('Erreur récupération profil (route réservée):', profileError)
+            navigate('/connexion', { replace: true })
+            return
+          }
+          if (!onlyRoles.includes(profile.role)) {
+            navigate(profile.role === 'fiche_lite' ? '/dashboard' : '/assistants', { replace: true })
+            return
+          }
+          setIsAllowed(true)
           return
         }
 
@@ -212,7 +235,7 @@ export default function ProtectedRoute({ children, requirePremium = false, allow
       subscription.unsubscribe()
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [navigate, requirePremium, allowRolesKey, location.pathname])
+  }, [navigate, requirePremium, allowRolesKey, onlyRolesKey, location.pathname])
 
   // Affichage pendant la vérification
   if (loading) {
