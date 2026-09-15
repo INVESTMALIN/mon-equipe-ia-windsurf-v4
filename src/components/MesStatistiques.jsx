@@ -18,7 +18,10 @@ import { CARD } from './compte/cardClass'
 // Réservée au rôle fiche_lite : le gating est fait PAR LA ROUTE (ProtectedRoute
 // `onlyRoles`), avant tout rendu ; cette page n'a donc aucun contenu à cacher.
 //
-// ── Données : quatre requêtes bornées, quel que soit le nombre de fiches ─────────
+// ── Données : quatre sources, une page (1 000 lignes) = une requête ─────────────
+// Chaque source est lue page par page jusqu'à épuisement (lireToutesLesPages) : un
+// compte ordinaire tient en une requête par source, un compte très actif en quelques-
+// unes, et rien n'est tronqué en silence par le plafond max-rows de PostgREST.
 //   1. fiches       getUserFiches         (même projection que le dashboard, sans JSON)
 //   2. annonces     getAnnoncesDisponibles (même contrat que les badges, une ligne par
 //                                          couple fiche × plateforme, jamais le contenu)

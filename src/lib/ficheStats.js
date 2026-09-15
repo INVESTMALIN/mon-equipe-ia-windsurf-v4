@@ -171,6 +171,20 @@ export function statsCredits(mouvements) {
   return stats
 }
 
+// Provenance des dates de PDF. La reprise historique du 09/09/2026
+// (docs/migrations/2026-09-09_backfill_pdf_generated_at.sql) a posé `pdf_generated_at`
+// = `updated_at` sur les fiches verrouillées sans preuve : une date APPROXIMATIVE, bonne
+// pour attester la présence du PDF, pas pour dire quand il a été généré. Toute valeur
+// postérieure à la reprise vient d'une vraie génération (RPC fiche_lite_enregistrer_pdf).
+// La chronologie n'affiche donc un « PDF généré » que pour ces dates-là ; la couverture
+// des livrables, elle, ne regarde que la présence.
+export const PDF_DATE_FIABLE_DEPUIS = '2026-09-09T05:42:00Z'
+
+export const pdfDateFiable = (iso) => {
+  const t = new Date(iso).getTime()
+  return !Number.isNaN(t) && t > Date.parse(PDF_DATE_FIABLE_DEPUIS)
+}
+
 export const TYPES_ACTIVITE = {
   creation: 'Fiche créée',
   pdf: 'PDF généré',
@@ -193,7 +207,7 @@ export function activiteRecente(fiches, annonces, limite = 8) {
   }
   for (const fiche of fiches) {
     pousser(fiche, 'creation', fiche.created_at)
-    pousser(fiche, 'pdf', fiche.pdf_generated_at)
+    if (pdfDateFiable(fiche.pdf_generated_at)) pousser(fiche, 'pdf', fiche.pdf_generated_at)
     pousser(fiche, 'guide', fiche.guide_genere_at || fiche.section_guide_acces?.guide_genere_at)
   }
   for (const a of annonces || []) {

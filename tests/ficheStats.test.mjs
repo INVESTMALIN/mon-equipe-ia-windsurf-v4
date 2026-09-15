@@ -16,6 +16,7 @@ import {
   activiteRecente,
   pourcentage,
   indexerAnnonces,
+  pdfDateFiable,
 } from '../src/lib/ficheStats.js'
 
 const NOW = new Date('2026-09-15T10:00:00Z').getTime()
@@ -174,4 +175,17 @@ test('source annonces absente : couverture et « à compléter » valent null, j
   assert.equal(s.credits, null)
   assert.equal(s.annoncesIndisponibles, true)
   assert.equal(s.inventaire.total, 1) // l'inventaire, lui, reste calculable
+})
+
+test('activité : un PDF daté par la reprise historique (approximatif) n’apparaît pas, un PDF réel postérieur oui', () => {
+  const avantReprise = fiche('a', { created_at: '2026-05-01T00:00:00Z', pdf_generated_at: '2026-09-01T12:00:00Z' }) // copie d'updated_at
+  const apresReprise = fiche('b', { created_at: '2026-05-01T00:00:00Z', pdf_generated_at: '2026-09-14T08:00:00.123456+00:00' })
+  const types = activiteRecente([avantReprise, apresReprise], [], 10).map((e) => `${e.type}:${e.fiche.id}`)
+  assert.equal(types.includes('pdf:a'), false)
+  assert.equal(types.includes('pdf:b'), true)
+  assert.equal(pdfDateFiable('2026-09-09T05:41:33+00:00'), false)
+  assert.equal(pdfDateFiable('n’importe quoi'), false)
+  // La PRÉSENCE du PDF, elle, reste prouvée par la reprise : la couverture le compte.
+  const { couverture } = calculerStats({ fiches: [avantReprise], annonces: [], mouvements: [], now: NOW })
+  assert.equal(couverture.pdf, 1)
 })

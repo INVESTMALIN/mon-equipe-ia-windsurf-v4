@@ -269,10 +269,34 @@ export const setFicheArchived = async (ficheId, archived) => {
   }
 }
 
-  // 📋 Récupérer toutes les fiches d'un utilisateur
+  // Lit une requête PAGE PAR PAGE jusqu'à épuisement. PostgREST plafonne chaque réponse
+  // (max-rows, 1 000 par défaut, cf. api/admin-list-users.js) SANS le signaler : une
+  // lecture « toute l'histoire » non paginée serait silencieusement tronquée, et des
+  // totaux (dashboard, statistiques) faux. `construire` renvoie une requête NEUVE à
+  // chaque page, avec `select(…, { count: 'exact' })` et un tri stable : on s'arrête
+  // quand le nombre de lignes lues atteint le `count` annoncé par le serveur, quel que
+  // soit son plafond réel. Un compte ordinaire tient en une page = une requête.
+  const PAGE_LIGNES = 1000
+  const PAGES_MAX = 100 // garde-fou : 100 000 lignes, jamais une boucle infinie
+  const lireToutesLesPages = async (construire) => {
+    const lignes = []
+    for (let page = 0; page < PAGES_MAX; page++) {
+      const depuis = lignes.length
+      const { data, error, count } = await safeSupabaseQuery(
+        construire().range(depuis, depuis + PAGE_LIGNES - 1)
+      )
+      if (error) return { data: null, error }
+      lignes.push(...(data || []))
+      const total = typeof count === 'number' ? count : lignes.length
+      if (!data || data.length === 0 || lignes.length >= total) return { data: lignes, error: null }
+    }
+    return { data: null, error: new Error(`Lecture interrompue au-delà de ${PAGES_MAX} pages`) }
+  }
+
+  // 📋 Récupérer toutes les fiches d'un utilisateur (paginé, cf. lireToutesLesPages)
   export const getUserFiches = async (userId) => {
     try {
-      const result = await safeSupabaseQuery(
+      const result = await lireToutesLesPages(() =>
         supabase
           .from('fiche_lite')
           // archived_at : NULL = fiche active, non NULL = fiche archivée (filtre « Archivé »).
@@ -289,12 +313,16 @@ export const setFicheArchived = async (ficheId, archived) => {
           // la liste des fiches se viderait.
           .select(
             'id, nom, statut, created_at, updated_at, archived_at, fields_locked, ' +
-            'pdf_generated_at, guide_genere_at:section_guide_acces->>guide_genere_at'
+            'pdf_generated_at, guide_genere_at:section_guide_acces->>guide_genere_at',
+            { count: 'exact' }
           )
           .eq('user_id', userId)
           .order('updated_at', { ascending: false })
+          // Second critère pour une pagination stable : deux fiches modifiées au même
+          // instant ne doivent ni sauter ni se répéter d'une page à l'autre.
+          .order('id', { ascending: true })
       )
-      
+
       if (result.error) {
         throw result.error
       }
@@ -364,12 +392,15 @@ export const setFicheArchived = async (ficheId, archived) => {
   // Échec REMONTÉ (pas d'ensemble vide silencieux) : une statistique ne doit jamais
   // afficher zéro à la place d'une erreur réseau.
   export const getAnnoncesDisponibles = async (userId) => {
-    const result = await safeSupabaseQuery(
+    const result = await lireToutesLesPages(() =>
       filtreAnnonceDisponible(
         supabase
           .from('agent_outputs')
-          .select('fiche_id, plateforme, generated_at, fiche_lite!inner(user_id)')
+          .select('fiche_id, plateforme, generated_at, fiche_lite!inner(user_id)', { count: 'exact' })
           .eq('fiche_lite.user_id', userId)
+          // Tri sur la clé primaire : pagination stable.
+          .order('fiche_id', { ascending: true })
+          .order('plateforme', { ascending: true })
       )
     )
 
@@ -392,12 +423,13 @@ export const setFicheArchived = async (ficheId, archived) => {
   // /mes-statistiques (le détail lisible reste sur /mes-credits). Scope explicite au
   // user (cf. policy admin). Échec remonté, jamais transformé en liste vide.
   export const getMouvementsCredits = async (userId) => {
-    const result = await safeSupabaseQuery(
+    const result = await lireToutesLesPages(() =>
       supabase
         .from('credit_ledger')
-        .select('amount, type, created_at')
+        .select('amount, type, created_at', { count: 'exact' })
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+        .order('id', { ascending: true }) // pagination stable
     )
 
     if (result.error) {
