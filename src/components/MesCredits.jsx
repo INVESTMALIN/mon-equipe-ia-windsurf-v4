@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
-  ArrowLeft, Coins, Loader2, AlertCircle, RefreshCw, CreditCard, FileText,
+  Coins, Loader2, AlertCircle, RefreshCw, CreditCard, FileText,
   CheckCircle, Clock, Info, ArrowUpRight, ArrowDownRight, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useCreditBalance } from '../hooks/useCreditBalance'
+import LitePageHeader from './fiche/LitePageHeader'
 import { isSafeInvoiceUrl } from '../lib/invoiceFormat'
 
 // Packs de crédits — l'`id` est le lookup_key Stripe. Le front n'envoie QUE cet id au
@@ -38,7 +39,6 @@ const eur = (n) =>
   })
 
 export default function MesCredits() {
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Solde : toujours issu du RPC, jamais calculé côté front (hook partagé).
@@ -244,24 +244,8 @@ export default function MesCredits() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mes crédits</h1>
-              <p className="text-gray-600 mt-1">Rechargez votre compte pour créer vos fiches logement</p>
-            </div>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="text-gray-600 hover:text-gray-800 font-medium px-4 py-3 transition-colors whitespace-nowrap"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2 inline" />
-              Tableau de bord
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* En-tête commun des pages secondaires Lite (cf. fiche/LitePageHeader). */}
+      <LitePageHeader titre="Mes crédits" sousTitre="Rechargez votre compte pour créer vos fiches logement" />
 
       {/* pb-28 : réserve la zone du bouton d'aide flottant (parcours Fiche Logement). */}
       <div className="max-w-6xl mx-auto px-6 py-8 pb-28 space-y-8">

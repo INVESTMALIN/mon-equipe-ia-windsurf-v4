@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, User, BarChart3, LogOut } from 'lucide-react'
+import { ChevronDown, User, BarChart3, Coins, LogOut } from 'lucide-react'
 
 // Menu utilisateur du dashboard Fiche Logement Lite : regroupe « Mon compte »,
-// « Mes statistiques » et « Se déconnecter » derrière un seul déclencheur, pour que
-// la barre d'actions ne porte que des actions métier (Nouvelle fiche, Recharger).
+// « Mes statistiques », « Mes crédits » puis, après un séparateur, « Se déconnecter »,
+// derrière un seul déclencheur, pour que la barre d'actions ne porte que des actions
+// métier (Nouvelle fiche, Recharger — qui mène aussi à /mes-credits, en accès direct).
 //
 // Le déclencheur est une pastille à l'initiale du prénom. En desktop (≥ sm) il affiche
 // aussi le prénom et un chevron ; en mobile il reste compact (pastille seule, 44 px de
@@ -91,6 +92,17 @@ export default function UserMenu({ prenom, email, onLogout, className = '' }) {
             <BarChart3 className="h-4 w-4 text-gray-500" />
             Mes statistiques
           </Link>
+          <Link
+            to="/mes-credits"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            <Coins className="h-4 w-4 text-gray-500" />
+            Mes crédits
+          </Link>
+          {/* Séparateur du groupe de déconnexion : filet léger, espacement symétrique. */}
+          <div role="separator" aria-orientation="horizontal" className="my-1 border-t border-gray-100" />
           <button
             type="button"
             role="menuitem"

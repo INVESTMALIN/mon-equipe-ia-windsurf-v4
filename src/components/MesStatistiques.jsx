@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, LogOut, ClipboardList, CheckCircle2, Layers, Coins, RefreshCw } from 'lucide-react'
+import LitePageHeader from './fiche/LitePageHeader'
+import { ClipboardList, CheckCircle2, Layers, Coins, RefreshCw } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { getUserFiches, getAnnoncesDisponibles, getMouvementsCredits } from '../lib/supabaseHelpers'
 import { useCreditBalance } from '../hooks/useCreditBalance'
@@ -59,7 +59,6 @@ function useSource(charger, actif) {
 }
 
 export default function MesStatistiques() {
-  const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [userError, setUserError] = useState(false)
 
@@ -93,48 +92,10 @@ export default function MesStatistiques() {
     })
   }, [fiches.data, annonces.data, mouvements.data])
 
-  // Déconnexion : comme sur le dashboard, on quitte la route AVANT le signOut pour que
-  // ProtectedRoute (démonté) ne renvoie pas vers la connexion générique.
-  const handleLogout = async () => {
-    navigate('/connexion-fiche-logement')
-    await supabase.auth.signOut()
-  }
-
-  const enteteActions = (
-    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-      <Link
-        to="/dashboard"
-        className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dbae61]"
-      >
-        <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
-        Tableau de bord
-      </Link>
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dbae61]"
-      >
-        <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-        Se déconnecter
-      </button>
-    </div>
-  )
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* En-tête : même famille que le dashboard et /mes-credits (blanc, titre, actions
-          d'une seule famille visuelle). Aucune marque Mon Équipe IA. */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900">Mes statistiques</h1>
-              <p className="mt-1 text-gray-600">Une vue claire de vos fiches et de leurs livrables</p>
-            </div>
-            {enteteActions}
-          </div>
-        </div>
-      </header>
+      {/* En-tête commun des pages secondaires Lite (cf. fiche/LitePageHeader). */}
+      <LitePageHeader titre="Mes statistiques" sousTitre="Une vue claire de vos fiches et de leurs livrables" role="fiche_lite" />
 
       {/* pb-28 : réserve la zone du bouton d'aide flottant du parcours. */}
       <main className="max-w-6xl mx-auto px-6 py-8 pb-28">

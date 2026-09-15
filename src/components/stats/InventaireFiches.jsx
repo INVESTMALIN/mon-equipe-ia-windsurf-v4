@@ -12,12 +12,16 @@ const MOIS_LONGS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juil
 // Trois segments, trois textures distinctes ET une légende chiffrée : lisible sans la
 // couleur (les archivées sont hachurées).
 const SEGMENTS = [
-  { cle: 'brouillonsActifs', libelle: 'Brouillons actifs', classe: 'bg-[#f0d98e]' },
-  { cle: 'completeesActives', libelle: 'Complétées actives', classe: 'bg-[#dbae61]' },
-  { cle: 'archivees', libelle: 'Archivées', classe: 'bg-gray-300 bg-[repeating-linear-gradient(135deg,transparent,transparent_4px,rgba(255,255,255,0.6)_4px,rgba(255,255,255,0.6)_8px)]' },
+  { cle: 'brouillonsActifs', libelle: 'Brouillons actifs', singulier: 'brouillon actif', plurielLabel: 'brouillons actifs', classe: 'bg-[#f0d98e]' },
+  { cle: 'completeesActives', libelle: 'Complétées actives', singulier: 'complétée active', plurielLabel: 'complétées actives', classe: 'bg-[#dbae61]' },
+  { cle: 'archivees', libelle: 'Archivées', singulier: 'archivée', plurielLabel: 'archivées', classe: 'bg-gray-300 bg-[repeating-linear-gradient(135deg,transparent,transparent_4px,rgba(255,255,255,0.6)_4px,rgba(255,255,255,0.6)_8px)]' },
 ]
 
 const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
+
+// Libellé accordé d'un segment de la légende : « 1 brouillon actif », « 0 brouillons
+// actifs », « 2 brouillons actifs » (singulier pour 1 exactement, pluriel sinon).
+const libelleAccorde = (segment, n) => (n === 1 ? segment.singulier : segment.plurielLabel)
 
 export default function InventaireFiches({ inventaire, creations }) {
   const { total } = inventaire
@@ -48,7 +52,7 @@ export default function InventaireFiches({ inventaire, creations }) {
           <div className="mt-6">
             <div
               role="img"
-              aria-label={`Répartition de ${pluriel(total, 'fiche')} : ${SEGMENTS.map((s) => `${inventaire[s.cle]} ${s.libelle.toLowerCase()}`).join(', ')}`}
+              aria-label={`Répartition de ${pluriel(total, 'fiche')} : ${SEGMENTS.map((s) => `${inventaire[s.cle]} ${libelleAccorde(s, inventaire[s.cle])}`).join(', ')}`}
               className="flex h-4 w-full overflow-hidden rounded-full bg-gray-100"
             >
               {SEGMENTS.map((s) => {
@@ -69,7 +73,7 @@ export default function InventaireFiches({ inventaire, creations }) {
                 <li key={s.cle} className="inline-flex items-center gap-2">
                   <span aria-hidden="true" className={`h-3 w-3 shrink-0 rounded-sm ${s.classe}`} />
                   <span>
-                    <span className="font-semibold text-gray-900">{inventaire[s.cle]}</span> {s.libelle.toLowerCase()}
+                    <span className="font-semibold text-gray-900">{inventaire[s.cle]}</span> {libelleAccorde(s, inventaire[s.cle])}
                   </span>
                 </li>
               ))}
