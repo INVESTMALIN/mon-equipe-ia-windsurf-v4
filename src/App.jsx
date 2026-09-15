@@ -30,6 +30,7 @@ import FicheLogementLanding from './components/FicheLogementLanding'
 import FicheLogementTarifs from './components/FicheLogementTarifs'
 import InscriptionFicheLite from './components/InscriptionFicheLite'
 import MesCredits from './components/MesCredits'
+import MesStatistiques from './components/MesStatistiques'
 
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -164,6 +165,17 @@ function AppWrapper() {
             element={
               <ProtectedRoute requirePremium={true} allowRoles={['fiche_lite']}>
                 <MesCredits />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Réservée au rôle fiche_lite (onlyRoles) : un user/admin est renvoyé vers
+              /assistants avant tout rendu. Aussi listée dans FICHE_LITE_ALLOWED_PATHS. */}
+          <Route
+            path="/mes-statistiques"
+            element={
+              <ProtectedRoute onlyRoles={['fiche_lite']}>
+                <MesStatistiques />
               </ProtectedRoute>
             }
           />
