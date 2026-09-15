@@ -18,10 +18,10 @@ import {
   Calendar,
   Clock,
   CreditCard,
-  Coins,
-  LogOut
+  Coins
 } from 'lucide-react'
 import { EtatEditionIcone, BadgesLivrables } from './fiche/LivrablesBadges'
+import UserMenu from './fiche/UserMenu'
 import CreateFicheModal from './fiche/CreateFicheModal'
 import DeleteFicheModal from './fiche/DeleteFicheModal'
 
@@ -56,8 +56,8 @@ export default function Dashboard() {
   // déclenche donc quand `enabled` passe à true.
   const { balance: creditsBalance, refresh: refreshCredits } = useCreditBalance(userProfile?.role === 'fiche_lite')
 
-  // Déconnexion du dashboard. Le bouton n'est rendu QUE pour le rôle fiche_lite
-  // (cf. en-tête plus bas) : on le renvoie donc vers la connexion de SON univers.
+  // Déconnexion du dashboard, depuis le menu utilisateur. Ce menu n'est rendu QUE pour
+  // le rôle fiche_lite (cf. en-tête plus bas) : on le renvoie donc vers la connexion de SON univers.
   // Le repli /connexion couvre le cas où le bouton serait un jour rouvert à un
   // autre rôle.
   //
@@ -251,8 +251,14 @@ export default function Dashboard() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+          {/* Trois blocs et deux dispositions, SANS dupliquer le menu utilisateur :
+              - mobile (`flex-wrap`) : rangée 1 = titre + menu compact (ordre 1 puis 2),
+                rangée 2 = la grille d'actions sur toute la largeur (ordre 3) ;
+              - desktop (`sm:flex-nowrap`) : titre, actions, menu, sur une seule rangée.
+              Le titre est `flex-1 min-w-0` : il prend la place restante et coupe
+              proprement si le prénom du menu est long. */}
+          <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap sm:justify-between">
+            <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-bold text-gray-900">Mes fiches</h1>
               {/* Ligne d'état : le nombre de fiches, et pour fiche_lite le solde de
                   crédits juste à côté. Le solde était un encadré doré dans la barre
@@ -276,16 +282,29 @@ export default function Dashboard() {
               </p>
             </div>
 
+            {/* Menu utilisateur, réservé à fiche_lite : le dashboard est sa page d'accueil,
+                il n'a pas d'autre porte vers son compte ni de sortie. Un concierge
+                Premium/Trial garde les siennes dans /mon-compte, d'où l'absence du menu
+                pour lui. Mobile : pastille compacte à droite du titre. Desktop : prénom
+                visible, en fin de rangée, après les actions métier. */}
+            {isFicheLite && (
+              <UserMenu
+                prenom={userProfile?.prenom}
+                email={user?.email}
+                onLogout={handleLogout}
+                className="order-2 shrink-0 sm:order-3"
+              />
+            )}
+
             {/* Barre d'actions. Une seule famille visuelle : même hauteur (h-11), même
                 arrondi, mêmes icônes 16px. La hiérarchie passe par le remplissage —
                 doré plein pour l'action principale, contour pour les secondaires —
-                pas par des tailles différentes.
-                Mobile : grille 2 colonnes, l'action principale sur toute la largeur
-                et les secondaires côte à côte en dessous. Desktop : une seule rangée. */}
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
+                pas par des tailles différentes. Elle ne porte QUE des actions métier.
+                Mobile : boutons empilés sur toute la largeur. Desktop : une seule rangée. */}
+            <div className="order-3 grid w-full grid-cols-1 gap-2 sm:order-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
               <button
                 onClick={() => (isFicheLite ? setShowCreateModal(true) : navigate('/fiche'))}
-                className={`${ACTION_BASE} col-span-2 bg-[#dbae61] text-white hover:bg-[#c49a4f] sm:col-span-1 sm:px-5`}
+                className={`${ACTION_BASE} bg-[#dbae61] text-white hover:bg-[#c49a4f] sm:px-5`}
               >
                 <FileText className="w-4 h-4 shrink-0" />
                 Nouvelle fiche
@@ -309,28 +328,10 @@ export default function Dashboard() {
               ) : (
                 <button
                   onClick={() => navigate('/assistants')}
-                  className={`${ACTION_SECONDARY} col-span-2 sm:col-span-1`}
+                  className={ACTION_SECONDARY}
                 >
                   <ArrowLeft className="w-4 h-4 shrink-0" />
                   Retour
-                </button>
-              )}
-
-              {/* Déconnexion réservée à fiche_lite : le dashboard est sa page d'accueil,
-                  il n'a pas d'autre porte de sortie. Un concierge garde la sienne dans
-                  /mon-compte, d'où l'absence du bouton ici pour Premium et Trial.
-                  Libellé visible en mobile (la grille laisse la place), icône seule en
-                  desktop pour ne pas alourdir la rangée — `aria-label` porte le nom
-                  accessible dans les deux cas. */}
-              {isFicheLite && (
-                <button
-                  onClick={handleLogout}
-                  title="Se déconnecter"
-                  aria-label="Se déconnecter"
-                  className={`${ACTION_SECONDARY} sm:w-11 sm:px-0`}
-                >
-                  <LogOut className="w-4 h-4 shrink-0" />
-                  <span className="sm:hidden">Déconnexion</span>
                 </button>
               )}
             </div>

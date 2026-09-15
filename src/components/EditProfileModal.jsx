@@ -1,13 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, User, Mail, CreditCard, Lock } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
-export default function EditProfileModal({ isOpen, onClose, user, onPasswordClick, onPortalClick }) {
+// Fenêtre « Modifier mon profil », commune aux deux mondes.
+//
+// - `profile` ({ prenom, nom }) préremplit les champs à chaque ouverture. Sans cela, la
+//   fenêtre s'ouvrait vide et un clic sur « Enregistrer » sans rien saisir effaçait le
+//   prénom et le nom en base.
+// - `onSaved` est appelé après un enregistrement réussi, pour que la page recharge le
+//   profil au lieu d'afficher les anciennes valeurs jusqu'au prochain rechargement.
+// - `onPortalClick` est OPTIONNEL : le bouton « Gérer mon abonnement » (portail Stripe de
+//   Mon Équipe IA) n'est rendu que s'il est fourni. Un rôle fiche_lite ne le fournit
+//   jamais — il n'a pas d'abonnement et ne doit voir aucune trace de ce parcours.
+export default function EditProfileModal({ isOpen, onClose, user, profile, onPasswordClick, onPortalClick, onSaved }) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Préremplissage à l'ouverture (et non au montage : la fenêtre reste montée fermée, et
+  // le profil arrive de façon asynchrone après le premier rendu de la page).
+  useEffect(() => {
+    if (isOpen) {
+      setFirstName(profile?.prenom || '')
+      setLastName(profile?.nom || '')
+    }
+  }, [isOpen, profile])
 
   if (!isOpen) return null
 
@@ -22,14 +41,15 @@ export default function EditProfileModal({ isOpen, onClose, user, onPasswordClic
       const { error: updateError } = await supabase
         .from('users')
         .update({
-          prenom: firstName,
-          nom: lastName
+          prenom: firstName.trim(),
+          nom: lastName.trim()
         })
         .eq('id', user.id)
 
       if (updateError) throw updateError
 
       setSuccess('Profil mis à jour avec succès')
+      onSaved?.()
       setTimeout(() => {
         onClose()
       }, 1500)
@@ -126,14 +146,16 @@ export default function EditProfileModal({ isOpen, onClose, user, onPasswordClic
               Modifier le mot de passe
             </button>
 
-            <button
-              type="button"
-              onClick={onPortalClick}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-[#dbae61] text-[#dbae61] rounded-lg font-medium hover:bg-[#dbae61] hover:text-white transition-colors"
-            >
-              <CreditCard className="w-4 h-4" />
-              Gérer mon abonnement
-            </button>
+            {onPortalClick && (
+              <button
+                type="button"
+                onClick={onPortalClick}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-[#dbae61] text-[#dbae61] rounded-lg font-medium hover:bg-[#dbae61] hover:text-white transition-colors"
+              >
+                <CreditCard className="w-4 h-4" />
+                Gérer mon abonnement
+              </button>
+            )}
           </div>
 
           {/* Messages */}

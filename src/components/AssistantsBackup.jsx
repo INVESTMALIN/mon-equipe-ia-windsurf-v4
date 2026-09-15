@@ -407,7 +407,7 @@ export default function MonCompteV2() {
             <div>
               <h4 className="font-bold text-[#dbae61] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="mailto:support@invest-malin.fr" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="mailto:contact@invest-malin.com" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                 <li><Link to="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
                 <li><Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link></li>
