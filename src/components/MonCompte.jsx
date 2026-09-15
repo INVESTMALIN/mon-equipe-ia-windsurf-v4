@@ -183,7 +183,7 @@ export default function MonCompte() {
         // sous-titre à gauche, « Tableau de bord » et déconnexion à droite. Il porte le
         // titre de la page ; le bloc titre du contenu ci-dessous ne s'affiche donc que
         // pour Mon Équipe IA. Aucune marque Mon Équipe IA ici.
-        <LitePageHeader titre="Mon compte" sousTitre="Gérez vos informations, votre mot de passe et vos crédits" />
+        <LitePageHeader titre="Mon compte" sousTitre="Gérez vos informations, votre mot de passe et vos crédits" role={role} />
       ) : (
         // En-tête Mon Équipe IA, inchangé.
         <header className="bg-black text-white px-6 md:px-20 py-4">

@@ -95,7 +95,7 @@ export default function MesStatistiques() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* En-tête commun des pages secondaires Lite (cf. fiche/LitePageHeader). */}
-      <LitePageHeader titre="Mes statistiques" sousTitre="Une vue claire de vos fiches et de leurs livrables" />
+      <LitePageHeader titre="Mes statistiques" sousTitre="Une vue claire de vos fiches et de leurs livrables" role="fiche_lite" />
 
       {/* pb-28 : réserve la zone du bouton d'aide flottant du parcours. */}
       <main className="max-w-6xl mx-auto px-6 py-8 pb-28">

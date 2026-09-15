@@ -15,15 +15,34 @@ import { supabase } from '../../supabaseClient'
 // ProtectedRoute écoute SIGNED_OUT et renverrait sinon vers /connexion (la connexion
 // générique Mon Équipe IA) avant que /connexion-fiche-logement ne s'affiche. En
 // naviguant d'abord, ProtectedRoute est démonté quand l'événement arrive.
+//
+// La destination dépend du RÔLE, comme sur le dashboard : /mes-credits reste ouverte à
+// un abonné Premium/Trial (route `allowRoles`, pas `onlyRoles`), qui doit retomber sur
+// /connexion et non sur la connexion Fiche Logement. Le rôle est passé par l'appelant
+// quand il le connaît déjà (`role`) ; sinon il est lu au clic, jamais au montage — pas
+// de requête supplémentaire à l'affichage. Rôle illisible : repli sur la connexion
+// Lite, l'univers de cet en-tête.
 
 const BOUTON =
   'inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#dbae61]'
 
-export default function LitePageHeader({ titre, sousTitre }) {
+async function lireRole() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data } = await supabase.from('users').select('role').eq('id', user.id).single()
+    return data?.role ?? null
+  } catch {
+    return null
+  }
+}
+
+export default function LitePageHeader({ titre, sousTitre, role }) {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    navigate('/connexion-fiche-logement')
+    const r = role || (await lireRole())
+    navigate(r && r !== 'fiche_lite' ? '/connexion' : '/connexion-fiche-logement')
     await supabase.auth.signOut()
   }
 
