@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { HelpCircle, User, ArrowLeft, ArrowRight, Users, Lock, LogOut, Mail } from 'lucide-react'
+import { HelpCircle, User, ArrowLeft, ArrowRight, Users, Lock, Mail } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ChangePasswordModal from './ChangePasswordModal'
 import EditProfileModal from './EditProfileModal'
@@ -9,6 +9,7 @@ import AbonnementCard from './compte/AbonnementCard'
 import CreditsCard from './compte/CreditsCard'
 import DonneesCard from './compte/DonneesCard'
 import ClotureCompteCard from './compte/ClotureCompteCard'
+import LitePageHeader from './fiche/LitePageHeader'
 import { CARD } from './compte/cardClass'
 import { CONTACT_EMAIL } from '../lib/compteContact'
 
@@ -140,15 +141,9 @@ export default function MonCompte() {
     }
   }
 
-  // Déconnexion vers la porte d'entrée de SON univers. Pour fiche_lite on navigue AVANT
-  // le signOut, comme sur le dashboard : ProtectedRoute écoute SIGNED_OUT et renverrait
-  // sinon vers /connexion (générique) avant que /connexion-fiche-logement ne s'affiche.
+  // Déconnexion Mon Équipe IA (inchangée). La déconnexion fiche_lite vit dans
+  // LitePageHeader, qui navigue vers /connexion-fiche-logement AVANT le signOut.
   const handleLogout = async () => {
-    if (isFicheLite) {
-      navigate('/connexion-fiche-logement')
-      await supabase.auth.signOut()
-      return
-    }
     await supabase.auth.signOut()
     navigate('/connexion')
   }
@@ -184,28 +179,11 @@ export default function MonCompte() {
   return (
     <div className="min-h-screen bg-gray-50">
       {isFicheLite ? (
-        // En-tête de l'univers Fiche Logement Lite : même famille que /mes-credits et le
-        // dashboard (blanc, titre, retour au tableau de bord). Aucune marque Mon Équipe IA.
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-6 md:px-20 py-6">
-            <div className="flex items-center justify-between gap-4">
-              <Link
-                to="/dashboard"
-                className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-gray-600 hover:text-gray-900 font-medium transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 shrink-0" />
-                <span>Tableau de bord</span>
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              >
-                <LogOut className="w-4 h-4 shrink-0" />
-                Se déconnecter
-              </button>
-            </div>
-          </div>
-        </header>
+        // En-tête commun des pages secondaires Lite (cf. fiche/LitePageHeader) : titre et
+        // sous-titre à gauche, « Tableau de bord » et déconnexion à droite. Il porte le
+        // titre de la page ; le bloc titre du contenu ci-dessous ne s'affiche donc que
+        // pour Mon Équipe IA. Aucune marque Mon Équipe IA ici.
+        <LitePageHeader titre="Mon compte" sousTitre="Gérez vos informations, votre mot de passe et vos crédits" />
       ) : (
         // En-tête Mon Équipe IA, inchangé.
         <header className="bg-black text-white px-6 md:px-20 py-4">
@@ -241,14 +219,12 @@ export default function MonCompte() {
 
       {/* Contenu principal */}
       <div className="max-w-4xl mx-auto px-6 md:px-20 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">Mon compte</h1>
-          <p className="text-gray-600">
-            {isFicheLite
-              ? 'Gérez vos informations, votre mot de passe et vos crédits'
-              : 'Gérez vos informations et votre abonnement'}
-          </p>
-        </div>
+        {!isFicheLite && (
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-black mb-2">Mon compte</h1>
+            <p className="text-gray-600">Gérez vos informations et votre abonnement</p>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-8">
 

@@ -40,11 +40,21 @@ export default function CouvertureLivrables({ couverture, erreurAnnonces, onRetr
               const t = couverture.fichesActives
               const pct = pourcentage(n, t)
               return (
+                // Même squelette pour les trois familles : ligne de titre puis barre. Le détail
+                // Airbnb / Booking vit SUR la ligne de titre (style secondaire, repli propre
+                // en mobile) et non sous la barre, pour que le rythme vertical reste identique.
                 <li key={cle}>
                   <div className="flex items-start justify-between gap-4">
-                    <p className="flex items-center gap-2 font-semibold text-gray-900">
-                      <Icone className="h-4 w-4 shrink-0 text-[#dbae61]" aria-hidden="true" />
-                      {phrase(n, t)}
+                    <p className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 font-semibold text-gray-900">
+                      <span className="inline-flex items-start gap-2">
+                        <Icone className="mt-1 h-4 w-4 shrink-0 text-[#dbae61]" aria-hidden="true" />
+                        {phrase(n, t)}
+                      </span>
+                      {cle === 'annonce' && (
+                        <span className="text-sm font-normal text-gray-500">
+                          Airbnb : {couverture.airbnb} · Booking : {couverture.booking}
+                        </span>
+                      )}
                     </p>
                     <span className="shrink-0 text-sm font-semibold text-gray-500">{pct ?? 0} %</span>
                   </div>
@@ -58,11 +68,6 @@ export default function CouvertureLivrables({ couverture, erreurAnnonces, onRetr
                   >
                     <div className="h-full rounded-full bg-[#dbae61]" style={{ width: `${pct ?? 0}%` }} />
                   </div>
-                  {cle === 'annonce' && (
-                    <p className="mt-1.5 text-sm text-gray-500">
-                      Airbnb : {couverture.airbnb} · Booking : {couverture.booking}
-                    </p>
-                  )}
                 </li>
               )
             })}
