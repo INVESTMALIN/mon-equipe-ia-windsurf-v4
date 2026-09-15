@@ -61,7 +61,7 @@ ${bugForm.comments || 'Aucun'}
 
 Merci !`)
 
-    const mailtoLink = `mailto:julien@invest-malin.com?subject=${subject}&body=${body}`
+    const mailtoLink = `mailto:contact@invest-malin.com?subject=${subject}&body=${body}`
     
     const link = document.createElement('a')
     link.href = mailtoLink

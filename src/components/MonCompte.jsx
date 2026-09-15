@@ -10,7 +10,7 @@ import CreditsCard from './compte/CreditsCard'
 import DonneesCard from './compte/DonneesCard'
 import ClotureCompteCard from './compte/ClotureCompteCard'
 import { CARD } from './compte/cardClass'
-import { contactEmailForRole } from '../lib/compteContact'
+import { CONTACT_EMAIL } from '../lib/compteContact'
 
 // Page compte, route unique /mon-compte pour deux mondes étanches.
 //
@@ -19,7 +19,7 @@ import { contactEmailForRole } from '../lib/compteContact'
 //
 //   - fiche_lite (concierge Fiche Logement Lite, crédits) : en-tête blanc et retour au
 //     dashboard, carte Crédits, texte de confidentialité propre à ses fiches, support et
-//     clôture vers l'adresse Invest Malin, pied de page aux liens légaux de son univers.
+//     clôture par email, pied de page aux liens légaux de son univers.
 //     Aucune trace de compte gratuit, d'essai, d'abonnement, de portail Stripe,
 //     d'assistants ni de conversations — ni en contenu, ni en lien, ni dans une modale.
 //
@@ -80,7 +80,7 @@ export default function MonCompte() {
   const role = userProfile?.role
   const roleKnown = !!role
   const isFicheLite = role === 'fiche_lite'
-  const contactEmail = contactEmailForRole(role)
+  const contactEmail = CONTACT_EMAIL
 
   const handleManageSubscription = async () => {
     try {

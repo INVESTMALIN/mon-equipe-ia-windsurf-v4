@@ -107,7 +107,7 @@ export default function EmailConfirmation() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
             Besoin d'aide pour commencer ?{' '}
-            <a href="mailto:contact@invest-malin.fr" className="text-[#dbae61] hover:underline">
+            <a href="mailto:contact@invest-malin.com" className="text-[#dbae61] hover:underline">
               Contactez notre support
             </a>
           </p>

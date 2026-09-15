@@ -1,26 +1,28 @@
-// Canal de contact de la page compte, par monde.
+// Canal de contact de la page compte.
 //
-// Les deux univers partagent l'authentification Supabase mais pas leur adresse de
-// contact : un concierge Fiche Logement Lite écrit à Invest Malin (adresse déjà
-// utilisée par l'aide flottante, les CGV et les mentions légales), un utilisateur
-// Mon Équipe IA écrit à l'adresse de la FAQ Mon Équipe IA. Un rôle ne doit jamais
-// voir l'adresse de l'autre monde.
+// UNE seule adresse pour tous les rôles et tous les produits : `invest-malin.com` est
+// le seul domaine du groupe qui reçoive réellement du courrier (enregistrement MX
+// Google Workspace). `mon-equipe-ia.com` et `invest-malin.fr` n'en ont aucun : les
+// adresses `contact@mon-equipe-ia.com`, `dpo@mon-equipe-ia.com`, `support@invest-malin.fr`
+// qui traînaient dans l'application étaient des impasses. Arbitrage de Julien (15/09/2026,
+// PR #66) : `contact@invest-malin.com` partout. Ne pas réintroduire une adresse par monde
+// sans avoir vérifié qu'elle reçoit du courrier.
 //
 // La demande de clôture est un simple `mailto:` avec objet et corps préremplis.
 // Elle n'exécute AUCUNE suppression, désactivation ni mutation de données : c'est
-// une demande adressée à un humain, qui la traite à la main.
+// une demande adressée à un humain, qui la traite à la main. Le produit est nommé
+// dans l'objet pour que le support sache d'emblée de quel monde vient la demande.
 
-export const CONTACT_EMAIL_FICHE_LITE = 'contact@invest-malin.com'
-export const CONTACT_EMAIL_MON_EQUIPE_IA = 'contact@mon-equipe-ia.com'
+export const CONTACT_EMAIL = 'contact@invest-malin.com'
 
-export function contactEmailForRole(role) {
-  return role === 'fiche_lite' ? CONTACT_EMAIL_FICHE_LITE : CONTACT_EMAIL_MON_EQUIPE_IA
+export function produitForRole(role) {
+  return role === 'fiche_lite' ? 'Fiche Logement Lite' : 'Mon Équipe IA'
 }
 
 // Lien mailto de la demande de clôture. `email` est l'email du compte connecté : c'est
 // la seule information nécessaire pour retrouver le compte côté support.
 export function buildClotureMailto({ role, email }) {
-  const produit = role === 'fiche_lite' ? 'Fiche Logement Lite' : 'Mon Équipe IA'
+  const produit = produitForRole(role)
   const subject = `Demande de clôture de compte - ${produit}`
   const body = [
     'Bonjour,',
@@ -32,5 +34,5 @@ export function buildClotureMailto({ role, email }) {
     '',
     'Merci de me confirmer la prise en compte de ma demande.',
   ].join('\n')
-  return `mailto:${contactEmailForRole(role)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }

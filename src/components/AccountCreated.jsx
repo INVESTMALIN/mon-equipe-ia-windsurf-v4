@@ -95,8 +95,8 @@ export default function AccountCreated() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
             Besoin d'aide ? Contactez-nous à{' '}
-            <a href="mailto:support@invest-malin.fr" className="text-[#dbae61] hover:underline">
-              support@invest-malin.fr
+            <a href="mailto:contact@invest-malin.com" className="text-[#dbae61] hover:underline">
+              contact@invest-malin.com
             </a>
           </p>
         </div>

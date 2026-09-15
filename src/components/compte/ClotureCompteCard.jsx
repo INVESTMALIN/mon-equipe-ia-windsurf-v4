@@ -4,9 +4,10 @@ import { CARD } from './cardClass'
 
 // Demande de clôture de compte, visible dans les deux mondes.
 //
-// Un simple lien `mailto:` vers l'adresse de contact du monde de l'utilisateur, objet et
-// corps préremplis (cf. lib/compteContact). Aucun appel réseau, aucune suppression,
-// aucune désactivation, aucune écriture : la demande est lue et traitée par un humain.
+// Un simple lien `mailto:` vers l'adresse de contact (unique, cf. lib/compteContact),
+// objet et corps préremplis avec le produit et l'email du compte. Aucun appel réseau,
+// aucune suppression, aucune désactivation, aucune écriture : la demande est lue et
+// traitée par un humain.
 // La suppression automatique de compte fera l'objet d'un chantier dédié.
 export default function ClotureCompteCard({ role, email }) {
   return (

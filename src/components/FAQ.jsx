@@ -52,7 +52,7 @@ export default function FAQ() {
         {
           id: "rgpd-4",
           question: "Quels sont mes droits RGPD ?",
-          answer: "Vous disposez d’un droit d’accès, de rectification, de portabilité et de suppression de vos données. Pour toute demande, vous pouvez contacter notre délégué à la protection des données (DPO) à l’adresse : contact@mon-equipe-ia.com."
+          answer: "Vous disposez d’un droit d’accès, de rectification, de portabilité et de suppression de vos données. Pour toute demande, vous pouvez contacter notre délégué à la protection des données (DPO) à l’adresse : contact@invest-malin.com."
         }
       ]
     },
@@ -78,7 +78,7 @@ export default function FAQ() {
         {
           id: "legal-4",
           question: "Comment contacter le DPO ?",
-          answer: "Pour toute question relative à vos données personnelles, vous pouvez écrire à notre DPO à l’adresse : dpo@mon-equipe-ia.com."
+          answer: "Pour toute question relative à vos données personnelles, vous pouvez écrire à notre DPO à l’adresse : contact@invest-malin.com."
         }
       ]
     },
