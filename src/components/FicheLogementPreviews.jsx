@@ -1,4 +1,4 @@
-import { Sparkles, Check, Home, Bath } from 'lucide-react'
+import { Sparkles, Check, Home, Bath, MapPin } from 'lucide-react'
 import { FL } from '../lib/ficheLogementTheme'
 
 // Aperçus produit de la landing /fiche-logement.
@@ -303,6 +303,24 @@ export function AnnoncePreview() {
       <span className="mt-1.5 block font-serif text-lg leading-snug text-white sm:text-xl">
         Escapade au lac · Spa privé &amp; coucher de soleil
       </span>
+
+      {/* Lieux d'intérêt tirés de l'adresse, avec des temps d'accès réels : c'est ce
+          que l'assistant met dans l'annonce, et ce que l'aperçu doit laisser voir. */}
+      <span className="mt-4 block text-[9px] font-bold uppercase tracking-[0.16em]" style={{ color: FL.goldDeep }}>
+        À proximité · temps réels
+      </span>
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+        {[
+          ['Plage', '6 min à pied'],
+          ['Tram', '4 min'],
+          ['Boulangerie', '2 min'],
+        ].map(([lieu, temps]) => (
+          <span key={lieu} className="flex items-center gap-1 text-[11px] text-white/70 sm:text-xs">
+            <MapPin className="h-3 w-3 shrink-0" style={{ color: FL.gold }} />
+            {lieu} <span className="text-white/45">· {temps}</span>
+          </span>
+        ))}
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {[

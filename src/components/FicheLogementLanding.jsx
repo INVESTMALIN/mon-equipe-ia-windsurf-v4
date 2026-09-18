@@ -1,4 +1,4 @@
-import { ClipboardList, Sparkles, FileCheck2 } from 'lucide-react'
+import { ClipboardList, Sparkles, FileCheck2, SoapDispenserDroplet, Route, ChartColumn } from 'lucide-react'
 import { FL, DISPLAY_SANS, DISPLAY_SERIF, LANDING_SHELL } from '../lib/ficheLogementTheme'
 import {
   Eyebrow,
@@ -40,6 +40,7 @@ const STRIP_ITEMS = [
   'Ne rien oublier',
   'Titres et descriptions en un clic',
   'Synthèse prête pour ton équipe',
+  'Fiche Ménage pour tes prestataires',
 ]
 
 const FICHE_POINTS = [
@@ -47,12 +48,14 @@ const FICHE_POINTS = [
   'Équipements, sécurité et réglementaire intégrés',
   'Rappels photos au bon moment',
   'PDF propre à partager à l’équipe ou au propriétaire',
+  'Fiche Ménage dédiée à tes prestataires, sans les données confidentielles',
 ]
 
 const ASSISTANT_POINTS = [
   'Positionnement et angles de vente du logement',
   'Titres et descriptions adaptés à chaque plateforme',
   'Atouts hiérarchisés selon leur pouvoir de réservation',
+  'Lieux d’intérêt réels autour du logement, avec leurs temps d’accès',
   'Recommandations concrètes avant publication',
 ]
 
@@ -80,7 +83,47 @@ const STEPS = [
     n: '03',
     icon: FileCheck2,
     title: 'Finalise',
-    text: 'Relis, affine et récupère des versions prêtes pour Airbnb et Booking.',
+    text: 'Relis, affine et récupère tes annonces prêtes pour Airbnb et Booking, le PDF de la fiche et la Fiche Ménage.',
+  },
+]
+
+// Ce que la fiche produit au-delà de l'annonce. Trois livrables, trois destinataires
+// (prestataire, voyageur, patron de conciergerie) : la section suit la logique de la
+// page, du terrain à l'exploitation. Les libellés décrivent ce que l'outil fait
+// réellement — rien de promis qui ne soit livré.
+const LIVRABLES = [
+  {
+    icon: SoapDispenserDroplet,
+    eyebrow: 'Pour tes prestataires',
+    title: 'Fiche Ménage',
+    text: 'Un PDF dédié au ménage, généré depuis la fiche : accès, consignes, linge, consommables et points de vigilance, sans les informations confidentielles du propriétaire.',
+    points: [
+      'Le code ménage, jamais ceux du propriétaire',
+      'Consommables à fournir en checklist',
+      'Pièce par pièce, ce qu’il y a à contrôler',
+    ],
+  },
+  {
+    icon: Route,
+    eyebrow: 'Pour tes voyageurs',
+    title: 'Guide d’accès',
+    text: 'Filme le chemin jusqu’à la porte : l’agent transcrit ta vidéo et rédige le guide d’accès pas à pas, prêt à envoyer avant l’arrivée.',
+    points: [
+      'Rédigé depuis ta vidéo, sans rien à taper',
+      'Régénérable dès que l’accès change',
+      'Repris dans le PDF de la fiche',
+    ],
+  },
+  {
+    icon: ChartColumn,
+    eyebrow: 'Pour toi',
+    title: 'Mes statistiques',
+    text: 'Un tableau de bord de tes fiches : lesquelles ont leur PDF, leur annonce et leur guide, lesquelles restent à compléter, ton solde de crédits et ton activité récente.',
+    points: [
+      'Couverture des livrables, fiche par fiche',
+      'Fiches à compléter en un coup d’œil',
+      'Crédits et activité récente',
+    ],
   },
 ]
 
@@ -379,6 +422,55 @@ export default function FicheLogementLanding() {
                   {step.text}
                 </p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────── Les livrables ─────────────────────── */}
+      <section style={{ backgroundColor: FL.ink }}>
+        <div className={`${LANDING_SHELL} py-16 sm:py-24`}>
+          <Eyebrow tone="light">Au-delà de l’annonce</Eyebrow>
+          <h2
+            className={`mt-6 max-w-4xl text-white ${DISPLAY_SERIF}`}
+            style={{ fontSize: SECTION_TITLE_SIZE }}
+          >
+            Une fiche.
+            <br className="hidden sm:block" /> Plusieurs livrables.
+          </h2>
+          <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/60 sm:text-lg lg:text-xl">
+            Tout ce que tu renseignes sert plusieurs fois. La même fiche produit ce dont ton
+            prestataire, tes voyageurs et toi avez besoin, sans rien ressaisir.
+          </p>
+
+          {/* Trois cartes de même hauteur ; la liste est collée en bas de chaque carte
+              (`mt-auto`) pour que les puces s'alignent d'une carte à l'autre, quelle que
+              soit la longueur du paragraphe. Même traitement que les cartes des deux
+              missions, en version sombre. */}
+          <div className="mt-12 grid gap-6 lg:grid-cols-3 lg:gap-8">
+            {LIVRABLES.map((livrable) => (
+              <article
+                key={livrable.title}
+                className="flex flex-col rounded-3xl border p-6 sm:p-8"
+                style={{ borderColor: FL.lineDark, backgroundColor: 'rgba(255,255,255,0.03)' }}
+              >
+                <span
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: FL.gold }}
+                >
+                  <livrable.icon className="h-5 w-5" style={{ color: FL.ink }} />
+                </span>
+                <span className="mt-6 text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: FL.gold }}>
+                  {livrable.eyebrow}
+                </span>
+                <h3 className={`mt-2 text-2xl text-white ${DISPLAY_SERIF}`}>{livrable.title}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-[15px]">{livrable.text}</p>
+                <ul className="mt-auto space-y-3 pt-7">
+                  {livrable.points.map((point) => (
+                    <PlusItem key={point}>{point}</PlusItem>
+                  ))}
+                </ul>
+              </article>
             ))}
           </div>
         </div>
