@@ -5,6 +5,7 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Bed, Home } from 'lucide-react'
 import { useState, useCallback } from 'react'
+import { chambresDeclarees } from '../../../lib/piecesDeclarees'
 
 // 🔥 COMPOSANT ACCORDÉON CHAMBRE (externe pour clarté)
 const AccordeonChambre = ({ 
@@ -257,18 +258,16 @@ export default function FicheChambre() {
     updateField
   } = useForm()
 
-  // Récupérer le nombre de chambres depuis la section Visite
+  // Nombre de chambres actives et cas studio : règle partagée avec la Fiche Ménage
+  // (lib/piecesDeclarees), pour que l'écran et le document montrent les mêmes chambres.
   const formDataVisite = getField('section_visite')
-  const nombreChambres = parseInt(formDataVisite.nombre_chambres) || 0
-  
-  // Récupérer la typologie depuis la section Logement
   const formDataLogement = getField('section_logement')
-  const typologie = formDataLogement.typologie
+  const declarees = chambresDeclarees(formDataVisite, formDataLogement)
 
-  // LOGIQUE STUDIO : Si Studio, forcer l'affichage d'1 "espace nuit"
-  const isStudio = typologie === "Studio"
-  const chambresAffichees = isStudio && nombreChambres === 0 ? 1 : nombreChambres
-  const labelChambre = isStudio && nombreChambres === 0 ? "Espace nuit" : "Chambre"
+  // LOGIQUE STUDIO : Si Studio sans chambre active, forcer l'affichage d'1 "espace nuit"
+  // (declarees.espaceNuit).
+  const chambresAffichees = declarees.nombre
+  const labelChambre = declarees.espaceNuit ? "Espace nuit" : "Chambre"
 
   // Récupérer les données chambres
   const formDataChambres = getField('section_chambres')
@@ -349,7 +348,7 @@ export default function FicheChambre() {
         <div className="flex-1 p-6 bg-gray-100">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">
-              {isStudio && nombreChambres === 0 ? "Espace nuit" : "Chambres"}
+              {declarees.espaceNuit ? "Espace nuit" : "Chambres"}
             </h1>
             
             <div className="bg-white rounded-xl shadow-sm p-8">
@@ -360,13 +359,13 @@ export default function FicheChambre() {
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">
-                      {isStudio && nombreChambres === 0 
+                      {declarees.espaceNuit 
                         ? "Configuration de l'espace nuit" 
                         : "Configuration des chambres"
                       }
                     </h2>
                     <p className="text-gray-600">
-                      {isStudio && nombreChambres === 0
+                      {declarees.espaceNuit
                         ? "Détails des équipements et aménagements de l'espace nuit du studio"
                         : "Détails des équipements et aménagements de chaque chambre"
                       }
@@ -391,7 +390,7 @@ export default function FicheChambre() {
               ) : (
                 <div>
                   <div className="mb-6">
-                    {isStudio && nombreChambres === 0 ? (
+                    {declarees.espaceNuit ? (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                         <p className="text-blue-800">
                           <strong>💡 Studio :</strong> Configuration de l'espace nuit du studio.
@@ -408,7 +407,7 @@ export default function FicheChambre() {
                   {Array.from({ length: chambresAffichees }, (_, index) => {
                     const chambreKey = `chambre_${index + 1}`
                     const numeroAffiche = index + 1
-                    const labelAccordeon = isStudio && nombreChambres === 0 ? "Espace nuit" : `${labelChambre} ${numeroAffiche}`
+                    const labelAccordeon = declarees.espaceNuit ? "Espace nuit" : `${labelChambre} ${numeroAffiche}`
                     
                     return (
                       <AccordeonChambre

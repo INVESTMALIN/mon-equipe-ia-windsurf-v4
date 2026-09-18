@@ -10,23 +10,27 @@
 //    OK et 100% offline). Le rendu « Word » d'avant venait du code, pas de la lib.
 //  - Icônes : SVG lucide générés via renderToStaticMarkup (net, vectoriel, offline,
 //    aucune police emoji à embarquer). 1 icône par section.
-//  - Palette : ardoise (#1f2937) + gold raffiné (#c8974b) + neutres gris.
+//  - Palette : ardoise (#1f2937) + gold raffiné (#c8974b) + neutres gris. Palette,
+//    styles, layouts et briques de page vivent dans pdfTheme.js, PARTAGÉ avec la
+//    Fiche Ménage (PdfMenageBuilder) : les deux documents ont le même système visuel.
 //  - La logique de humanisation (labels sections/champs, formatage valeurs/enums/
 //    checklists) est RÉUTILISÉE telle quelle (bas de fichier).
 
-import { formatForPdf } from './PdfFormatter'
-import { livrerPdf } from './pdfLivraison'
-import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from './formDefaults'
-import { getCountryLabel } from './countries'
-import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps'
+import { formatForPdf } from './PdfFormatter.js'
+import { livrerPdf } from './pdfLivraison.js'
+import { initialFormData, NOUVELLE_FICHE_PRESELECTIONS } from './formDefaults.js'
+import { getCountryLabel } from './countries.js'
+import { CHAMPS_ANNONCE, PLATEFORME_LABEL, valeurChamp } from './annonceChamps.js'
 import pdfMake from 'pdfmake/build/pdfmake.js'
 import pdfFonts from 'pdfmake/build/vfs_fonts.js'
-import { createElement } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
+import {
+  PALETTE, CONTENT_WIDTH, PAGE_MARGINS, STYLES, DEFAULT_STYLE, BANNER_LAYOUT, TWO_COL_LAYOUT,
+  META_LAYOUT, iconSvg, pageBreakBeforeRule,
+} from './pdfTheme.js'
 import {
   User, Home, Star, Key, Building2, Globe, Scale, ClipboardCheck, Shirt, Plug,
   ShoppingBasket, Sparkles, DoorOpen, BedDouble, Bath, Refrigerator, Utensils, Sofa, Trees,
-  Building, Laptop, Baby, MapPin, ShieldCheck, FileText, Wand2,
+  Building, Laptop, Baby, MapPin, ShieldCheck, Wand2,
 } from 'lucide-react'
 
 // Initialiser les polices pour pdfmake (version robuste)
@@ -35,23 +39,6 @@ if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
 } else {
   pdfMake.vfs = pdfFonts
 }
-
-// ── Palette ──────────────────────────────────────────────────────────────────
-const PALETTE = {
-  slate: '#1f2937',   // bandeau header, texte fort
-  gold: '#c8974b',    // accent : titres de section, séparateur, icônes
-  ink: '#111827',
-  text: '#374151',    // valeurs
-  label: '#6b7280',   // libellés
-  border: '#e5e7eb',
-  rowAlt: '#f9fafb',   // zébrage tableaux + fond meta
-  white: '#ffffff',
-  amber: '#b45309',    // éléments abîmés
-  footer: '#9ca3af',
-}
-
-// Largeur utile A4 (595.28) - marges L/R (40 + 40)
-const CONTENT_WIDTH = 515.28
 
 // 1 icône lucide par section. Fallback FileText si non mappée.
 const SECTION_ICON = {
@@ -79,63 +66,6 @@ const SECTION_ICON = {
   section_bebe: Baby,
   section_guide_acces: MapPin,
   section_securite: ShieldCheck,
-}
-
-// SVG lucide → string, couleur bakée (currentColor ne résout pas dans le PDF).
-const iconSvg = (Comp, color) =>
-  renderToStaticMarkup(createElement(Comp || FileText, { color, size: 24, strokeWidth: 2 }))
-
-// ── Styles & layouts pdfmake ─────────────────────────────────────────────────
-const STYLES = {
-  bannerTitle: { fontSize: 22, bold: true, color: PALETTE.white },
-  sectionTitle: { fontSize: 13, bold: true, color: PALETTE.gold },
-  metaKey: { fontSize: 9, bold: true, color: PALETTE.label },
-  metaVal: { fontSize: 10, color: PALETTE.ink },
-  cellLabel: { fontSize: 9.5, bold: true, color: PALETTE.label },
-  cellValue: { fontSize: 9.5, color: PALETTE.text },
-  blockLabel: { fontSize: 9.5, bold: true, color: PALETTE.label, margin: [0, 0, 0, 3] },
-  bulletText: { fontSize: 9.5, color: PALETTE.text },
-  paragraphText: { fontSize: 9.5, color: PALETTE.text, alignment: 'justify' },
-  damagedLabel: { fontSize: 9.5, bold: true, color: PALETTE.amber, margin: [0, 0, 0, 3] },
-  damagedText: { fontSize: 9.5, color: PALETTE.amber },
-  footerText: { fontSize: 8, color: PALETTE.footer },
-  empty: { fontSize: 11, italics: true, color: PALETTE.label, alignment: 'center' },
-  // Récapitulatif final : même palette et mêmes tailles que la fiche. Le bandeau est
-  // plus discret que celui de couverture — c'est une partie du document, pas sa une.
-  recapBannerTitle: { fontSize: 16, bold: true, color: PALETTE.white },
-  recapIntro: { fontSize: 9, italics: true, color: PALETTE.label },
-  recapGuide: { fontSize: 9.5, color: PALETTE.text },
-}
-
-const BANNER_LAYOUT = {
-  fillColor: () => PALETTE.slate,
-  hLineWidth: () => 0,
-  vLineWidth: () => 0,
-  paddingLeft: () => 18,
-  paddingRight: () => 18,
-  paddingTop: () => 16,
-  paddingBottom: () => 16,
-}
-
-const TWO_COL_LAYOUT = {
-  fillColor: (rowIndex) => (rowIndex % 2 === 1 ? PALETTE.rowAlt : null),
-  hLineWidth: () => 0.5,
-  vLineWidth: () => 0,
-  hLineColor: () => PALETTE.border,
-  paddingLeft: () => 8,
-  paddingRight: () => 8,
-  paddingTop: () => 5,
-  paddingBottom: () => 5,
-}
-
-const META_LAYOUT = {
-  fillColor: () => PALETTE.rowAlt,
-  hLineWidth: () => 0,
-  vLineWidth: () => 0,
-  paddingLeft: () => 12,
-  paddingRight: () => 12,
-  paddingTop: () => 6,
-  paddingBottom: () => 6,
 }
 
 // ── Construction du document ─────────────────────────────────────────────────
@@ -608,7 +538,7 @@ export const buildDocDefinition = (formData, options = {}) => {
 
   return {
     pageSize: 'A4',
-    pageMargins: [40, 36, 40, 48],
+    pageMargins: PAGE_MARGINS,
     content,
     footer: (currentPage, pageCount) => ({
       columns: [
@@ -616,12 +546,10 @@ export const buildDocDefinition = (formData, options = {}) => {
         { text: `Page ${currentPage} / ${pageCount}`, style: 'footerText', alignment: 'right', margin: [0, 0, 40, 0] },
       ],
     }),
-    // Empêche un titre de section (headlineLevel=1) de rester seul en bas de page :
-    // s'il n'est suivi d'aucun nœud sur la page (son contenu a débordé), on casse avant.
-    pageBreakBefore: (currentNode, followingNodesOnPage) =>
-      currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0,
+    // Titre de section jamais orphelin en bas de page (cf. pdfTheme).
+    pageBreakBefore: pageBreakBeforeRule,
     styles: STYLES,
-    defaultStyle: { font: 'Roboto', fontSize: 10, color: PALETTE.text, lineHeight: 1.15 },
+    defaultStyle: DEFAULT_STYLE,
   }
 }
 

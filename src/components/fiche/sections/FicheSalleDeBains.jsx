@@ -5,6 +5,7 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Bath, Home } from 'lucide-react'
 import { useState, useCallback } from 'react'
+import { sallesDeBainsDeclarees } from '../../../lib/piecesDeclarees'
 
 // 🔥 COMPOSANT ACCORDÉON SALLE DE BAIN (externe pour clarté)
 const AccordeonSalleDeBain = ({ 
@@ -246,9 +247,10 @@ export default function FicheSalleDeBains() {
     updateField
   } = useForm()
 
-  // Récupérer le nombre de salles de bains depuis la section Visite
+  // Nombre de salles de bains actives : règle partagée avec la Fiche Ménage
+  // (lib/piecesDeclarees), pour que l'écran et le document montrent les mêmes pièces.
   const formDataVisite = getField('section_visite')
-  const nombreSallesDeBains = parseInt(formDataVisite.nombre_salles_bains) || 0
+  const nombreSallesDeBains = sallesDeBainsDeclarees(formDataVisite)
   
   // Récupérer les données salles de bains
   const formDataSallesDeBains = getField('section_salle_de_bains')

@@ -10,17 +10,42 @@ import { FL, DISPLAY_SERIF } from '../../../lib/ficheLogementTheme'
 import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
-  CheckCircle, FileText, Save, Sparkles, Loader2, AlertCircle, Settings, ArrowLeft, Lock,
+  CheckCircle, FileText, Save, Sparkles, Loader2, AlertCircle, Settings, ArrowLeft, Lock, SoapDispenserDroplet,
 } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
+import { generateFicheMenagePdf } from '../../../lib/PdfMenageBuilder'
 import { generateAnnoncePdf } from '../../../lib/annoncePdf'
 import { supabase } from '../../../supabaseClient'
+
+// Retour de génération d'un livrable, au-dessus de son bouton. Une seule forme pour
+// les deux cartes : icône, teinte selon l'issue, texte court. `role` : une erreur est
+// annoncée aux lecteurs d'écran, un succès ou une attente est un simple statut.
+function LigneEtat({ type, texte }) {
+  const teinte = type === 'ok' ? 'text-green-700' : type === 'erreur' ? 'text-red-700' : 'text-amber-700'
+  const Icone = type === 'ok' ? CheckCircle : AlertCircle
+  return (
+    <p role={type === 'erreur' ? 'alert' : 'status'} className={`mb-3 flex items-start gap-2 text-sm ${teinte}`}>
+      <Icone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{texte}</span>
+    </p>
+  )
+}
 
 export default function FicheFinalisation() {
   const navigate = useNavigate()
   const [showFinalModal, setShowFinalModal] = useState(false)
-  const [pdfGenerated, setPdfGenerated] = useState(false)
+  // Heure de la dernière génération du PDF complet, affichée au-dessus du bouton. Le
+  // bouton reste cliquable : les deux PDF se régénèrent autant de fois que nécessaire.
+  const [pdfGenereA, setPdfGenereA] = useState(null)
   const [pdfLoading, setPdfLoading] = useState(false)
+
+  // ─── Fiche Ménage (second PDF, indépendant du premier) ───
+  // Aucune écriture en base : ni verrou, ni pdf_generated_at. Le message rendu sous le
+  // bouton est le seul état qui subsiste, et il ne survit pas au rechargement.
+  // `menageLoading` reste vrai tant que pdfmake PEUT encore livrer — y compris après
+  // l'expiration du délai de garde — et bloque les deux boutons PDF pendant ce temps.
+  const [menageLoading, setMenageLoading] = useState(false)
+  const [menageEtat, setMenageEtat] = useState(null) // { type: 'ok' | 'attente' | 'erreur', texte }
 
   // ─── Agent annonce (moteur Edge Function annonce-generate) ───
   const [agentPlateforme, setAgentPlateforme] = useState('airbnb')
@@ -300,7 +325,7 @@ export default function FicheFinalisation() {
           }
         },
       })
-      setPdfGenerated(true)
+      setPdfGenereA(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
     } catch (error) {
       console.error('Erreur génération PDF:', error)
       // Dépassement du délai de garde : pdfmake tourne toujours et peut encore livrer
@@ -330,6 +355,58 @@ export default function FicheFinalisation() {
   const handleConfirmLock = () => {
     setShowLockModal(false)
     runGeneratePDF({ withLock: true })
+  }
+
+  // Un fiche_lite dont la fiche n'est pas verrouillée ne peut pas produire la Fiche
+  // Ménage : c'est un livrable exploitable (adresse, accès), et l'identité du bien
+  // n'est figée que par la 1re génération du PDF complet. Sans cette garde, on pourrait
+  // produire une Fiche Ménage, changer de bien, en produire une autre — le recyclage
+  // que le verrou existe pour empêcher. Premium : jamais verrouillé, jamais bloqué.
+  const menageBloqueeParVerrou = roleLoaded && userRole === 'fiche_lite' && !isFicheLocked
+
+  // Génération de la Fiche Ménage depuis les données EN MÉMOIRE. Pas de sauvegarde
+  // préalable, pas de lecture des annonces, pas de voile bloquant : rien n'est écrit,
+  // donc rien à protéger. Le document reflète l'écran tel qu'il est.
+  const handleGenerateFicheMenage = async () => {
+    if (menageLoading || pdfLoading || !roleLoaded || menageBloqueeParVerrou) return
+    setMenageLoading(true)
+    setMenageEtat(null)
+    // Vrai quand le délai de garde a expiré alors que pdfmake tourne encore : le rendu
+    // peut ENCORE livrer le fichier. Les deux boutons doivent rester désactivés jusque-là,
+    // sinon un second clic lancerait un rendu concurrent — et deux téléchargements.
+    let renduPeutEncoreAboutir = false
+    try {
+      await generateFicheMenagePdf(formData, {
+        // Appelé à la remise du fichier — normale ou tardive, après un dépassement du
+        // délai de garde. C'est ICI, et seulement ici, que le bouton se libère : le
+        // message « téléchargée » remplace alors celui d'attente.
+        onDelivered: () => {
+          const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          setMenageLoading(false)
+          setMenageEtat({ type: 'ok', texte: `Fiche Ménage téléchargée à ${heure}. Vous pouvez la régénérer à tout moment.` })
+        },
+      })
+    } catch (e) {
+      if (e?.renduEnCours) {
+        // Pas un échec : on le dit, on garde les boutons désactivés (cf. finally), et la
+        // seule sortie proposée est le rechargement — qui abandonne ce rendu sans rien
+        // écrire, puisque ce document n'écrit jamais rien.
+        renduPeutEncoreAboutir = true
+        setMenageEtat({
+          type: 'attente',
+          texte: 'La génération prend plus de temps que prévu. Si elle aboutit, le téléchargement démarrera tout seul. Sinon, rechargez la page pour recommencer.',
+        })
+      } else {
+        console.error('Erreur génération Fiche Ménage :', e)
+        setMenageEtat({
+          type: 'erreur',
+          texte: 'La Fiche Ménage n’a pas pu être générée. Réessayez ; si le problème persiste, rechargez la page.',
+        })
+      }
+    } finally {
+      // Rendu encore possible → le bouton reste pris ; c'est `onDelivered` qui le rendra.
+      if (!renduPeutEncoreAboutir) setMenageLoading(false)
+    }
   }
 
   // Finaliser la fiche
@@ -480,32 +557,91 @@ export default function FicheFinalisation() {
               <Eyebrow>Livrables</Eyebrow>
             </div>
 
-            {/* Fiche logement — carte du livrable PDF, blanche comme les autres cartes
-                claires de la page, mêmes arrondis et mêmes marges. Une carte de livrable
-                à part entière : titre en serif (le traitement du nom du logement et du
-                titre de l'annonce), description lisible, puis le bouton sous le texte,
-                aligné avec le titre, à la largeur de son libellé. Une seule icône
-                document, dans le bouton. Comportement de génération, confirmations,
-                verrou, états de progression et d'erreur strictement inchangés. */}
-            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
-              <h3 className={`text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>Fiche logement</h3>
-              <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
-                Toutes les informations du logement réunies dans un document clair, prêt à partager.
-              </p>
+            {/* Deux PDF, deux cartes, deux actions séparées — jamais de téléchargement
+                groupé. Côte à côte sur desktop, empilées sur mobile. Même traitement
+                que les autres cartes claires de la page : titre en serif, une phrase
+                d'usage, puis le bouton calé en bas de carte (les deux boutons restent
+                alignés quelle que soit la longueur des textes).
 
-              <button
-                onClick={handleGeneratePDF}
-                disabled={pdfGenerated || pdfLoading || !roleLoaded}
-                className={`mt-7 inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${pdfGenerated
-                    ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                    : (pdfLoading || !roleLoaded)
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                  }`}
-              >
-                {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF généré' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
-              </button>
+                Fiche logement : comportement de génération, confirmation, verrou, états
+                de progression et d'erreur strictement inchangés.
+                Fiche Ménage : document opérationnel pour le prestataire, généré depuis
+                les données en mémoire, sans verrou ni trace en base. */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 flex flex-col">
+                <h3 className={`text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>Fiche logement</h3>
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
+                  Toutes les informations du logement réunies dans un document clair, prêt à partager :
+                  chaque section renseignée de l’inspection, puis les annonces et le guide d’accès
+                  générés, lorsqu’ils existent.
+                </p>
+                {/* Même registre que l'indice de la carte voisine : pour un fiche_lite non
+                    verrouillé, les deux cartes disent la même chose du verrou, chacune de
+                    son côté. La modale de confirmation reste inchangée. */}
+                {menageBloqueeParVerrou && (
+                  <p className="mt-3 flex items-start gap-2 text-sm text-gray-500">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      La première génération confirme définitivement l’identité du logement ;
+                      un avertissement s’affiche avant.
+                    </span>
+                  </p>
+                )}
+
+                {/* Retour de génération AU-DESSUS du bouton, même forme sur les deux cartes :
+                    le bouton garde sa place et reste cliquable, une régénération est toujours
+                    possible. */}
+                <div className="mt-auto pt-7">
+                  {pdfGenereA && (
+                    <LigneEtat type="ok" texte={`PDF généré à ${pdfGenereA}. Vous pouvez le régénérer à tout moment.`} />
+                  )}
+                  <button
+                    onClick={handleGeneratePDF}
+                    disabled={pdfLoading || menageLoading || !roleLoaded}
+                    className={`inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${
+                      (pdfLoading || menageLoading || !roleLoaded)
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                    }`}
+                  >
+                    {pdfLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                    {pdfLoading ? 'Génération en cours...' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 flex flex-col">
+                <h3 className={`text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>Fiche Ménage</h3>
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
+                  L’essentiel pour votre prestataire de ménage : accès, consignes, linge, consommables
+                  et points de vigilance — sans les informations confidentielles de la fiche.
+                </p>
+                {menageBloqueeParVerrou && (
+                  <p className="mt-3 flex items-start gap-2 text-sm text-gray-500">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      Disponible après la génération du PDF Fiche logement, qui confirme définitivement
+                      l’identité du logement.
+                    </span>
+                  </p>
+                )}
+
+                <div className="mt-auto pt-7">
+                  {menageEtat && <LigneEtat type={menageEtat.type} texte={menageEtat.texte} />}
+                  <button
+                    onClick={handleGenerateFicheMenage}
+                    disabled={menageLoading || pdfLoading || !roleLoaded || menageBloqueeParVerrou}
+                    className={`inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${
+                      (menageLoading || pdfLoading || !roleLoaded || menageBloqueeParVerrou)
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                    }`}
+                  >
+                    {menageLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <SoapDispenserDroplet className="w-5 h-5" />}
+                    {menageLoading ? 'Génération en cours...' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Ménage'}
+                  </button>
+                </div>
+              </div>
             </div>
 
 
