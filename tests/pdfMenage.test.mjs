@@ -123,6 +123,18 @@ test('les titres partent avec leur premier bloc (pile insécable) et les blocs c
   assert.equal(checklist.unbreakable, false)
 })
 
+test('un premier bloc plus long qu\'une page n\'est pas soudé à son titre : il se pagine au lieu d\'être tronqué', async () => {
+  const f = fichePresqueVide()
+  f.section_instructions_menage.points_vigilance = Array.from({ length: 220 }, (_, i) => `Point ${i + 1} : vérifier le velux, couper la clim, fermer le volet du bas.`).join('\n')
+  const doc = buildDocDefinitionMenage(f, { date: DATE })
+  // Le titre reste un nœud à part (protégé par pageBreakBefore), l'encadré reste sécable.
+  assert.ok(doc.content.some((n) => n.headlineLevel === 1))
+  assert.equal(doc.content.filter((n) => n.stack && n.unbreakable).length, 0)
+  const buf = await rendre(doc)
+  const pages = (buf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length
+  assert.ok(pages >= 4, `220 lignes de vigilance doivent occuper plusieurs pages, pas ${pages}`)
+})
+
 test('nom de fichier : fiche-menage-{bien}-{date}.pdf, distinct du PDF complet', () => {
   const f = ficheRiche()
   assert.equal(buildPdfMenageFilename(f, DATE), 'fiche-menage-appartement-dupont-vieux-port-2026-09-18.pdf')

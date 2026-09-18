@@ -185,6 +185,14 @@ function noeudBloc(bloc) {
 // quand le bloc suivant est un tableau dont la première ligne ne tient plus sur la
 // page : pdfmake considère le tableau « présent » sur la page du titre, alors que
 // ses lignes (dontBreakRows) sont déjà parties sur la suivante — titre orphelin.
+//
+// ⚠️ On ne soude qu'avec un bloc COURT. Une pile insécable plus haute qu'une page n'est
+// pas paginée par pdfmake : elle est tronquée (vérifié : un encadré de vigilance de
+// trois pages soudé à son titre sortait sur deux pages, le reste perdu). Devant un
+// bloc long, le titre reste un nœud à part, protégé par `pageBreakBefore` : ce bloc
+// étant sécable, ses premières lignes suivent le titre sur la même page.
+const soudable = (noeud) => noeud.unbreakable === true || Boolean(noeud.table?.dontBreakRows)
+
 function souderTitres(noeuds) {
   const resultat = []
   let i = 0
@@ -197,10 +205,13 @@ function souderTitres(noeuds) {
     // Une suite de titres (titre de partie puis sous-titre de pièce, par exemple) est
     // soudée AVEC le premier bloc qui la suit : sans cela, le titre de partie resterait
     // seul en bas de page pendant que le sous-titre partirait, soudé, sur la suivante.
-    const pile = []
-    while (i < noeuds.length && noeuds[i].headlineLevel >= 1) pile.push(noeuds[i++])
-    if (i < noeuds.length) pile.push(noeuds[i++])
-    resultat.push(pile.length > 1 ? { stack: pile, unbreakable: true } : pile[0])
+    const titres = []
+    while (i < noeuds.length && noeuds[i].headlineLevel >= 1) titres.push(noeuds[i++])
+    if (i < noeuds.length && soudable(noeuds[i])) {
+      resultat.push({ stack: [...titres, noeuds[i++]], unbreakable: true })
+    } else {
+      resultat.push(...titres)
+    }
   }
   return resultat
 }
