@@ -26,6 +26,8 @@ export default function FicheFinalisation() {
   // ─── Fiche Ménage (second PDF, indépendant du premier) ───
   // Aucune écriture en base : ni verrou, ni pdf_generated_at. Le message rendu sous le
   // bouton est le seul état qui subsiste, et il ne survit pas au rechargement.
+  // `menageLoading` reste vrai tant que pdfmake PEUT encore livrer — y compris après
+  // l'expiration du délai de garde — et bloque les deux boutons PDF pendant ce temps.
   const [menageLoading, setMenageLoading] = useState(false)
   const [menageEtat, setMenageEtat] = useState(null) // { type: 'ok' | 'attente' | 'erreur', texte }
 
@@ -353,22 +355,30 @@ export default function FicheFinalisation() {
     if (menageLoading || pdfLoading || !roleLoaded || menageBloqueeParVerrou) return
     setMenageLoading(true)
     setMenageEtat(null)
+    // Vrai quand le délai de garde a expiré alors que pdfmake tourne encore : le rendu
+    // peut ENCORE livrer le fichier. Les deux boutons doivent rester désactivés jusque-là,
+    // sinon un second clic lancerait un rendu concurrent — et deux téléchargements.
+    let renduPeutEncoreAboutir = false
     try {
       await generateFicheMenagePdf(formData, {
-        // Appelé à la remise du fichier — y compris tardive, après un dépassement du
-        // délai de garde : le message « téléchargée » remplace alors celui d'attente.
+        // Appelé à la remise du fichier — normale ou tardive, après un dépassement du
+        // délai de garde. C'est ICI, et seulement ici, que le bouton se libère : le
+        // message « téléchargée » remplace alors celui d'attente.
         onDelivered: () => {
           const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          setMenageLoading(false)
           setMenageEtat({ type: 'ok', texte: `Fiche Ménage téléchargée à ${heure}. Vous pouvez la régénérer à tout moment.` })
         },
       })
     } catch (e) {
       if (e?.renduEnCours) {
-        // Le rendu peut encore aboutir : ce n'est pas un échec, et relancer doublerait le
-        // téléchargement.
+        // Pas un échec : on le dit, on garde les boutons désactivés (cf. finally), et la
+        // seule sortie proposée est le rechargement — qui abandonne ce rendu sans rien
+        // écrire, puisque ce document n'écrit jamais rien.
+        renduPeutEncoreAboutir = true
         setMenageEtat({
           type: 'attente',
-          texte: 'La génération prend plus de temps que prévu. Si elle aboutit, le téléchargement démarrera tout seul — inutile de relancer.',
+          texte: 'La génération prend plus de temps que prévu. Si elle aboutit, le téléchargement démarrera tout seul. Sinon, rechargez la page pour recommencer.',
         })
       } else {
         console.error('Erreur génération Fiche Ménage :', e)
@@ -378,7 +388,8 @@ export default function FicheFinalisation() {
         })
       }
     } finally {
-      setMenageLoading(false)
+      // Rendu encore possible → le bouton reste pris ; c'est `onDelivered` qui le rendra.
+      if (!renduPeutEncoreAboutir) setMenageLoading(false)
     }
   }
 
