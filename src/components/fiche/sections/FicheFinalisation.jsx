@@ -555,8 +555,22 @@ export default function FicheFinalisation() {
               <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 flex flex-col">
                 <h3 className={`text-2xl text-gray-900 sm:text-3xl ${DISPLAY_SERIF}`}>Fiche logement</h3>
                 <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600">
-                  Toutes les informations du logement réunies dans un document clair, prêt à partager.
+                  Toutes les informations du logement réunies dans un document clair, prêt à partager :
+                  chaque section renseignée de l’inspection, puis les annonces et le guide d’accès
+                  générés, lorsqu’ils existent.
                 </p>
+                {/* Même registre que l'indice de la carte voisine : pour un fiche_lite non
+                    verrouillé, les deux cartes disent la même chose du verrou, chacune de
+                    son côté. La modale de confirmation reste inchangée. */}
+                {menageBloqueeParVerrou && (
+                  <p className="mt-3 flex items-start gap-2 text-sm text-gray-500">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      La première génération confirme définitivement l’identité du logement ;
+                      un avertissement s’affiche avant.
+                    </span>
+                  </p>
+                )}
 
                 <div className="mt-auto pt-7">
                   <button
