@@ -407,7 +407,9 @@ function partieConsommables(formData) {
     champs([
       ['Fournis au quotidien par', recap.quotidien],
       ['Café pour la cafetière', texte(cuisine.cafetiere_cafe_fourni)],
-      ['Marque de café', texte(cuisine.cafetiere_marque_cafe)],
+      // La marque n'est saisissable que pour une réponse positive ; après un « Non »,
+      // l'ancienne valeur reste en mémoire et ne doit pas contredire la réponse.
+      ['Marque de café', /^Oui/.test(texte(cuisine.cafetiere_cafe_fourni) || '') ? texte(cuisine.cafetiere_marque_cafe) : null],
     ]),
     checklist('À fournir par le prestataire de ménage', recap.recommandes),
     puces('Sur demande', recap.surDemande),
@@ -783,7 +785,9 @@ function partieExterieur(formData) {
       puces('Équipements à contrôler', equipements),
       entretien(ext, 'exterieur', "de l'espace extérieur"),
     ]))
-    if (equipements.some((e) => /barbecue/i.test(e)) || texte(ext.barbecue_type) || texte(ext.barbecue_instructions)) {
+    // Le bloc barbecue n'existe que si « Barbecue » est coché dans les équipements : le
+    // formulaire masque ses détails sans les vider quand la case est décochée.
+    if (liste(ext.exterieur_equipements).includes('Barbecue')) {
       blocs.push(...groupe('Barbecue', [
         champs([
           ['Type', texte(ext.barbecue_type)],

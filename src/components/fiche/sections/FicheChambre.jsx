@@ -262,12 +262,10 @@ export default function FicheChambre() {
   // (lib/piecesDeclarees), pour que l'écran et le document montrent les mêmes chambres.
   const formDataVisite = getField('section_visite')
   const formDataLogement = getField('section_logement')
-  const nombreChambres = parseInt(formDataVisite.nombre_chambres) || 0
   const declarees = chambresDeclarees(formDataVisite, formDataLogement)
-  const typologie = formDataLogement.typologie
 
-  // LOGIQUE STUDIO : Si Studio, forcer l'affichage d'1 "espace nuit"
-  const isStudio = typologie === "Studio"
+  // LOGIQUE STUDIO : Si Studio sans chambre active, forcer l'affichage d'1 "espace nuit"
+  // (declarees.espaceNuit).
   const chambresAffichees = declarees.nombre
   const labelChambre = declarees.espaceNuit ? "Espace nuit" : "Chambre"
 
@@ -350,7 +348,7 @@ export default function FicheChambre() {
         <div className="flex-1 p-6 bg-gray-100">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">
-              {isStudio && nombreChambres === 0 ? "Espace nuit" : "Chambres"}
+              {declarees.espaceNuit ? "Espace nuit" : "Chambres"}
             </h1>
             
             <div className="bg-white rounded-xl shadow-sm p-8">
@@ -361,13 +359,13 @@ export default function FicheChambre() {
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">
-                      {isStudio && nombreChambres === 0 
+                      {declarees.espaceNuit 
                         ? "Configuration de l'espace nuit" 
                         : "Configuration des chambres"
                       }
                     </h2>
                     <p className="text-gray-600">
-                      {isStudio && nombreChambres === 0
+                      {declarees.espaceNuit
                         ? "Détails des équipements et aménagements de l'espace nuit du studio"
                         : "Détails des équipements et aménagements de chaque chambre"
                       }
@@ -392,7 +390,7 @@ export default function FicheChambre() {
               ) : (
                 <div>
                   <div className="mb-6">
-                    {isStudio && nombreChambres === 0 ? (
+                    {declarees.espaceNuit ? (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                         <p className="text-blue-800">
                           <strong>💡 Studio :</strong> Configuration de l'espace nuit du studio.
@@ -409,7 +407,7 @@ export default function FicheChambre() {
                   {Array.from({ length: chambresAffichees }, (_, index) => {
                     const chambreKey = `chambre_${index + 1}`
                     const numeroAffiche = index + 1
-                    const labelAccordeon = isStudio && nombreChambres === 0 ? "Espace nuit" : `${labelChambre} ${numeroAffiche}`
+                    const labelAccordeon = declarees.espaceNuit ? "Espace nuit" : `${labelChambre} ${numeroAffiche}`
                     
                     return (
                       <AccordeonChambre

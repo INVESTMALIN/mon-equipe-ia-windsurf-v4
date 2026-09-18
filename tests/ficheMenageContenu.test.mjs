@@ -311,6 +311,38 @@ test('linge : après un « Non », les anciens détails d\'inventaire ne sortent
   assert.equal(partie(construireContenuMenage(f), 'linge'), undefined)
 })
 
+test('type de pièce décoché en Visite : aucune pièce, même si un nombre est resté en mémoire', () => {
+  const f = ficheRiche() // 2 chambres et 1 salle de bains configurées
+  f.section_visite.pieces_chambre = null // décoché : le sélecteur est masqué, nombre_chambres = '2' reste
+  f.section_visite.pieces_salle_bains = null
+  const { contenu, texte } = contenuEtTexte(f)
+  const sousTitres = (partie(contenu, 'pieces')?.blocs || []).filter((b) => b.type === 'sousTitre').map((b) => b.texte)
+  assert.ok(!sousTitres.some((t) => /^(Chambre|Salle de bains)/.test(t)))
+  assert.doesNotMatch(texte, /Chambre parentale|Chambre enfants|Salle de bains principale/)
+  // Le repli studio, lui, tient sans la case : un studio a toujours son espace nuit.
+  f.section_logement.typologie = 'Studio'
+  const studio = partie(construireContenuMenage(f), 'pieces').blocs.filter((b) => b.type === 'sousTitre').map((b) => b.texte)
+  assert.equal(studio[0], 'Espace nuit')
+})
+
+test('barbecue décoché : ses anciens détails ne sortent plus', () => {
+  const f = ficheRiche() // type, instructions, combustible et ustensiles renseignés
+  f.section_equip_spe_exterieur.exterieur_equipements = f.section_equip_spe_exterieur.exterieur_equipements.filter((e) => e !== 'Barbecue')
+  const { contenu, texte } = contenuEtTexte(f)
+  const sousTitres = partie(contenu, 'exterieur').blocs.filter((b) => b.type === 'sousTitre').map((b) => b.texte)
+  assert.ok(!sousTitres.includes('Barbecue'))
+  assert.doesNotMatch(texte, /Nettoyer la grille|Gaz|Combustible/)
+})
+
+test('marque de café : rendue seulement pour une réponse « Oui »', () => {
+  const f = ficheRiche() // « Oui par la femme de ménage » + marque
+  assert.equal(valeur(partie(construireContenuMenage(f), 'consommables'), 'Marque de café'), 'Nespresso Volluto')
+  f.section_cuisine_1.cafetiere_cafe_fourni = 'Non'
+  const conso = partie(construireContenuMenage(f), 'consommables')
+  assert.equal(valeur(conso, 'Café pour la cafetière'), 'Non')
+  assert.equal(valeur(conso, 'Marque de café'), undefined)
+})
+
 test('un sous-titre de pièce n\'est jamais rendu seul', () => {
   const f = fichePresqueVide()
   f.section_chambres.chambre_1.nom_description = 'Chambre bleue' // un nom, mais rien d'autre
