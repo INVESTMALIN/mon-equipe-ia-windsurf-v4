@@ -17,10 +17,26 @@ import { generateFicheMenagePdf } from '../../../lib/PdfMenageBuilder'
 import { generateAnnoncePdf } from '../../../lib/annoncePdf'
 import { supabase } from '../../../supabaseClient'
 
+// Retour de génération d'un livrable, au-dessus de son bouton. Une seule forme pour
+// les deux cartes : icône, teinte selon l'issue, texte court. `role` : une erreur est
+// annoncée aux lecteurs d'écran, un succès ou une attente est un simple statut.
+function LigneEtat({ type, texte }) {
+  const teinte = type === 'ok' ? 'text-green-700' : type === 'erreur' ? 'text-red-700' : 'text-amber-700'
+  const Icone = type === 'ok' ? CheckCircle : AlertCircle
+  return (
+    <p role={type === 'erreur' ? 'alert' : 'status'} className={`mb-3 flex items-start gap-2 text-sm ${teinte}`}>
+      <Icone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{texte}</span>
+    </p>
+  )
+}
+
 export default function FicheFinalisation() {
   const navigate = useNavigate()
   const [showFinalModal, setShowFinalModal] = useState(false)
-  const [pdfGenerated, setPdfGenerated] = useState(false)
+  // Heure de la dernière génération du PDF complet, affichée au-dessus du bouton. Le
+  // bouton reste cliquable : les deux PDF se régénèrent autant de fois que nécessaire.
+  const [pdfGenereA, setPdfGenereA] = useState(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
   // ─── Fiche Ménage (second PDF, indépendant du premier) ───
@@ -309,7 +325,7 @@ export default function FicheFinalisation() {
           }
         },
       })
-      setPdfGenerated(true)
+      setPdfGenereA(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
     } catch (error) {
       console.error('Erreur génération PDF:', error)
       // Dépassement du délai de garde : pdfmake tourne toujours et peut encore livrer
@@ -572,19 +588,24 @@ export default function FicheFinalisation() {
                   </p>
                 )}
 
+                {/* Retour de génération AU-DESSUS du bouton, même forme sur les deux cartes :
+                    le bouton garde sa place et reste cliquable, une régénération est toujours
+                    possible. */}
                 <div className="mt-auto pt-7">
+                  {pdfGenereA && (
+                    <LigneEtat type="ok" texte={`PDF généré à ${pdfGenereA}. Vous pouvez le régénérer à tout moment.`} />
+                  )}
                   <button
                     onClick={handleGeneratePDF}
-                    disabled={pdfGenerated || pdfLoading || menageLoading || !roleLoaded}
-                    className={`inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${pdfGenerated
-                        ? 'bg-green-100 text-green-700 border-2 border-green-200'
-                        : (pdfLoading || menageLoading || !roleLoaded)
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
-                      }`}
+                    disabled={pdfLoading || menageLoading || !roleLoaded}
+                    className={`inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-base font-semibold transition-all ${
+                      (pdfLoading || menageLoading || !roleLoaded)
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
+                    }`}
                   >
-                    {pdfGenerated ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                    {pdfLoading ? 'Génération en cours...' : pdfGenerated ? 'PDF généré' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
+                    {pdfLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                    {pdfLoading ? 'Génération en cours...' : !roleLoaded ? 'Chargement…' : 'Générer le PDF'}
                   </button>
                 </div>
               </div>
@@ -606,6 +627,7 @@ export default function FicheFinalisation() {
                 )}
 
                 <div className="mt-auto pt-7">
+                  {menageEtat && <LigneEtat type={menageEtat.type} texte={menageEtat.texte} />}
                   <button
                     onClick={handleGenerateFicheMenage}
                     disabled={menageLoading || pdfLoading || !roleLoaded || menageBloqueeParVerrou}
@@ -618,21 +640,6 @@ export default function FicheFinalisation() {
                     {menageLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <SprayCan className="w-5 h-5" />}
                     {menageLoading ? 'Génération en cours...' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Ménage'}
                   </button>
-                  {menageEtat && (
-                    <p
-                      role={menageEtat.type === 'erreur' ? 'alert' : 'status'}
-                      className={`mt-3 flex items-start gap-2 text-sm ${
-                        menageEtat.type === 'ok' ? 'text-green-700' : menageEtat.type === 'erreur' ? 'text-red-700' : 'text-amber-700'
-                      }`}
-                    >
-                      {menageEtat.type === 'ok' ? (
-                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                      ) : (
-                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                      )}
-                      <span>{menageEtat.texte}</span>
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
