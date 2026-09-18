@@ -96,7 +96,7 @@ const LIVRABLES = [
     icon: SoapDispenserDroplet,
     eyebrow: 'Pour tes prestataires',
     title: 'Fiche Ménage',
-    text: 'Un PDF dédié au ménage, généré depuis la fiche : accès, consignes, linge, consommables et points de vigilance — sans les informations confidentielles du propriétaire.',
+    text: 'Un PDF dédié au ménage, généré depuis la fiche : accès, consignes, linge, consommables et points de vigilance, sans les informations confidentielles du propriétaire.',
     points: [
       'Le code ménage, jamais ceux du propriétaire',
       'Consommables à fournir en checklist',
@@ -440,7 +440,7 @@ export default function FicheLogementLanding() {
           </h2>
           <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/60 sm:text-lg lg:text-xl">
             Tout ce que tu renseignes sert plusieurs fois. La même fiche produit ce dont ton
-            prestataire, tes voyageurs et toi avez besoin — sans rien ressaisir.
+            prestataire, tes voyageurs et toi avez besoin, sans rien ressaisir.
           </p>
 
           {/* Trois cartes de même hauteur ; la liste est collée en bas de chaque carte
