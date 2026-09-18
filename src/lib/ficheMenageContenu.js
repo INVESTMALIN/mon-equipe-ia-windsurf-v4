@@ -38,6 +38,7 @@ import { resolveInstructionsMenageLegacy } from './instructionsMenageLegacy.js'
 import { resolveAnimauxLegacy } from './animauxLegacy.js'
 import { buildConsommablesRecapLite } from './consommablesRecapLite.js'
 import { getCountryLabel } from './countries.js'
+import { chambresDeclarees, sallesDeBainsDeclarees } from './piecesDeclarees.js'
 
 // ── Lecteurs typés ────────────────────────────────────────────────────────────
 const texte = (v) => {
@@ -267,20 +268,33 @@ function partieAcces(formData) {
 // ── Partie 3 — Votre intervention ─────────────────────────────────────────────
 const QUI = (v) => (v === true ? 'Prestataire de ménage' : v === false ? 'Propriétaire' : null)
 
+// Chambres et salles de bains ACTIVES, dans le même périmètre que les écrans : les
+// enregistrements au-delà du nombre déclaré en Visite restent en mémoire quand le
+// concierge réduit ce nombre, mais ne sont plus ni affichés ni destinés au document.
+function piecesActives(formData) {
+  const { nombre: nbChambres, espaceNuit } = chambresDeclarees(formData.section_visite, formData.section_logement)
+  const nbSdb = sallesDeBainsDeclarees(formData.section_visite)
+  const chambres = objet(formData.section_chambres)
+  const sdbs = objet(formData.section_salle_de_bains)
+  return {
+    chambres: Array.from({ length: Math.min(nbChambres, 6) }, (_, i) => ({
+      donnees: objet(chambres[`chambre_${i + 1}`]),
+      titre: espaceNuit ? 'Espace nuit' : nomPiece('Chambre', i + 1, chambres[`chambre_${i + 1}`]?.nom_description),
+    })),
+    sallesDeBains: Array.from({ length: Math.min(nbSdb, 6) }, (_, i) => ({
+      donnees: objet(sdbs[`salle_de_bain_${i + 1}`]),
+      titre: nomPiece('Salle de bains', i + 1, sdbs[`salle_de_bain_${i + 1}`]?.nom_description),
+    })),
+  }
+}
+
 // Pièces où un élément abîmé a été signalé pendant l'inspection. Le prestataire doit
 // le savoir avant d'y toucher — et ne pas se le voir reprocher.
 function elementsAbimes(formData) {
   const items = []
-  const chambres = objet(formData.section_chambres)
-  for (let i = 1; i <= 6; i++) {
-    const ch = objet(chambres[`chambre_${i}`])
-    if (ch.elements_abimes === true) items.push(nomPiece('Chambre', i, ch.nom_description))
-  }
-  const sdbs = objet(formData.section_salle_de_bains)
-  for (let i = 1; i <= 6; i++) {
-    const s = objet(sdbs[`salle_de_bain_${i}`])
-    if (s.elements_abimes === true) items.push(nomPiece('Salle de bains', i, s.nom_description))
-  }
+  const actives = piecesActives(formData)
+  actives.chambres.forEach(({ donnees, titre }) => { if (donnees.elements_abimes === true) items.push(titre) })
+  actives.sallesDeBains.forEach(({ donnees, titre }) => { if (donnees.elements_abimes === true) items.push(titre) })
   if (objet(formData.section_cuisine_1).elements_abimes === true) items.push('Cuisine')
   const salon = objet(formData.section_salon_sam)
   if (salon.salon_elements_abimes === true) items.push('Salon')
@@ -363,15 +377,22 @@ function partieLinge(formData) {
   const linge = objet(formData.section_gestion_linge)
   const etats = ETATS_LINGE.filter(([k]) => linge[k] === true).map(([, l]) => l)
 
+  // Inventaire, état, emplacement et code ne sont saisissables que si le logement
+  // dispose de linge (même condition que l'écran). Un « Non » répondu après coup laisse
+  // les anciennes valeurs en mémoire : elles ne doivent pas contredire la réponse.
+  const details = linge.dispose_de_linge === true
+    ? [
+        champs([['État du linge', etats.length ? etats.join(', ') : null]]),
+        puces('Inventaire', inventaireLinge(linge)),
+        paragraphe("Précisions sur l'état", linge.etat_informations),
+        paragraphe('Emplacement du stock', linge.emplacement_description),
+        champs([['Code du cadenas / de la malle', texte(linge.emplacement_code_cadenas)]]),
+      ]
+    : []
+
   return partie('linge', 'Linge', 'linge', [
-    champs([
-      ['Linge fourni dans le logement', ouiNon(linge.dispose_de_linge)],
-      ['État du linge', etats.length ? etats.join(', ') : null],
-    ]),
-    puces('Inventaire', inventaireLinge(linge)),
-    paragraphe("Précisions sur l'état", linge.etat_informations),
-    paragraphe('Emplacement du stock', linge.emplacement_description),
-    champs([['Code du cadenas / de la malle', texte(linge.emplacement_code_cadenas)]]),
+    champs([['Linge fourni dans le logement', ouiNon(linge.dispose_de_linge)]]),
+    ...details,
   ])
 }
 
@@ -612,14 +633,14 @@ const INVENTAIRE_CUISINE = [
 const cochees = (descripteur, data) =>
   descripteur.filter(([k]) => data[k] === true).map(([, label]) => label)
 
-function blocsChambre(ch, i) {
+function blocsChambre(ch, titre) {
   const lits = LITS.map(([k, l]) => (nombre(ch[k]) ? quantifier(nombre(ch[k]), l) : null)).filter(Boolean)
   if (texte(ch.autre_type_lit)) lits.push(texte(ch.autre_type_lit))
   const equipements = cochees(EQUIP_CHAMBRE, ch)
   if (ch.equipements_autre === true && texte(ch.equipements_autre_details)) {
     equipements.push(texte(ch.equipements_autre_details))
   }
-  return groupe(nomPiece('Chambre', i, ch.nom_description), [
+  return groupe(titre, [
     champs([
       ['Lits', lits.length ? lits.join(', ') : null],
       // Un « Non » compte ici : le prestataire doit savoir s'il apporte le linge.
@@ -629,12 +650,12 @@ function blocsChambre(ch, i) {
   ])
 }
 
-function blocsSalleDeBains(s, i) {
+function blocsSalleDeBains(s, titre) {
   const equipements = cochees(EQUIP_SDB, s)
   if (s.equipements_autre === true && texte(s.equipements_autre_details)) {
     equipements.push(texte(s.equipements_autre_details))
   }
-  return groupe(nomPiece('Salle de bains', i, s.nom_description), [
+  return groupe(titre, [
     champs([
       ['Accès', s.acces === 'privee' ? 'Privée' : s.acces === 'partagee' ? 'Partagée' : null],
       ['WC séparés', s.equipements_wc === true ? ouiNon(s.wc_separe) : null],
@@ -693,14 +714,13 @@ function blocsSalon(salon) {
 }
 
 function partiePieces(formData) {
-  const chambres = objet(formData.section_chambres)
-  const sdbs = objet(formData.section_salle_de_bains)
+  const actives = piecesActives(formData)
   const cuisine1 = objet(formData.section_cuisine_1)
   const cuisine2 = objet(formData.section_cuisine_2)
 
   const blocs = []
-  for (let i = 1; i <= 6; i++) blocs.push(...blocsChambre(objet(chambres[`chambre_${i}`]), i))
-  for (let i = 1; i <= 6; i++) blocs.push(...blocsSalleDeBains(objet(sdbs[`salle_de_bain_${i}`]), i))
+  actives.chambres.forEach(({ donnees, titre }) => blocs.push(...blocsChambre(donnees, titre)))
+  actives.sallesDeBains.forEach(({ donnees, titre }) => blocs.push(...blocsSalleDeBains(donnees, titre)))
   blocs.push(...groupe('Cuisine — électroménager', [
     puces('Appareils présents et instructions', blocsCuisineElectromenager(cuisine1)),
   ]))

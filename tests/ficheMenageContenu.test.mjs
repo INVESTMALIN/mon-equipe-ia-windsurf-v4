@@ -269,6 +269,48 @@ test('les défauts de FormContext ne produisent ni « Non » ni « 0 »', () => 
   assert.equal(lignes(pieces).filter(([k]) => k === 'Draps fournis').length, 0)
 })
 
+test('seules les pièces DÉCLARÉES en Visite sortent : les enregistrements en surplus sont ignorés', () => {
+  const f = ficheRiche()
+  // Le concierge avait configuré 2 chambres, puis en déclare 1 : chambre_2 reste en
+  // mémoire (l'écran la masque sans l'effacer) et ne doit pas sortir. Idem salle de
+  // bains : 1 déclarée, une 2e configurée mais hors périmètre — même abîmée.
+  f.section_visite.nombre_chambres = '1'
+  f.section_salle_de_bains.salle_de_bain_2 = {
+    ...f.section_salle_de_bains.salle_de_bain_2, nom_description: 'SDB fantôme', equipements_douche: true, elements_abimes: true,
+  }
+  const { contenu, texte } = contenuEtTexte(f)
+  const sousTitres = partie(contenu, 'pieces').blocs.filter((b) => b.type === 'sousTitre').map((b) => b.texte)
+  assert.ok(sousTitres.includes('Chambre 1 — Chambre parentale'))
+  assert.ok(!sousTitres.some((t) => t.startsWith('Chambre 2')))
+  assert.doesNotMatch(texte, /Chambre enfants|Veilleuse|SDB fantôme/)
+  // Les éléments abîmés suivent le même périmètre.
+  const abimes = partie(contenu, 'intervention').blocs.find((b) => b.type === 'liste' && /abîmés/.test(b.label))
+  assert.deepEqual(abimes.items, ['Chambre 1 — Chambre parentale', 'Salle à manger', 'Garage'])
+})
+
+test('studio sans chambre déclarée : un « Espace nuit », même règle que l\'écran', () => {
+  const f = ficheRiche()
+  f.section_logement.typologie = 'Studio'
+  f.section_visite.nombre_chambres = ''
+  const { contenu } = contenuEtTexte(f)
+  const sousTitres = partie(contenu, 'pieces').blocs.filter((b) => b.type === 'sousTitre').map((b) => b.texte)
+  assert.equal(sousTitres[0], 'Espace nuit')
+  assert.ok(!sousTitres.some((t) => /^Chambre/.test(t)))
+})
+
+test('linge : après un « Non », les anciens détails d\'inventaire ne sortent plus', () => {
+  const f = ficheRiche() // inventaire, état, emplacement et code renseignés
+  f.section_gestion_linge.dispose_de_linge = false
+  const { contenu, texte } = contenuEtTexte(f)
+  const linge = partie(contenu, 'linge')
+  assert.equal(valeur(linge, 'Linge fourni dans le logement'), 'Non')
+  assert.equal(linge.blocs.length, 1, 'une seule ligne : la réponse')
+  assert.doesNotMatch(texte, /Malle en osier|2580|Lits 140|Usagé/)
+  // Question jamais répondue : rien non plus, comme à l'écran.
+  f.section_gestion_linge.dispose_de_linge = null
+  assert.equal(partie(construireContenuMenage(f), 'linge'), undefined)
+})
+
 test('un sous-titre de pièce n\'est jamais rendu seul', () => {
   const f = fichePresqueVide()
   f.section_chambres.chambre_1.nom_description = 'Chambre bleue' // un nom, mais rien d'autre

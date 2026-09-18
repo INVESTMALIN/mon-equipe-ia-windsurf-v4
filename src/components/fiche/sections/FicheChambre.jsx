@@ -5,6 +5,7 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Bed, Home } from 'lucide-react'
 import { useState, useCallback } from 'react'
+import { chambresDeclarees } from '../../../lib/piecesDeclarees'
 
 // 🔥 COMPOSANT ACCORDÉON CHAMBRE (externe pour clarté)
 const AccordeonChambre = ({ 
@@ -257,18 +258,18 @@ export default function FicheChambre() {
     updateField
   } = useForm()
 
-  // Récupérer le nombre de chambres depuis la section Visite
+  // Nombre de chambres actives et cas studio : règle partagée avec la Fiche Ménage
+  // (lib/piecesDeclarees), pour que l'écran et le document montrent les mêmes chambres.
   const formDataVisite = getField('section_visite')
-  const nombreChambres = parseInt(formDataVisite.nombre_chambres) || 0
-  
-  // Récupérer la typologie depuis la section Logement
   const formDataLogement = getField('section_logement')
+  const nombreChambres = parseInt(formDataVisite.nombre_chambres) || 0
+  const declarees = chambresDeclarees(formDataVisite, formDataLogement)
   const typologie = formDataLogement.typologie
 
   // LOGIQUE STUDIO : Si Studio, forcer l'affichage d'1 "espace nuit"
   const isStudio = typologie === "Studio"
-  const chambresAffichees = isStudio && nombreChambres === 0 ? 1 : nombreChambres
-  const labelChambre = isStudio && nombreChambres === 0 ? "Espace nuit" : "Chambre"
+  const chambresAffichees = declarees.nombre
+  const labelChambre = declarees.espaceNuit ? "Espace nuit" : "Chambre"
 
   // Récupérer les données chambres
   const formDataChambres = getField('section_chambres')
