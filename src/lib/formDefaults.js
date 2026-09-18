@@ -4,7 +4,7 @@
 // ET par PdfBuilder.js (distinguer une valeur saisie d un defaut). Garder ce module
 // libre de toute dependance runtime pour que le builder PDF reste chargeable headless.
 // (countries.js respecte la meme contrainte : donnees pures, ni React ni Supabase.)
-import { DEFAULT_COUNTRY_CODE } from './countries'
+import { DEFAULT_COUNTRY_CODE } from './countries.js'
 
 // Valeurs PRE-SELECTIONNEES a la creation d'une fiche : visibles a l'ecran et
 // modifiables, mais que l'utilisateur n'a pas saisies.

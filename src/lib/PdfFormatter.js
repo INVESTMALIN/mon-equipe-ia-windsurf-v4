@@ -1,6 +1,6 @@
 // src/lib/PdfFormatter.js
-import { cleanFormData, extractSummary, validateDataConsistency } from './DataProcessor'
-import { resolveInstructionsMenageLegacy } from './instructionsMenageLegacy'
+import { cleanFormData, extractSummary, validateDataConsistency } from './DataProcessor.js'
+import { resolveInstructionsMenageLegacy } from './instructionsMenageLegacy.js'
 
 /**
  * Formate les données de fiche pour génération PDF

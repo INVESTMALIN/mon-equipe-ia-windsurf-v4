@@ -15,7 +15,7 @@
 // sous « Instructions Ménage » pendant que le PDF la montrerait sous « Avis » : deux
 // documents en désaccord sur la même fiche.
 
-import { TYPES_MAINTENANCE } from './avisGrilleHelpers'
+import { TYPES_MAINTENANCE } from './avisGrilleHelpers.js'
 
 /**
  * Applique le repli et retire les clés héritées de la copie d'Avis.
