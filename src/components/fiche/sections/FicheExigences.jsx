@@ -3,6 +3,7 @@ import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Settings } from 'lucide-react'
+import { resolveAnimauxLegacy } from '../../../lib/animauxLegacy'
 
 export default function FicheExigences() {
   const { 
@@ -44,12 +45,12 @@ export default function FicheExigences() {
     }
   }
 
-  const animauxLegacy = getField('section_equipements.animaux_acceptes') === true ? 'oui' : ''
-  const animauxAcceptes = getField('section_exigences.animaux_acceptes') || animauxLegacy
-  const animauxCommentaire =
-    getField('section_exigences.animaux_commentaire') ||
-    getField('section_equipements.animaux_commentaire') ||
-    ''
+  // Règle de repli partagée avec la Fiche Ménage (lib/animauxLegacy) : l'écran et le
+  // document lisent la même chose sur une fiche héritée.
+  const { acceptes: animauxAcceptes, commentaire: animauxCommentaire } = resolveAnimauxLegacy(
+    getField('section_exigences'),
+    getField('section_equipements')
+  )
 
   return (
     <div className="flex min-h-screen">
