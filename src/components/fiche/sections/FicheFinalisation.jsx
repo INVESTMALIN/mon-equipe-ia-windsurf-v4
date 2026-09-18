@@ -10,7 +10,7 @@ import { FL, DISPLAY_SERIF } from '../../../lib/ficheLogementTheme'
 import { useForm } from '../../FormContext'
 import { generatePdfTitle } from '../../../lib/PdfFormatter'
 import {
-  CheckCircle, FileText, Save, Sparkles, Loader2, AlertCircle, Settings, ArrowLeft, Lock, SprayCan,
+  CheckCircle, FileText, Save, Sparkles, Loader2, AlertCircle, Settings, ArrowLeft, Lock, BrushCleaning,
 } from 'lucide-react'
 import { generatePdfClientSide } from '../../../lib/PdfBuilder'
 import { generateFicheMenagePdf } from '../../../lib/PdfMenageBuilder'
@@ -637,7 +637,7 @@ export default function FicheFinalisation() {
                         : 'bg-[#dbae61] hover:bg-[#c49a4f] text-white'
                     }`}
                   >
-                    {menageLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <SprayCan className="w-5 h-5" />}
+                    {menageLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <BrushCleaning className="w-5 h-5" />}
                     {menageLoading ? 'Génération en cours...' : !roleLoaded ? 'Chargement…' : 'Générer la Fiche Ménage'}
                   </button>
                 </div>
