@@ -273,6 +273,20 @@ export const initialFormData = {
       code: ""
     },
 
+    // Boîte à clés de SECOURS (cf. src/lib/clefsSecours.js, parité coordinateurs)
+    secours: null, // true/false/null
+    secoursType: "", // "TTlock" | "Masterlock"
+    secoursEmplacement: "",
+    secoursEmplacementEmballage: "",
+    secoursTtlock: {
+      masterpinConciergerie: "",
+      codeProprietaire: "",
+      codeMenage: ""
+    },
+    secoursMasterlock: {
+      code: ""
+    },
+
     // Interphone
     interphone: null, // true/false/null
     interphoneDetails: "",
@@ -299,7 +313,9 @@ export const initialFormData = {
       interphone_taken: false,
       tempo_gache_taken: false,
       digicode_taken: false,
-      clefs_taken: false
+      clefs_taken: false,
+      secours_emplacement_taken: false,
+      secours_emballage_taken: false
     }
   },
 

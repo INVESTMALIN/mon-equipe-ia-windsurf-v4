@@ -695,6 +695,14 @@ const humanizeKey = (key) => {
     video_globale_taken: 'vidéo globale',
     clefs_taken: 'clefs',
 
+    // Boîte à clés de secours (src/lib/clefsSecours.js)
+    secours: 'Boîte à clés de secours',
+    secoursType: 'Type de la boîte de secours',
+    secoursEmplacement: 'Emplacement de la boîte de secours',
+    secoursEmplacementEmballage: 'Emplacement de l\'emballage (secours)',
+    secoursTtlock: 'Codes TTlock (boîte de secours)',
+    secoursMasterlock: 'Code Masterlock (boîte de secours)',
+
     // Équipements courants
     wifi_statut: 'WiFi',
     parking_type: 'Type de parking',
@@ -911,6 +919,8 @@ const cleanPhotoKey = (key) => {
     clefs: 'clés',
     linge: 'linge',
     emplacement: 'emplacement',
+    secours_emplacement: 'emplacement de la boîte de secours',
+    secours_emballage: 'emballage de la boîte de secours',
     // Instructions ménage
     etat_logement_video: "vidéo de l'état du logement",
     consignes_videos: 'vidéos des consignes de ménage',
