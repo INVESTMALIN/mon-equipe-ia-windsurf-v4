@@ -337,3 +337,26 @@ Deno.test('fiche_id remonté du champ top-level id', () => {
   assertEquals(mapFicheToContrat({ id: 'abc-123' }).fiche_id, 'abc-123')
   assertEquals(mapFicheToContrat({}).fiche_id, null)
 })
+
+Deno.test('boîte à clés de secours (sept. 2026) : contrat identique avec ou sans, aucune valeur du bloc ne sort', () => {
+  const base = {
+    section_logement: { type_propriete: 'Appartement' },
+    section_clefs: { boiteType: 'Masterlock', emplacementBoite: 'Porte', interphone: false, digicode: false, tempoGache: false }
+  }
+  const avecSecours = {
+    ...base,
+    section_clefs: {
+      ...base.section_clefs,
+      secours: true,
+      secoursType: 'TTlock',
+      secoursEmplacement: 'CANARI-EMPLACEMENT-SECOURS',
+      secoursTtlock: { masterpinConciergerie: 'CANARI-MP', codeProprietaire: 'CANARI-PROPRIO', codeMenage: 'CANARI-MENAGE' },
+      secoursMasterlock: { code: 'CANARI-ML' },
+      photos_rappels: { secours_emplacement_taken: true, secours_emballage_taken: true }
+    }
+  }
+  const sans = mapFicheToContrat(base)
+  const avec = mapFicheToContrat(avecSecours)
+  assertEquals(avec, sans)
+  assert(!/CANARI/.test(JSON.stringify(avec)))
+})

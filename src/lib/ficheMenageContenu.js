@@ -17,7 +17,8 @@
 //   - téléphone et email du propriétaire (section_proprietaire.telephone / .email) ;
 //   - masterpin conciergerie, code propriétaire, code voyageur (section_clefs.*) —
 //     seul le code MÉNAGE (ttlock / igloohome) ou le code Masterlock est un accès
-//     destiné au prestataire ;
+//     destiné au prestataire ; même règle pour la boîte à clés de SECOURS
+//     (secoursTtlock.codeMenage ou secoursMasterlock.code, si la réponse est oui) ;
 //   - accès Airbnb / Booking, réglementation, exigences commerciales, avis ;
 //   - Wi-Fi (SSID, mot de passe), TV, services de streaming, consoles ;
 //   - chauffage GÉNÉRAL du logement (chauffage_type / chauffage_instructions) — à ne
@@ -39,6 +40,7 @@ import { resolveAnimauxLegacy } from './animauxLegacy.js'
 import { buildConsommablesRecapLite } from './consommablesRecapLite.js'
 import { getCountryLabel } from './countries.js'
 import { chambresDeclarees, sallesDeBainsDeclarees } from './piecesDeclarees.js'
+import { boiteSecoursMenage } from './clefsSecours.js'
 
 // ── Lecteurs typés ────────────────────────────────────────────────────────────
 const texte = (v) => {
@@ -241,12 +243,18 @@ function partieAcces(formData) {
   const physiques = objet(clefs.clefs)
   const guide = objet(formData.section_guide_acces)
   const boite = boiteAcles(clefs)
+  // Boîte de secours : même règle que la principale, seul le code ménage sort,
+  // et seulement si la réponse est « oui » (src/lib/clefsSecours.js).
+  const secours = boiteSecoursMenage(clefs)
 
   return partie('acces', 'Accès et clés', 'acces', [
     champs([
       ['Boîte à clés', boite.type],
       ['Emplacement de la boîte', texte(clefs.emplacementBoite)],
       ['Code ménage', boite.code],
+      ['Boîte à clés de secours', secours.type],
+      ['Emplacement de la boîte de secours', secours.type ? texte(clefs.secoursEmplacement) : null],
+      ['Code ménage (boîte de secours)', secours.code],
       ['Interphone', ouiNon(clefs.interphone)],
       ['Tempo-gâche', ouiNon(clefs.tempoGache)],
       ['Digicode', ouiNon(clefs.digicode)],

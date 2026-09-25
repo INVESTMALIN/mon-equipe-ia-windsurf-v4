@@ -3,6 +3,7 @@ import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Key } from 'lucide-react'
+import { SECOURS_TYPES, appliquerReponseSecours, appliquerTypeSecours } from '../../../lib/clefsSecours'
 
 export default function FicheClefs() {
   const {
@@ -22,6 +23,17 @@ export default function FicheClefs() {
 
   const handleRadioChange = (field, value) => {
     updateField(field, value === 'true' ? true : (value === 'false' ? false : null))
+  }
+
+  // Boîte à clés de secours : une seule mise à jour atomique de la section,
+  // branche abandonnée vidée, rappels photo compris (src/lib/clefsSecours.js).
+  const handleSecoursChange = (value) => {
+    const reponse = value === 'true' ? true : (value === 'false' ? false : null)
+    updateField('section_clefs', appliquerReponseSecours(getField('section_clefs'), reponse))
+  }
+
+  const handleSecoursTypeChange = (type) => {
+    updateField('section_clefs', appliquerTypeSecours(getField('section_clefs'), type))
   }
 
   return (
@@ -248,6 +260,168 @@ export default function FicheClefs() {
                     </div>
                   </div>
                 )}
+
+                {/* Boîte à clés de secours */}
+                <div className="border border-gray-200 rounded-xl p-6">
+                  <label className="block font-medium text-gray-900 mb-3">Le logement est-il équipé d'une boîte à clés de secours ? *</label>
+                  <div className="flex gap-6 mb-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="secours"
+                        value="true"
+                        checked={formData.secours === true}
+                        onChange={(e) => handleSecoursChange(e.target.value)}
+                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
+                      />
+                      <span>Oui</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="secours"
+                        value="false"
+                        checked={formData.secours === false}
+                        onChange={(e) => handleSecoursChange(e.target.value)}
+                        className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
+                      />
+                      <span>Non</span>
+                    </label>
+                  </div>
+
+                  {formData.secours === true && (
+                    <div className="pl-6 border-l-4 border-amber-500 space-y-6 mt-4">
+                      <div>
+                        <label className="block font-medium text-gray-900 mb-3">Type de la boîte à clés de secours *</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {SECOURS_TYPES.map(type => (
+                            <label key={type} className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg hover:border-[#dbae61] hover:bg-[#dbae61]/5">
+                              <input
+                                type="radio"
+                                name="secoursType"
+                                value={type}
+                                checked={formData.secoursType === type}
+                                onChange={(e) => handleSecoursTypeChange(e.target.value)}
+                                className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
+                              />
+                              <span>{type}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-gray-900 mb-2">Emplacement de la boîte à clés de secours *</label>
+                        <textarea
+                          placeholder="Décrivez précisément où se trouve la boîte à clés de secours"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                          rows="3"
+                          value={formData.secoursEmplacement || ''}
+                          onChange={(e) => handleInputChange('section_clefs.secoursEmplacement', e.target.value)}
+                        />
+
+                        {/* Rappel photo emplacement (Lite ne stocke pas de média) */}
+                        <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="secours_emplacement_photo_taken"
+                              className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                              checked={getField('section_clefs.photos_rappels.secours_emplacement_taken') || false}
+                              onChange={(e) => handleInputChange('section_clefs.photos_rappels.secours_emplacement_taken', e.target.checked)}
+                            />
+                            <label htmlFor="secours_emplacement_photo_taken" className="text-sm text-yellow-800">
+                              📸 Pensez à prendre une photo de l'emplacement de la boîte à clés de secours
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-gray-900 mb-2">
+                          Emplacement de l'emballage de la boîte à clés de secours (Si possible dans l'espace de stockage prestataire) *
+                        </label>
+                        <textarea
+                          placeholder="Décrivez où se trouve l'emballage de la boîte à clés de secours"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all resize-none"
+                          rows="3"
+                          value={formData.secoursEmplacementEmballage || ''}
+                          onChange={(e) => handleInputChange('section_clefs.secoursEmplacementEmballage', e.target.value)}
+                        />
+
+                        {/* Rappel photo emballage */}
+                        <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="secours_emballage_photo_taken"
+                              className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                              checked={getField('section_clefs.photos_rappels.secours_emballage_taken') || false}
+                              onChange={(e) => handleInputChange('section_clefs.photos_rappels.secours_emballage_taken', e.target.checked)}
+                            />
+                            <label htmlFor="secours_emballage_photo_taken" className="text-sm text-yellow-800">
+                              📸 Pensez à prendre une photo de l'emplacement de l'emballage (secours)
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {formData.secoursType === "TTlock" && (
+                        <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
+                          <h3 className="text-lg font-semibold text-blue-800 mb-4">Configuration TTlock (boîte de secours)</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block font-medium text-gray-900 mb-2">Code Masterpin conciergerie *</label>
+                              <input
+                                type="text"
+                                placeholder="ex: 2863"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                                value={formData.secoursTtlock?.masterpinConciergerie || ''}
+                                onChange={(e) => handleInputChange('section_clefs.secoursTtlock.masterpinConciergerie', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-medium text-gray-900 mb-2">Code Propriétaire *</label>
+                              <input
+                                type="text"
+                                placeholder="ex: 1234"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                                value={formData.secoursTtlock?.codeProprietaire || ''}
+                                onChange={(e) => handleInputChange('section_clefs.secoursTtlock.codeProprietaire', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-medium text-gray-900 mb-2">Code Ménage *</label>
+                              <input
+                                type="text"
+                                placeholder="ex: 5678"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                                value={formData.secoursTtlock?.codeMenage || ''}
+                                onChange={(e) => handleInputChange('section_clefs.secoursTtlock.codeMenage', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {formData.secoursType === "Masterlock" && (
+                        <div className="p-6 bg-orange-50 border border-orange-200 rounded-xl">
+                          <h3 className="text-lg font-semibold text-orange-800 mb-4">Configuration Masterlock (boîte de secours)</h3>
+                          <div>
+                            <label className="block font-medium text-gray-900 mb-2">Code de la boîte à clés de secours *</label>
+                            <input
+                              type="text"
+                              placeholder="ex: 2863"
+                              className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#dbae61] focus:border-transparent transition-all"
+                              value={formData.secoursMasterlock?.code || ''}
+                              onChange={(e) => handleInputChange('section_clefs.secoursMasterlock.code', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Interphone */}
                 <div className="border border-gray-200 rounded-xl p-6">
