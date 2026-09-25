@@ -4,6 +4,7 @@ import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Key } from 'lucide-react'
 import { SECOURS_TYPES, appliquerReponseSecours, appliquerTypeSecours } from '../../../lib/clefsSecours'
+import { appliquerReponseAcces } from '../../../lib/clefsAcces'
 
 export default function FicheClefs() {
   const {
@@ -34,6 +35,13 @@ export default function FicheClefs() {
 
   const handleSecoursTypeChange = (type) => {
     updateField('section_clefs', appliquerTypeSecours(getField('section_clefs'), type))
+  }
+
+  // Interphone, tempo-gâche, digicode : même règle, instructions et rappel photo
+  // vidés au passage à « non » (src/lib/clefsAcces.js).
+  const handleAccesChange = (champ, value) => {
+    const reponse = value === 'true' ? true : (value === 'false' ? false : null)
+    updateField('section_clefs', appliquerReponseAcces(getField('section_clefs'), champ, reponse))
   }
 
   return (
@@ -118,8 +126,8 @@ export default function FicheClefs() {
                         type="checkbox"
                         id="emplacement_photo_taken"
                         className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
-                        checked={getField('section_clefs.photos_rappels.clefs_taken') || false}
-                        onChange={(e) => handleInputChange('section_clefs.photos_rappels.clefs_taken', e.target.checked)}
+                        checked={getField('section_clefs.photos_rappels.emplacement_taken') || false}
+                        onChange={(e) => handleInputChange('section_clefs.photos_rappels.emplacement_taken', e.target.checked)}
                       />
                       <label htmlFor="emplacement_photo_taken" className="text-sm text-yellow-800">
                         📸 Pensez à prendre une photo de l'emplacement de la boîte à clés
@@ -433,7 +441,7 @@ export default function FicheClefs() {
                         name="interphone"
                         value="true"
                         checked={formData.interphone === true}
-                        onChange={(e) => handleRadioChange('section_clefs.interphone', e.target.value)}
+                        onChange={(e) => handleAccesChange('interphone', e.target.value)}
                         className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                       />
                       <span>Oui</span>
@@ -444,7 +452,7 @@ export default function FicheClefs() {
                         name="interphone"
                         value="false"
                         checked={formData.interphone === false}
-                        onChange={(e) => handleRadioChange('section_clefs.interphone', e.target.value)}
+                        onChange={(e) => handleAccesChange('interphone', e.target.value)}
                         className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                       />
                       <span>Non</span>
@@ -472,6 +480,8 @@ export default function FicheClefs() {
                             type="checkbox"
                             id="interphone_photo_taken"
                             className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                            checked={getField('section_clefs.photos_rappels.interphone_taken') || false}
+                            onChange={(e) => handleInputChange('section_clefs.photos_rappels.interphone_taken', e.target.checked)}
                           />
                           <label htmlFor="interphone_photo_taken" className="text-sm text-yellow-800">
                             📸 Pensez à prendre une photo de l'interphone
@@ -492,7 +502,7 @@ export default function FicheClefs() {
                         name="tempoGache"
                         value="true"
                         checked={formData.tempoGache === true}
-                        onChange={(e) => handleRadioChange('section_clefs.tempoGache', e.target.value)}
+                        onChange={(e) => handleAccesChange('tempoGache', e.target.value)}
                         className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                       />
                       <span>Oui</span>
@@ -503,7 +513,7 @@ export default function FicheClefs() {
                         name="tempoGache"
                         value="false"
                         checked={formData.tempoGache === false}
-                        onChange={(e) => handleRadioChange('section_clefs.tempoGache', e.target.value)}
+                        onChange={(e) => handleAccesChange('tempoGache', e.target.value)}
                         className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                       />
                       <span>Non</span>
@@ -531,6 +541,8 @@ export default function FicheClefs() {
                             type="checkbox"
                             id="tempo_gache_photo_taken"
                             className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                            checked={getField('section_clefs.photos_rappels.tempo_gache_taken') || false}
+                            onChange={(e) => handleInputChange('section_clefs.photos_rappels.tempo_gache_taken', e.target.checked)}
                           />
                           <label htmlFor="tempo_gache_photo_taken" className="text-sm text-yellow-800">
                             📸 Pensez à prendre une photo du tempo-gâche
@@ -551,7 +563,7 @@ export default function FicheClefs() {
                         name="digicode"
                         value="true"
                         checked={formData.digicode === true}
-                        onChange={(e) => handleRadioChange('section_clefs.digicode', e.target.value)}
+                        onChange={(e) => handleAccesChange('digicode', e.target.value)}
                         className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                       />
                       <span>Oui</span>
@@ -562,7 +574,7 @@ export default function FicheClefs() {
                         name="digicode"
                         value="false"
                         checked={formData.digicode === false}
-                        onChange={(e) => handleRadioChange('section_clefs.digicode', e.target.value)}
+                        onChange={(e) => handleAccesChange('digicode', e.target.value)}
                         className="w-4 h-4 text-[#dbae61] focus:ring-[#dbae61] cursor-pointer"
                       />
                       <span>Non</span>
@@ -590,6 +602,8 @@ export default function FicheClefs() {
                             type="checkbox"
                             id="digicode_photo_taken"
                             className="h-4 w-4 text-[#dbae61] focus:ring-[#dbae61] rounded"
+                            checked={getField('section_clefs.photos_rappels.digicode_taken') || false}
+                            onChange={(e) => handleInputChange('section_clefs.photos_rappels.digicode_taken', e.target.checked)}
                           />
                           <label htmlFor="digicode_photo_taken" className="text-sm text-yellow-800">
                             📸 Pensez à prendre une photo du digicode
