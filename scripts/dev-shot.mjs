@@ -25,6 +25,9 @@
 //     liste réellement lue dans la page. Aucun autre bouton n'est actionné.
 //  3. Il ne génère JAMAIS de PDF. Le premier PDF poserait `fields_locked` sur la
 //     fiche de démo et gèlerait ses champs d'identification.
+//  4. Il n'ouvre AUCUNE section avant que la fiche soit réellement chargée (cf.
+//     attendreFicheChargee). Sans ça, la section est rendue sur le formulaire vierge :
+//     Chambres capture « Aucune chambre configurée » et la preuve est fausse.
 
 import { chromium } from 'playwright-core'
 import { mkdirSync, existsSync, statSync } from 'node:fs'
@@ -99,24 +102,73 @@ function sidebarItems() {
     .locator('li')
 }
 
+// ─── Attente du chargement réel de la fiche ───
+// Le wizard se monte AVANT que la fiche arrive : il affiche d'abord le formulaire
+// vierge (nom « Nouvelle fiche »), puis FormContext remplace l'état au retour de la
+// lecture Supabase. Deux signaux, dans l'ordre :
+//   1. la réponse de la lecture `fiche_lite` de CETTE fiche (réseau, lecture seule) ;
+//   2. le champ « Nom de la fiche » (étape 1, affichée à l'ouverture) qui montre
+//      exactement le nom renvoyé par la base — preuve que l'état React est à jour.
+// Même principe que le dev-shot de Fiche Logement (champ nom ≠ « Nouvelle fiche »),
+// rendu exact par la comparaison au nom lu en base.
+function attendreReponseFiche() {
+  const attente = page.waitForResponse(
+    (r) => r.request().method() === 'GET'
+      && r.url().includes('/rest/v1/fiche_lite')
+      && r.url().includes(encodeURIComponent(ficheId)),
+    { timeout: 30000 }
+  )
+  attente.catch(() => {}) // une attente abandonnée (redirection login) ne doit pas remonter
+  return attente
+}
+
+async function attendreFicheChargee(attenteReponse) {
+  const reponse = await attenteReponse
+  if (!reponse.ok()) throw new Error(`lecture de la fiche ${ficheId} refusée (HTTP ${reponse.status()})`)
+  const corps = await reponse.json()
+  const ligne = Array.isArray(corps) ? corps[0] : corps
+  if (!ligne?.id) throw new Error(`fiche ${ficheId} introuvable ou inaccessible pour ce compte`)
+
+  const champNom = page.locator('label', { hasText: 'Nom de la fiche' })
+    .first()
+    .locator('xpath=following-sibling::input[1]')
+  await champNom.waitFor({ state: 'visible', timeout: 15000 })
+  try {
+    await page.waitForFunction(
+      ({ el, attendu }) => el.value === attendu,
+      { el: await champNom.elementHandle(), attendu: ligne.nom ?? '' },
+      { timeout: 15000 }
+    )
+  } catch {
+    const vu = await champNom.inputValue().catch(() => '(illisible)')
+    throw new Error(`fiche non chargée dans le formulaire : il affiche "${vu}" au lieu de "${ligne.nom}"`)
+  }
+  return ligne.nom
+}
+
 try {
   // `domcontentloaded` et non `networkidle` : l'app garde des connexions Supabase
   // ouvertes, `networkidle` peut ne jamais se produire.
+  let attenteFiche = opts.dashboard ? null : attendreReponseFiche()
   await page.goto(cible, { waitUntil: 'domcontentloaded', timeout: 30000 })
 
   let reconnecte = false
   if (new URL(page.url()).pathname.startsWith(LOGIN_PATH)) {
     await login()
     reconnecte = true
+    attenteFiche = opts.dashboard ? null : attendreReponseFiche()
     await page.goto(cible, { waitUntil: 'domcontentloaded', timeout: 30000 })
   }
 
   let sectionsDisponibles = []
   let sectionAtteinte = null
+  let ficheChargee = null
 
   if (!opts.dashboard) {
     // Attendre que le wizard soit monté (la sidebar est rendue avec les sections).
     await sidebarItems().first().waitFor({ state: 'visible', timeout: 20000 })
+    // Puis que la fiche soit réellement chargée, AVANT tout clic de section.
+    ficheChargee = await attendreFicheChargee(attenteFiche)
     sectionsDisponibles = (await sidebarItems().allInnerTexts()).map((t) => t.trim()).filter(Boolean)
 
     if (opts.sections) {
@@ -213,6 +265,7 @@ try {
     ok: true,
     url: page.url(),
     baseUrl,
+    ficheChargee,
     sectionDemandee: opts.section || '(aucune)',
     sectionAtteinte: sectionAtteinte || '(aucune)',
     progression,
