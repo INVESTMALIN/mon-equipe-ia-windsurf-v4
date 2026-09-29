@@ -74,6 +74,9 @@ export default function FicheSalonSam() {
     'Décorative'
   ]
 
+  // Type de vitrage : valeurs stockées telles quelles (mêmes valeurs que Fiche Logement)
+  const typesVitrage = ['Simple vitrage', 'Double vitrage']
+
   return (
     <div className="flex min-h-screen">
       <SidebarMenu />
@@ -146,6 +149,28 @@ export default function FicheSalonSam() {
                       />
                     </div>
                   )}
+
+                  {/* Type de vitrage (facultatif, aucune valeur par défaut) — parité Fiche Logement */}
+                  <div className="mt-4">
+                    <label className="block font-medium text-gray-900 mb-2">
+                      Type de vitrage
+                    </label>
+                    <div className="flex flex-wrap gap-6">
+                      {typesVitrage.map((type) => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="salon_type_vitrage"
+                            value={type}
+                            checked={formData.type_vitrage === type}
+                            onChange={(e) => handleRadioChange('section_salon_sam.type_vitrage', e.target.value)}
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                          <span className="text-sm">{type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* 3. Cheminée - Type (conditionnel) */}

@@ -708,6 +708,8 @@ const humanizeKey = (key) => {
     parking_type: 'Type de parking',
     piscine: 'Piscine',
     jacuzzi: 'Jacuzzi',
+    // Chambres (objet chambre_N) et Salon — même libellé que Fiche Logement
+    type_vitrage: 'Type de vitrage',
 
     // Propriétaire
     nom_proprietaire: 'Nom du propriétaire',

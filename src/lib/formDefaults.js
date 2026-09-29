@@ -657,6 +657,7 @@ export const initialFormData = {
       equipements_coffre_fort: null,
       equipements_autre: null,
       equipements_autre_details: "",
+      type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
       elements_abimes: null,
       photos_rappels: {
         photos_chambre_taken: false,
@@ -691,6 +692,7 @@ export const initialFormData = {
       equipements_coffre_fort: null,
       equipements_autre: null,
       equipements_autre_details: "",
+      type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
       elements_abimes: null,
       photos_rappels: {
         photos_chambre_taken: false,
@@ -725,6 +727,7 @@ export const initialFormData = {
       equipements_coffre_fort: null,
       equipements_autre: null,
       equipements_autre_details: "",
+      type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
       elements_abimes: null,
       photos_rappels: {
         photos_chambre_taken: false,
@@ -759,6 +762,7 @@ export const initialFormData = {
       equipements_coffre_fort: null,
       equipements_autre: null,
       equipements_autre_details: "",
+      type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
       elements_abimes: null,
       photos_rappels: {
         photos_chambre_taken: false,
@@ -793,6 +797,7 @@ export const initialFormData = {
       equipements_coffre_fort: null,
       equipements_autre: null,
       equipements_autre_details: "",
+      type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
       elements_abimes: null,
       photos_rappels: {
         photos_chambre_taken: false,
@@ -827,6 +832,7 @@ export const initialFormData = {
       equipements_coffre_fort: null,
       equipements_autre: null,
       equipements_autre_details: "",
+      type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
       elements_abimes: null,
       photos_rappels: {
         photos_chambre_taken: false,
@@ -1187,6 +1193,7 @@ export const initialFormData = {
     equipements_chauffage: null,
     equipements_autre: null,
     equipements_autre_details: "",
+    type_vitrage: "", // radio facultatif : "Simple vitrage" | "Double vitrage" (parité Fiche Logement #103)
 
     // Cheminée (conditionnel)
     cheminee_type: "", // "Électrique", "Éthanol", "Gaz", "Poêle à granulés", "Bois", "Décorative"
