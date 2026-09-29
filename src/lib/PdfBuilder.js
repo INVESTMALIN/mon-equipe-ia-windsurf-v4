@@ -782,6 +782,7 @@ const ACCENTS = {
   econome: 'économe',
   ecumoire: 'écumoire',
   electrique: 'électrique',
+  electriques: 'électriques',
   elegant: 'élégant',
   elements: 'éléments',
   eponge: 'éponge',

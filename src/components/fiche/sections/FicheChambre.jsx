@@ -352,6 +352,12 @@ export default function FicheChambre() {
     { key: 'equipements_espace_rangement', label: 'Espace de rangement pour les vêtements (placard, armoire)' },
     { key: 'equipements_lit_bebe_60_120', label: 'Lit pour bébé (60 × 120 cm)' },
     { key: 'equipements_stores', label: 'Stores' },
+    // Ordre et libellés de Fiche Logement (#60). « Stores » ci-dessus : case historique, gardée
+    // tant que des fiches l'ont cochée (on ne sait pas si c'était manuel ou électrique).
+    { key: 'equipements_stores_manuels', label: 'Stores manuels' },
+    { key: 'equipements_volets', label: 'Volets' },
+    { key: 'equipements_stores_electriques', label: 'Stores électriques' },
+    { key: 'equipements_rideaux_occultants', label: 'Rideau occultant' },
     { key: 'equipements_television', label: 'Télévision' },
     { key: 'equipements_oreillers_couvertures_sup', label: 'Oreillers et couvertures supplémentaires' },
     { key: 'equipements_chauffage', label: 'Chauffage' },
