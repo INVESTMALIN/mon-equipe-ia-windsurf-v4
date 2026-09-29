@@ -4,8 +4,9 @@ import ProgressBar from '../ProgressBar'
 import NavigationButtons from '../NavigationButtons'
 import { useForm } from '../../FormContext'
 import { Bed, Home } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { chambresDeclarees } from '../../../lib/piecesDeclarees'
+import { storesHistoriqueInitial, majStoresHistorique, afficherStoresHistorique } from '../../../lib/storesHistorique'
 
 // Valeurs stockées telles quelles (mêmes valeurs que Fiche Logement)
 const TYPES_VITRAGE = ['Simple vitrage', 'Double vitrage']
@@ -297,6 +298,20 @@ export default function FicheChambre() {
   // Récupérer les données chambres
   const formDataChambres = getField('section_chambres')
 
+  // Ancienne case « Stores » : masquée sauf dans les chambres où elle a été vue cochée
+  // depuis l'ouverture de la section, pour la fiche courante (cf. lib/storesHistorique).
+  const ficheId = getField('id')
+  const [storesHistorique, setStoresHistorique] = useState(() => storesHistoriqueInitial(ficheId))
+  useEffect(() => {
+    setStoresHistorique((prev) => majStoresHistorique(prev, ficheId, formDataChambres))
+  }, [formDataChambres, ficheId])
+
+  const equipementsDeLaChambre = (chambreKey) => (
+    afficherStoresHistorique(storesHistorique, ficheId, formDataChambres, chambreKey)
+      ? equipements
+      : equipements.filter(({ key }) => key !== 'equipements_stores')
+  )
+
   // État pour gérer les accordéons ouverts
   const [accordeonsOuverts, setAccordeonsOuverts] = useState({
     chambre_1: true, // Premier accordéon ouvert par défaut
@@ -352,8 +367,8 @@ export default function FicheChambre() {
     { key: 'equipements_espace_rangement', label: 'Espace de rangement pour les vêtements (placard, armoire)' },
     { key: 'equipements_lit_bebe_60_120', label: 'Lit pour bébé (60 × 120 cm)' },
     { key: 'equipements_stores', label: 'Stores' },
-    // Ordre et libellés de Fiche Logement (#60). « Stores » ci-dessus : case historique, gardée
-    // tant que des fiches l'ont cochée (on ne sait pas si c'était manuel ou électrique).
+    // Ordre et libellés de Fiche Logement (#60). « Stores » ci-dessus : case historique,
+    // jamais convertie (manuel ou électrique ?), masquée si non cochée (equipementsDeLaChambre).
     { key: 'equipements_stores_manuels', label: 'Stores manuels' },
     { key: 'equipements_volets', label: 'Volets' },
     { key: 'equipements_stores_electriques', label: 'Stores électriques' },
@@ -452,7 +467,7 @@ export default function FicheChambre() {
                         handleCheckboxChange={handleCheckboxChange}
                         handleCounterChange={handleCounterChange}
                         typesLits={typesLits}
-                        equipements={equipements}
+                        equipements={equipementsDeLaChambre(chambreKey)}
                       />
                     )
                   })}
