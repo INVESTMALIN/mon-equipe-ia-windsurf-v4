@@ -6,6 +6,7 @@ import { useForm } from '../../FormContext'
 import { Bed, Home } from 'lucide-react'
 import { useState, useCallback, useEffect } from 'react'
 import { chambresDeclarees } from '../../../lib/piecesDeclarees'
+import { storesHistoriqueInitial, majStoresHistorique, afficherStoresHistorique } from '../../../lib/storesHistorique'
 
 // Valeurs stockées telles quelles (mêmes valeurs que Fiche Logement)
 const TYPES_VITRAGE = ['Simple vitrage', 'Double vitrage']
@@ -297,25 +298,19 @@ export default function FicheChambre() {
   // Récupérer les données chambres
   const formDataChambres = getField('section_chambres')
 
-  // Ancienne case « Stores » (remplacée par les cases détaillées, #74) : affichée
-  // seulement dans les chambres où elle a été vue cochée depuis l'ouverture de la
-  // section. Mémorisé pour qu'un décochage ne la fasse pas disparaître sous le doigt ;
-  // au prochain chargement, elle ne revient que si elle est toujours cochée. Aucune
-  // donnée n'est modifiée : les fiches qui l'ont cochée la gardent (PDF, Fiche Ménage).
-  const [storesHistoriqueVus, setStoresHistoriqueVus] = useState(() => new Set())
+  // Ancienne case « Stores » : masquée sauf dans les chambres où elle a été vue cochée
+  // depuis l'ouverture de la section, pour la fiche courante (cf. lib/storesHistorique).
+  const ficheId = getField('id')
+  const [storesHistorique, setStoresHistorique] = useState(() => storesHistoriqueInitial(ficheId))
   useEffect(() => {
-    const cochees = Object.keys(formDataChambres || {})
-      .filter((key) => formDataChambres[key]?.equipements_stores === true)
-    setStoresHistoriqueVus((prev) => (
-      cochees.every((key) => prev.has(key)) ? prev : new Set([...prev, ...cochees])
-    ))
-  }, [formDataChambres])
+    setStoresHistorique((prev) => majStoresHistorique(prev, ficheId, formDataChambres))
+  }, [formDataChambres, ficheId])
 
-  const equipementsDeLaChambre = (chambreKey) => {
-    const afficherStores = storesHistoriqueVus.has(chambreKey)
-      || formDataChambres?.[chambreKey]?.equipements_stores === true
-    return afficherStores ? equipements : equipements.filter(({ key }) => key !== 'equipements_stores')
-  }
+  const equipementsDeLaChambre = (chambreKey) => (
+    afficherStoresHistorique(storesHistorique, ficheId, formDataChambres, chambreKey)
+      ? equipements
+      : equipements.filter(({ key }) => key !== 'equipements_stores')
+  )
 
   // État pour gérer les accordéons ouverts
   const [accordeonsOuverts, setAccordeonsOuverts] = useState({
