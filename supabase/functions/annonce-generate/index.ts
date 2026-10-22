@@ -38,6 +38,24 @@ import { type AirbnbAssembled, type AirbnbModelOutput, assembleAirbnbOutput, bui
 import { assembleBookingOutput, type BookingAssembled, type BookingModelOutput, parseBookingOutput, raisonBookingPostInvalide } from '../_shared/annonce/assemble-booking.ts'
 import { persistAnnonceOutput } from '../_shared/annonce/persist.ts'
 
+// Rotation des clés du 22/10/2026 (fuite Railway) : nouvelles clés API Supabase,
+// injectées par la plateforme en dictionnaires JSON (entrée « default »), en
+// priorité ; clés legacy en repli tant qu'elles existent.
+function cleSupabase(dictionnaire: string, legacy: string): string | undefined {
+  // @ts-ignore — Deno global
+  const brut = Deno.env.get(dictionnaire)
+  if (brut) {
+    try {
+      const cle = JSON.parse(brut)?.default
+      if (typeof cle === 'string' && cle) return cle
+    } catch {
+      // format inattendu : repli sur la clé legacy
+    }
+  }
+  // @ts-ignore — Deno global
+  return Deno.env.get(legacy)
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -68,9 +86,9 @@ serve(async (req: Request) => {
   // @ts-ignore — Deno global
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   // @ts-ignore — Deno global
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const serviceKey = cleSupabase('SUPABASE_SECRET_KEYS', 'SUPABASE_SERVICE_ROLE_KEY')
   // @ts-ignore — Deno global
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+  const anonKey = cleSupabase('SUPABASE_PUBLISHABLE_KEYS', 'SUPABASE_ANON_KEY')
 
   if (!supabaseUrl || !serviceKey || !anonKey) {
     console.error('[annonce-generate] clés Supabase incomplètes')
