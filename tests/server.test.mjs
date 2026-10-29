@@ -97,20 +97,20 @@ after(() => {
 
 // ─────────────────────────── Inventaire des routes ───────────────────────────
 
-test('les dix fonctions de api/ sont toutes portées, ni plus ni moins', () => {
+test('les quatorze fonctions de api/ sont toutes portées, ni plus ni moins', () => {
   const onDisk = readdirSync('api')
     .filter((f) => f.endsWith('.js'))
     .map((f) => f.replace(/\.js$/, ''))
     .sort()
   assert.deepEqual([...API_ROUTES].sort(), onDisk, 'API_ROUTES doit refléter exactement api/*.js')
-  assert.equal(API_ROUTES.length, 10)
+  assert.equal(API_ROUTES.length, 14)
 })
 
 test('les deux routes à corps brut sont bien celles qui lisent le flux', () => {
   assert.deepEqual([...RAW_BODY_ROUTES].sort(), ['invoice-webhook', 'webhook'])
 })
 
-test('le contrat d\'export Vercel des dix fonctions est intact', () => {
+test('le contrat d\'export Vercel des quatorze fonctions est intact', () => {
   // Contrôle statique volontaire : charger les modules exigerait la configuration
   // complète (plusieurs lèvent au chargement quand une variable manque). On vérifie donc
   // la forme du source. Objectif : garantir que la version Vercel reste déployable à

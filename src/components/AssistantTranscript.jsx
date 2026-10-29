@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, FileAudio, Upload, X, CheckCircle, Clock, AlertCircle, Info } from 'lucide-react'
 import { supabase } from '../supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
 import HowItWorksDrawer from './HowItWorksDrawer'
 
 export default function AssistantTranscript() {
@@ -14,6 +13,8 @@ export default function AssistantTranscript() {
   const [sendHistory, setSendHistory] = useState([])
   const [toast, setToast] = useState(null)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
+  const [progress, setProgress] = useState(null) // pourcentage d'envoi vers le stockage
+  const [openIdx, setOpenIdx] = useState(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function AssistantTranscript() {
     try {
       const { data, error } = await supabase
         .from('conversations')
-        .select('question, answer, created_at')
+        .select('question, answer, created_at, title, conversation_id')
         .eq('user_id', uid)
         .eq('source', 'assistant-transcript')
         .order('created_at', { ascending: false })
@@ -103,19 +104,9 @@ export default function AssistantTranscript() {
       return
     }
     
-  // Limite Railway : 500 Mo
-  if (file.size > 500 * 1024 * 1024) {
-    showToast('Le fichier est trop volumineux (max 500 Mo). Veuillez compresser votre vidéo.', 'error')
-    return
-  }
-    
-    // Détection si c'est un fichier audio ou vidéo
-    const isAudio = isMp3 || isWav || isM4a || (isWebm && file.type.startsWith('audio'))
-    const maxSize = isAudio ? 10 * 1024 * 1024 : 350 * 1024 * 1024 // 10MB audio, 350MB vidéo
-    
-    if (file.size > maxSize) {
-      const limitText = isAudio ? '10MB' : '350MB'
-      showToast(`Le fichier est trop volumineux. Taille maximum autorisée : ${limitText}.`, 'error')
+    // Le fichier part directement dans notre stockage (plus de limite de 350 Mo).
+    if (file.size > MAX_BYTES) {
+      showToast('Le fichier est trop volumineux (1 Go maximum).', 'error')
       return
     }
     
@@ -163,58 +154,78 @@ export default function AssistantTranscript() {
 
   const sendFile = async () => {
     if (!selectedFile || loading) return
-  
+
     setLoading(true)
-  
+    setProgress(0)
+
     try {
-      const sessionId = uuidv4()
-      const formData = new FormData()
-      formData.append('sessionId', sessionId)
-      if (userEmail) formData.append('userEmail', userEmail)
-      formData.append('file', selectedFile)
-  
-      console.log('📦 Envoi fichier:', selectedFile.name, selectedFile.size, 'bytes')
-  
-      // ✅ ATTENDRE la réponse au lieu de "fire and forget"
-      const response = await fetch('https://video-compressor-production.up.railway.app/extract-and-transcript', {
-        method: 'POST',
-        body: formData
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Session expirée, reconnectez-vous.')
+      const headers = { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }
+
+      // 1. Adresse de dépôt signée
+      const r1 = await fetch('/api/transcript-upload', {
+        method: 'POST', headers,
+        body: JSON.stringify({ filename: selectedFile.name, size: selectedFile.size }),
       })
-  
-      const responseText = await response.text().catch(() => '')
-      console.log('📬 Réponse serveur:', response.status, response.statusText, responseText)
-  
-      // ✅ Vérifier si ça a vraiment marché
-      if (!response.ok) {
-        throw new Error(`Erreur ${response.status}: ${response.statusText}`)
-      }
-  
-      const successMessage = `Fichier envoyé avec succès ! Vous recevrez la transcription par email à : ${userEmail}`
-  
+      const depot = await r1.json().catch(() => ({}))
+      if (!r1.ok) throw new Error(depot.error || `Erreur ${r1.status}`)
 
-      // Sauvegarder dans l'historique
-      if (userId) {
-        await supabase.from('conversations').insert({
-          user_id: userId,
-          source: 'assistant-transcript',
-          question: `[Fichier envoyé : ${selectedFile.name}]`,
-          answer: successMessage,
-          conversation_id: sessionId
-        })
+      // 2. Envoi direct du fichier dans le stockage, avec progression
+      await envoyerFichier(depot.uploadUrl, selectedFile, depot.contentType, setProgress)
 
-        // Recharger l'historique
-        loadSendHistory(userId)
-      }
+      // 3. Lancement de la transcription
+      const r2 = await fetch('/api/transcript-start', {
+        method: 'POST', headers,
+        body: JSON.stringify({ job: depot.job, cle: depot.cle, filename: selectedFile.name }),
+      })
+      const debut = await r2.json().catch(() => ({}))
+      if (!r2.ok) throw new Error(debut.error || `Erreur ${r2.status}`)
 
-      // Afficher le toast de succès
-      showToast(successMessage, 'success')
-
+      showToast(`Fichier envoyé ! La transcription s'affichera ici et vous sera envoyée par email à : ${userEmail}`, 'success')
       removeFile()
+      if (userId) loadSendHistory(userId)
     } catch (error) {
       console.error('Erreur:', error)
-      showToast('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.', 'error')
+      showToast(error?.message && !/^Erreur \d+$/.test(error.message)
+        ? error.message
+        : 'Une erreur est survenue lors de l\'envoi. Veuillez réessayer.', 'error')
     } finally {
       setLoading(false)
+      setProgress(null)
+    }
+  }
+
+  // Suivi des transcriptions en cours : toutes les 15 s, tant qu'il en reste.
+  const verifierEnCours = useCallback(async () => {
+    const enCours = sendHistory.filter((i) => etatDe(i) === 'en_cours')
+    if (!enCours.length || !userId) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    for (const item of enCours) {
+      try {
+        await fetch('/api/transcript-status', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job: item.conversation_id }),
+        })
+      } catch { /* réessai au prochain passage */ }
+    }
+    loadSendHistory(userId)
+  }, [sendHistory, userId])
+
+  useEffect(() => {
+    if (!sendHistory.some((i) => etatDe(i) === 'en_cours')) return
+    const t = setTimeout(verifierEnCours, 15000)
+    return () => clearTimeout(t)
+  }, [sendHistory, verifierEnCours])
+
+  const copier = async (texte) => {
+    try {
+      await navigator.clipboard.writeText(texte)
+      showToast('Transcription copiée', 'success')
+    } catch {
+      showToast('Copie impossible : sélectionnez le texte à la main.', 'error')
     }
   }
 
@@ -264,7 +275,7 @@ export default function AssistantTranscript() {
             </li>
             <li className="flex items-start gap-2">
               <span className="font-semibold text-[#dbae61]">3.</span>
-              <span>Recevez votre transcription par email à l'adresse : <strong className="text-gray-900">{userEmail}</strong></span>
+              <span>Retrouvez votre transcription ci-dessous, et par email à l'adresse : <strong className="text-gray-900">{userEmail}</strong></span>
             </li>
           </ol>
         </div>
@@ -310,7 +321,7 @@ export default function AssistantTranscript() {
                   Sélectionner un fichier
                 </label>
                 <p className="text-xs text-gray-500 mt-4">
-                  <strong>Audio :</strong> MP3, WAV, M4A, WebM (10 MB max) • <strong>Vidéo :</strong> MP4, WebM (350 MB max)
+                  <strong>Audio :</strong> MP3, WAV, M4A, WebM • <strong>Vidéo :</strong> MP4, MOV, WebM — 1 Go maximum
                 </p>
               </div>
             ) : (
@@ -332,7 +343,7 @@ export default function AssistantTranscript() {
                     {loading ? (
                       <>
                         <Clock className="w-4 h-4 animate-spin" />
-                        Envoi en cours...
+                        {progress !== null && progress < 100 ? `Envoi… ${progress} %` : 'Envoi en cours...'}
                       </>
                     ) : (
                       <>
@@ -398,7 +409,7 @@ export default function AssistantTranscript() {
               {sendHistory.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                  className="flex flex-wrap items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
                 >
                   <div className="w-8 h-8 bg-[#dbae61] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FileAudio className="w-4 h-4 text-[#dbae61]" />
@@ -417,12 +428,30 @@ export default function AssistantTranscript() {
                       })}
                     </p>
                   </div>
-                  <div className="flex-shrink-0">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
-                      <CheckCircle className="w-3 h-3" />
-                      Envoyé
-                    </span>
+                  <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                    <BadgeEtat etat={etatDe(item)} />
+                    {etatDe(item) === 'termine' && (
+                      <button
+                        onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
+                        className="text-xs text-[#dbae61] hover:underline"
+                      >
+                        {openIdx === idx ? 'Masquer' : 'Voir la transcription'}
+                      </button>
+                    )}
                   </div>
+                  {openIdx === idx && etatDe(item) === 'termine' && (
+                    <div className="basis-full w-full mt-2">
+                      <div className="max-h-80 overflow-y-auto whitespace-pre-wrap text-sm text-gray-800 bg-white border border-gray-200 rounded p-3">
+                        {item.answer}
+                      </div>
+                      <button
+                        onClick={() => copier(item.answer)}
+                        className="mt-2 text-xs text-gray-600 hover:text-gray-900 hover:underline"
+                      >
+                        Copier la transcription
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -472,4 +501,58 @@ export default function AssistantTranscript() {
       />
     </div>
   )
+}
+
+const MAX_BYTES = 1024 * 1024 * 1024 // 1 Go, même limite que le serveur
+
+// État d'une ligne d'historique. Les envois d'avant le 30/10/2026 (parcours n8n) n'ont
+// pas d'état : ils étaient envoyés par email uniquement.
+function etatDe(item) {
+  try {
+    const e = JSON.parse(item.title || '')
+    if (e && ['en_cours', 'termine', 'erreur'].includes(e.etat)) return e.etat
+  } catch { /* ancien envoi */ }
+  return 'envoye'
+}
+
+function BadgeEtat({ etat }) {
+  if (etat === 'en_cours') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+        <Clock className="w-3 h-3 animate-spin" />
+        En cours
+      </span>
+    )
+  }
+  if (etat === 'erreur') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded">
+        <AlertCircle className="w-3 h-3" />
+        Échec
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+      <CheckCircle className="w-3 h-3" />
+      {etat === 'termine' ? 'Terminé' : 'Envoyé'}
+    </span>
+  )
+}
+
+// Envoi direct du fichier vers l'adresse signée (PUT), avec progression.
+function envoyerFichier(url, file, contentType, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', contentType)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300
+      ? resolve()
+      : reject(new Error('L\'envoi du fichier a échoué, réessayez.')))
+    xhr.onerror = () => reject(new Error('Connexion interrompue pendant l\'envoi, réessayez.'))
+    xhr.send(file)
+  })
 }

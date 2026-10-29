@@ -12,10 +12,11 @@ const EMAIL_FROM = process.env.EMAIL_FROM || 'Mon Équipe IA <no-reply@im.outil-
 /**
  * Envoie un email via Resend. Lève une erreur si la clé manque ou si Resend répond
  * en erreur, pour que l'endpoint appelant remonte un échec explicite.
- * @param {{ to: string, subject: string, html: string, text?: string }} params
+ * `attachments` (facultatif) : [{ filename, content (base64) }], format Resend.
+ * @param {{ to: string, subject: string, html: string, text?: string, attachments?: {filename: string, content: string}[] }} params
  * @returns {Promise<{ id: string }>}
  */
-export async function sendEmail({ to, subject, html, text }) {
+export async function sendEmail({ to, subject, html, text, attachments }) {
   if (!RESEND_API_KEY) {
     throw new Error('RESEND_API_KEY manquante (env Vercel)')
   }
@@ -29,7 +30,7 @@ export async function sendEmail({ to, subject, html, text }) {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ from: EMAIL_FROM, to, subject, html, text })
+    body: JSON.stringify({ from: EMAIL_FROM, to, subject, html, text, ...(attachments?.length ? { attachments } : {}) })
   })
 
   if (!res.ok) {

@@ -29,7 +29,7 @@ import { APP_URL } from './api/_lib/env.js'
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url))
 
-// Les dix fonctions portées. Sert aussi d'inventaire vérifiable : un test compare cette
+// Les fonctions portées (dix historiques + quatre de l'Assistant Transcription). Sert aussi d'inventaire vérifiable : un test compare cette
 // liste au contenu réel de `api/`, pour qu'une onzième fonction ajoutée plus tard ne
 // puisse pas être oubliée ici en silence.
 export const API_ROUTES = [
@@ -42,6 +42,10 @@ export const API_ROUTES = [
   'create-credit-checkout-session',
   'create-portal-session',
   'invoice-webhook',
+  'transcript-start',
+  'transcript-status',
+  'transcript-upload',
+  'transcript-webhook',
   'webhook',
 ]
 
