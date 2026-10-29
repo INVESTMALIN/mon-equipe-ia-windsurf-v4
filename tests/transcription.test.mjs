@@ -6,7 +6,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   validerDepot, cleObjet, estCleDe, estUuid, etatSigne, lireEtat, comparerSecret,
-  mailSucces, mailEchec, finaliser, MESSAGE_ERREUR, MAX_BYTES,
+  mailSucces, mailEchec, finaliser, MESSAGE_ERREUR, MESSAGE_EN_COURS, MAX_BYTES,
+  jobDeCle, cleTraitement, accesAutorise, TRAITEMENT_PREFIX,
 } from '../api/_lib/transcription.js'
 
 const SECRET = 'secret-de-test'
@@ -41,6 +42,8 @@ test('état signé : relu tel quel, refusé s\'il est modifié', () => {
   assert.deepEqual(lireEtat(SECRET, JOB, title), { etat: 'en_cours', aai: 'tr_1', cle })
   const falsifie = JSON.stringify({ ...JSON.parse(title), aai: 'tr_autre' })
   assert.equal(lireEtat(SECRET, JOB, falsifie), null)
+  const etatChange = JSON.stringify({ ...JSON.parse(title), etat: 'termine' })
+  assert.equal(lireEtat(SECRET, JOB, etatChange), null)
   assert.equal(lireEtat(SECRET, 'autre-job', title), null)
   assert.equal(lireEtat('autre-secret', JOB, title), null)
   assert.equal(lireEtat(SECRET, JOB, null), null)
@@ -83,15 +86,19 @@ function fausseBase(ligne) {
 }
 
 function deps(ligne, transcription) {
-  const appels = { mails: [], effaces: [] }
+  const appels = { mails: [], effaces: [], aaiEfface: [] }
+  const presents = new Set(ligne?.cle ? [ligne.cle] : [])
   return {
     appels,
+    presents,
     d: {
       db: fausseBase(ligne),
       secret: SECRET,
       lireTranscription: async () => transcription,
       envoyerMail: async (m) => { appels.mails.push(m) },
-      effacerObjet: async (c) => { appels.effaces.push(c) },
+      effacerObjet: async (c) => { appels.effaces.push(c); presents.delete(c) },
+      objetExiste: async (c) => presents.has(c),
+      effacerTranscription: async (id) => { appels.aaiEfface.push(id) },
       emailDe: async () => 'client@example.org',
       log: { error() {} },
     },
@@ -99,8 +106,8 @@ function deps(ligne, transcription) {
 }
 
 function ligneEnCours() {
-  const cle = cleObjet(UID, '.mp4')
-  return { user_id: UID, answer: 'en cours', title: etatSigne(SECRET, { etat: 'en_cours', aai: 'tr_1', cle, job: JOB }), cle }
+  const cle = cleTraitement(UID, cleObjet(UID, '.mp4'))
+  return { user_id: UID, answer: MESSAGE_EN_COURS, created_at: new Date().toISOString(), title: etatSigne(SECRET, { etat: 'en_cours', aai: 'tr_1', cle, job: JOB }), cle }
 }
 
 test('finaliser : succès → texte enregistré, un seul mail, fichier effacé, puis idempotent', async () => {
@@ -112,8 +119,33 @@ test('finaliser : succès → texte enregistré, un seul mail, fichier effacé, 
   assert.equal(appels.mails.length, 1)
   assert.equal(appels.mails[0].to, 'client@example.org')
   assert.deepEqual(appels.effaces, [l.cle])
+  assert.deepEqual(appels.aaiEfface, ['tr_1'])
   assert.equal(await finaliser(JOB, d), 'deja_fait')
   assert.equal(appels.mails.length, 1)
+})
+
+test('finaliser : rejeu d\'un ancien état « en cours » → aucun mail (fichier déjà effacé)', async () => {
+  const l = ligneEnCours()
+  const { d, appels } = deps(l, { status: 'completed', text: 'Bonjour.' })
+  const ancienTitre = l.title
+  assert.equal(await finaliser(JOB, d), 'termine')
+  d.db.ligne = { ...d.db.ligne, title: ancienTitre } // l'utilisateur remet l'ancien état
+  for (let i = 0; i < 3; i++) assert.equal(await finaliser(JOB, d), 'deja_fait')
+  assert.equal(appels.mails.length, 1)
+  assert.equal(d.db.ligne.answer, 'Bonjour.')
+  assert.equal(lireEtat(SECRET, JOB, d.db.ligne.title).etat, 'termine')
+})
+
+test('finaliser : lancement interrompu → attend 15 min, puis échec sans mail', async () => {
+  const cle = cleTraitement(UID, cleObjet(UID, '.mp3'))
+  const recent = { user_id: UID, answer: MESSAGE_EN_COURS, created_at: new Date().toISOString(), title: etatSigne(SECRET, { etat: 'lancement', aai: '', cle, job: JOB }), cle }
+  let x = deps(recent, { status: 'completed', text: 'x' })
+  assert.equal(await finaliser(JOB, x.d), 'en_cours')
+  const vieux = { ...recent, created_at: new Date(Date.now() - 20 * 60 * 1000).toISOString() }
+  x = deps(vieux, { status: 'completed', text: 'x' })
+  assert.equal(await finaliser(JOB, x.d), 'erreur')
+  assert.equal(x.d.db.ligne.answer, MESSAGE_ERREUR)
+  assert.equal(x.appels.mails.length, 0)
 })
 
 test('finaliser : encore en traitement → rien ne change', async () => {
@@ -147,7 +179,8 @@ test('finaliser : état falsifié ou clé d\'un autre utilisateur → refusé sa
   assert.equal(await finaliser(JOB, x.d), 'invalide')
   assert.equal(x.appels.mails.length, 0)
 
-  const cleAutre = cleObjet('99999999-2222-3333-4444-555555555555', '.mp4')
+  const autreUid = '99999999-2222-3333-4444-555555555555'
+  const cleAutre = cleTraitement(autreUid, cleObjet(autreUid, '.mp4'))
   const autre = { user_id: UID, answer: '', title: etatSigne(SECRET, { etat: 'en_cours', aai: 'tr_1', cle: cleAutre, job: JOB }) }
   x = deps(autre, { status: 'completed', text: 'secret' })
   assert.equal(await finaliser(JOB, x.d), 'invalide')
@@ -163,4 +196,23 @@ test('finaliser : un mail en échec n\'empêche ni l\'enregistrement ni l\'effac
   assert.equal(await finaliser(JOB, d), 'termine')
   assert.equal(d.db.ligne.answer, 'ok')
   assert.equal(appels.effaces.length, 1)
+})
+
+test('jobDeCle, cleTraitement, accesAutorise', () => {
+  const cle = cleObjet(UID, '.wav')
+  assert.ok(estUuid(jobDeCle(cle)))
+  assert.equal(jobDeCle('pas/une/cle'), null)
+  const tr = cleTraitement(UID, cle)
+  assert.ok(tr.startsWith(`${TRAITEMENT_PREFIX}${UID}/`))
+  assert.equal(estCleDe(UID, tr, TRAITEMENT_PREFIX), true)
+  assert.equal(estCleDe(UID, tr), false)
+  const demain = new Date(Date.now() + 86400000).toISOString()
+  const hier = new Date(Date.now() - 86400000).toISOString()
+  assert.equal(accesAutorise({ role: 'admin' }), true)
+  assert.equal(accesAutorise({ role: 'admin', disabled_at: hier }), false)
+  assert.equal(accesAutorise({ subscription_status: 'premium', subscription_current_period_end: demain }), true)
+  assert.equal(accesAutorise({ subscription_status: 'premium', subscription_current_period_end: hier }), false)
+  assert.equal(accesAutorise({ subscription_status: 'trial', subscription_trial_end: demain }), true)
+  assert.equal(accesAutorise({ subscription_status: 'free' }), false)
+  assert.equal(accesAutorise(null), false)
 })

@@ -18,12 +18,13 @@ export default async function handler(req, res) {
     let ligne = await db.lire(job)
     if (!ligne || ligne.user_id !== user.id) return res.status(404).json({ error: 'Introuvable' })
     let etat = lireEtat(WEBHOOK_SECRET, job, ligne.title)
-    if (etat?.etat === 'en_cours') {
+    if (etat?.etat === 'en_cours' || etat?.etat === 'lancement') {
       await finaliser(job, depsFinaliser)
       ligne = await db.lire(job)
       etat = lireEtat(WEBHOOK_SECRET, job, ligne?.title)
     }
-    return res.status(200).json({ etat: etat?.etat || 'erreur', answer: ligne?.answer || '' })
+    const e = etat?.etat === 'lancement' ? 'en_cours' : (etat?.etat || 'erreur')
+    return res.status(200).json({ etat: e, answer: ligne?.answer || '' })
   } catch (err) {
     console.error('[transcript-status]', job, err?.message)
     return res.status(500).json({ error: 'Erreur serveur' })

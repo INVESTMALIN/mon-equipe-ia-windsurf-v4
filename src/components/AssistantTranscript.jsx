@@ -174,10 +174,14 @@ export default function AssistantTranscript() {
       // 2. Envoi direct du fichier dans le stockage, avec progression
       await envoyerFichier(depot.uploadUrl, selectedFile, depot.contentType, setProgress)
 
-      // 3. Lancement de la transcription
+      // 3. Lancement de la transcription (session relue : un gros envoi peut durer
+      //    plus longtemps que la validité du jeton lu au départ)
+      const { data: { session: s2 } } = await supabase.auth.getSession()
+      if (!s2) throw new Error('Session expirée, reconnectez-vous.')
       const r2 = await fetch('/api/transcript-start', {
-        method: 'POST', headers,
-        body: JSON.stringify({ job: depot.job, cle: depot.cle, filename: selectedFile.name }),
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s2.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cle: depot.cle, filename: selectedFile.name }),
       })
       const debut = await r2.json().catch(() => ({}))
       if (!r2.ok) throw new Error(debut.error || `Erreur ${r2.status}`)
@@ -198,7 +202,7 @@ export default function AssistantTranscript() {
 
   // Suivi des transcriptions en cours : toutes les 15 s, tant qu'il en reste.
   const verifierEnCours = useCallback(async () => {
-    const enCours = sendHistory.filter((i) => etatDe(i) === 'en_cours')
+    const enCours = sendHistory.filter(aSuivre)
     if (!enCours.length || !userId) return
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
@@ -215,7 +219,7 @@ export default function AssistantTranscript() {
   }, [sendHistory, userId])
 
   useEffect(() => {
-    if (!sendHistory.some((i) => etatDe(i) === 'en_cours')) return
+    if (!sendHistory.some(aSuivre)) return
     const t = setTimeout(verifierEnCours, 15000)
     return () => clearTimeout(t)
   }, [sendHistory, verifierEnCours])
@@ -408,7 +412,7 @@ export default function AssistantTranscript() {
             <div className="space-y-3">
               {sendHistory.map((item, idx) => (
                 <div 
-                  key={idx} 
+                  key={item.conversation_id || idx} 
                   className="flex flex-wrap items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
                 >
                   <div className="w-8 h-8 bg-[#dbae61] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -432,14 +436,14 @@ export default function AssistantTranscript() {
                     <BadgeEtat etat={etatDe(item)} />
                     {etatDe(item) === 'termine' && (
                       <button
-                        onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
+                        onClick={() => setOpenIdx(openIdx === cleLigne(item, idx) ? null : cleLigne(item, idx))}
                         className="text-xs text-[#dbae61] hover:underline"
                       >
-                        {openIdx === idx ? 'Masquer' : 'Voir la transcription'}
+                        {openIdx === cleLigne(item, idx) ? 'Masquer' : 'Voir la transcription'}
                       </button>
                     )}
                   </div>
-                  {openIdx === idx && etatDe(item) === 'termine' && (
+                  {openIdx === cleLigne(item, idx) && etatDe(item) === 'termine' && (
                     <div className="basis-full w-full mt-2">
                       <div className="max-h-80 overflow-y-auto whitespace-pre-wrap text-sm text-gray-800 bg-white border border-gray-200 rounded p-3">
                         {item.answer}
@@ -510,9 +514,20 @@ const MAX_BYTES = 1024 * 1024 * 1024 // 1 Go, même limite que le serveur
 function etatDe(item) {
   try {
     const e = JSON.parse(item.title || '')
+    if (e?.etat === 'lancement') return 'en_cours'
     if (e && ['en_cours', 'termine', 'erreur'].includes(e.etat)) return e.etat
   } catch { /* ancien envoi */ }
   return 'envoye'
+}
+
+// On ne suit que les transcriptions récentes encore en cours (au-delà d'un jour, le
+// serveur les a refermées ; inutile d'interroger indéfiniment).
+function aSuivre(item) {
+  return etatDe(item) === 'en_cours' && Date.now() - new Date(item.created_at).getTime() < 24 * 60 * 60 * 1000
+}
+
+function cleLigne(item, idx) {
+  return item.conversation_id || `i${idx}`
 }
 
 function BadgeEtat({ etat }) {

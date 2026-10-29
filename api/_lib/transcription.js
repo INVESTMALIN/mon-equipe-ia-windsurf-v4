@@ -17,7 +17,14 @@
 // L'état d'une transcription vit dans la colonne `title` de sa ligne
 // `conversations` (JSON), sans migration : { etat, aai, cle, sig }. La ligne
 // appartient à l'utilisateur (RLS), qui pourrait la modifier : `sig` (HMAC serveur)
-// garantit que `aai` et `cle` n'ont pas été changés avant qu'on s'en serve.
+// garantit que rien n'a été changé avant qu'on s'en serve. Un ancien `title` signé
+// pourrait être remis en place pour rejouer la fin : l'existence du fichier en cours
+// de traitement dans R2 sert de jeton à usage unique (effacé à la fin).
+//
+// Deux préfixes R2 : `transcripts/<userId>/` reçoit le dépôt du navigateur (URL PUT
+// signée) ; au lancement, le fichier est COPIÉ vers `traitement/<userId>/`, dont
+// l'utilisateur ne connaît aucune adresse d'écriture, puis l'original est effacé :
+// le fichier transcrit ne peut plus être remplacé après les contrôles.
 //
 // Le fichier commence par `_` → ignoré par Vercel comme fonction serverless (helper).
 // Sans import réseau au chargement : les fonctions pures sont testées par `npm test`.
@@ -27,6 +34,9 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 export const SOURCE = 'assistant-transcript'
 export const MAX_BYTES = 1024 * 1024 * 1024 // 1 Go
 export const KEY_PREFIX = 'transcripts/'
+export const TRAITEMENT_PREFIX = 'traitement/'
+export const MAX_EN_COURS = 3      // fichiers déposés ou en traitement, par utilisateur
+export const MAX_PAR_JOUR = 20     // transcriptions lancées par jour et par utilisateur
 
 const TYPES = {
   '.mp4': 'video/mp4',
@@ -62,12 +72,40 @@ export function cleObjet(userId, ext) {
 }
 
 /** La clé R2 appartient-elle bien à cet utilisateur (et à rien d'autre) ? */
-export function estCleDe(userId, cle) {
+export function estCleDe(userId, cle, racine = KEY_PREFIX) {
   if (typeof cle !== 'string' || typeof userId !== 'string' || !userId) return false
-  const prefix = `${KEY_PREFIX}${userId}/`
+  const prefix = `${racine}${userId}/`
   if (!cle.startsWith(prefix)) return false
   const reste = cle.slice(prefix.length)
   return /^[0-9a-f-]{36}\.[a-z0-9]+$/.test(reste)
+}
+
+/** Identifiant de la transcription = l'uuid de la clé de dépôt (non choisi par le client). */
+export function jobDeCle(cle) {
+  const m = /\/([0-9a-f-]{36})\.[a-z0-9]+$/.exec(String(cle || ''))
+  return m ? m[1] : null
+}
+
+/** Clé de traitement (copie non réinscriptible) correspondant à une clé de dépôt. */
+export function cleTraitement(userId, cleDepot) {
+  const nom = String(cleDepot).slice(`${KEY_PREFIX}${userId}/`.length)
+  return `${TRAITEMENT_PREFIX}${userId}/${nom}`
+}
+
+/**
+ * Même règle d'accès que la page (ProtectedRoute requirePremium) : admin, essai en
+ * cours ou abonnement premium en cours, compte non désactivé.
+ */
+export function accesAutorise(profil, maintenant = new Date()) {
+  if (!profil || profil.disabled_at) return false
+  if (profil.role === 'admin') return true
+  if (profil.subscription_status === 'trial') {
+    return Boolean(profil.subscription_trial_end) && new Date(profil.subscription_trial_end) >= maintenant
+  }
+  if (profil.subscription_status === 'premium') {
+    return Boolean(profil.subscription_current_period_end) && new Date(profil.subscription_current_period_end) >= maintenant
+  }
+  return false
 }
 
 export function estUuid(v) {
@@ -78,9 +116,9 @@ function hmac(secret, texte) {
   return createHmac('sha256', secret).update(texte).digest('hex')
 }
 
-/** État stocké dans `title`, signé. */
+/** État stocké dans `title`, signé (état compris). */
 export function etatSigne(secret, { etat, aai, cle, job }) {
-  return JSON.stringify({ etat, aai, cle, sig: hmac(secret, `${job}|${aai}|${cle}`) })
+  return JSON.stringify({ etat, aai, cle, sig: hmac(secret, `${job}|${etat}|${aai}|${cle}`) })
 }
 
 /** Relit et vérifie l'état ; null s'il est illisible ou falsifié. */
@@ -88,7 +126,7 @@ export function lireEtat(secret, job, title) {
   let e
   try { e = JSON.parse(title) } catch { return null }
   if (!e || typeof e !== 'object' || typeof e.sig !== 'string') return null
-  const attendu = Buffer.from(hmac(secret, `${job}|${e.aai}|${e.cle}`))
+  const attendu = Buffer.from(hmac(secret, `${job}|${e.etat}|${e.aai}|${e.cle}`))
   const recu = Buffer.from(e.sig)
   if (attendu.length !== recu.length || !timingSafeEqual(attendu, recu)) return null
   return { etat: e.etat, aai: e.aai, cle: e.cle }
@@ -214,21 +252,45 @@ export function mailEchec() {
 
 /**
  * Termine une transcription : lit le résultat chez AssemblyAI, l'enregistre, envoie
- * le mail, efface le fichier déposé. Idempotent et sûr en concurrence (webhook et
- * vérification de l'appli peuvent arriver en même temps) : la ligne n'est mise à jour
- * que si son `title` n'a pas changé depuis la lecture, et seul ce gagnant envoie le mail.
+ * le mail, efface le fichier traité et le texte chez AssemblyAI. Idempotent et sûr en
+ * concurrence (rappel AssemblyAI, appli et balayage peuvent arriver ensemble) : la
+ * ligne n'est mise à jour que si son `title` n'a pas changé depuis la lecture, et seul
+ * ce gagnant envoie le mail. Le fichier de traitement sert de jeton à usage unique :
+ * absent, on referme la ligne sans renvoyer de mail (rejeu d'un ancien état).
  *
- * deps : { db, secret, lireTranscription, envoyerMail, effacerObjet, emailDe, log }
+ * deps : { db, secret, lireTranscription, envoyerMail, effacerObjet, objetExiste,
+ *          effacerTranscription, emailDe, log }
  * @returns {'termine'|'erreur'|'en_cours'|'deja_fait'|'inconnu'|'invalide'}
  */
 export async function finaliser(job, deps) {
-  const { db, secret, lireTranscription, envoyerMail, effacerObjet, emailDe, log = console } = deps
+  const { db, secret, lireTranscription, envoyerMail, effacerObjet, objetExiste, effacerTranscription, emailDe, log = console } = deps
   const ligne = await db.lire(job)
   if (!ligne) return 'inconnu'
   const etat = lireEtat(secret, job, ligne.title)
   if (!etat) return 'invalide'
+  if (etat.etat === 'lancement') {
+    // Lancement interrompu (panne entre la création de la ligne et AssemblyAI) :
+    // au-delà de 15 min, on referme en échec, sans mail (rien n'a été transcrit).
+    const age = Date.now() - new Date(ligne.created_at || Date.now()).getTime()
+    if (age < 15 * 60 * 1000) return 'en_cours'
+    await db.majSiInchangee(job, ligne.title, {
+      answer: MESSAGE_ERREUR,
+      title: etatSigne(secret, { etat: 'erreur', aai: '', cle: etat.cle, job }),
+    })
+    try { await effacerObjet(etat.cle) } catch { /* cycle de vie du bucket en filet */ }
+    return 'erreur'
+  }
   if (etat.etat !== 'en_cours') return 'deja_fait'
-  if (!estCleDe(ligne.user_id, etat.cle)) return 'invalide'
+  if (!estCleDe(ligne.user_id, etat.cle, TRAITEMENT_PREFIX) || !etat.aai) return 'invalide'
+
+  if (!(await objetExiste(etat.cle))) {
+    const dejaTermine = ligne.answer && ligne.answer !== MESSAGE_EN_COURS && ligne.answer !== MESSAGE_ERREUR
+    await db.majSiInchangee(job, ligne.title, {
+      ...(dejaTermine ? {} : { answer: MESSAGE_ERREUR }),
+      title: etatSigne(secret, { etat: dejaTermine ? 'termine' : 'erreur', aai: etat.aai, cle: etat.cle, job }),
+    })
+    return 'deja_fait'
+  }
 
   const t = await lireTranscription(etat.aai)
   if (t.status === 'queued' || t.status === 'processing') return 'en_cours'
@@ -244,6 +306,13 @@ export async function finaliser(job, deps) {
 
   if (!reussi) log.error(`[transcription] ${job} en échec chez AssemblyAI (${t.status}) : ${String(t.error || '').slice(0, 200)}`)
 
+  // Le fichier d'abord : c'est lui qui empêche tout rejeu.
+  try {
+    await effacerObjet(etat.cle)
+  } catch (err) {
+    log.error(`[transcription] ${job} : effacement R2 en échec (cycle de vie du bucket en filet) : ${err?.message}`)
+  }
+
   const email = await emailDe(ligne.user_id)
   if (email) {
     try {
@@ -252,11 +321,15 @@ export async function finaliser(job, deps) {
       // La transcription reste visible dans l'appli ; l'échec du mail est journalisé.
       log.error(`[transcription] ${job} : envoi du mail en échec : ${err?.message}`)
     }
+  } else {
+    log.error(`[transcription] ${job} : adresse email introuvable, mail non envoyé`)
   }
+
+  // Le texte n'a plus à rester chez AssemblyAI.
   try {
-    await effacerObjet(etat.cle)
+    await effacerTranscription?.(etat.aai)
   } catch (err) {
-    log.error(`[transcription] ${job} : effacement R2 en échec (cycle de vie du bucket en filet) : ${err?.message}`)
+    log.error(`[transcription] ${job} : effacement chez AssemblyAI en échec : ${err?.message}`)
   }
   return nouvelEtat
 }
