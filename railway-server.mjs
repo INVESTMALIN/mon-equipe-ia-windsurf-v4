@@ -29,7 +29,7 @@ import { APP_URL } from './api/_lib/env.js'
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url))
 
-// Les dix fonctions portées. Sert aussi d'inventaire vérifiable : un test compare cette
+// Les fonctions portées (dix historiques + quatre de l'Assistant Transcription). Sert aussi d'inventaire vérifiable : un test compare cette
 // liste au contenu réel de `api/`, pour qu'une onzième fonction ajoutée plus tard ne
 // puisse pas être oubliée ici en silence.
 export const API_ROUTES = [
@@ -42,6 +42,10 @@ export const API_ROUTES = [
   'create-credit-checkout-session',
   'create-portal-session',
   'invoice-webhook',
+  'transcript-start',
+  'transcript-status',
+  'transcript-upload',
+  'transcript-webhook',
   'webhook',
 ]
 
@@ -167,12 +171,12 @@ export function createApp({ distDir = path.join(ROOT, 'dist'), loadHandler = cre
     mountApiRoute(app, name, loadHandler)
   }
 
-  // 4. Parseur JSON. Sans lui `req.body` vaut undefined et les huit handlers restants
+  // 4. Parseur JSON. Sans lui `req.body` vaut undefined et les handlers restants
   //    répondent « ... requis » — une panne qui ressemble à un bug applicatif. Limite
   //    alignée sur celle que Vercel appliquait.
   app.use(express.json({ limit: '1mb' }))
 
-  // 5. Les huit autres routes.
+  // 5. Les autres routes (tout sauf les deux à corps brut).
   for (const name of API_ROUTES.filter((n) => !RAW_BODY_ROUTES.has(n))) {
     mountApiRoute(app, name, loadHandler)
   }
@@ -362,6 +366,22 @@ if (isEntrypoint) {
   const server = createApp().listen(port, () => {
     console.log(`[server] à l'écoute sur le port ${port}`)
   })
+
+  // Assistant Transcription : toutes les 10 min, termine les transcriptions restées
+  // « en cours » (rappel AssemblyAI perdu, utilisateur parti). Import paresseux : sans
+  // ses variables, le module lève et le balayage est simplement désactivé.
+  const balayage = setInterval(async () => {
+    try {
+      const { balayer } = await import('./api/_lib/transcriptionService.js')
+      const bilan = await balayer()
+      if (Object.keys(bilan).length) console.log('[transcription] balayage :', JSON.stringify(bilan))
+    } catch (err) {
+      if (!/Variable d'environnement manquante/.test(err?.message || '')) {
+        console.error('[transcription] balayage en échec :', err?.message)
+      }
+    }
+  }, 10 * 60 * 1000)
+  balayage.unref()
 
   // Railway envoie SIGTERM au remplacement du conteneur. Sans fermeture propre, une
   // requête en vol est coupée net — une session Stripe en cours de création, par exemple.
